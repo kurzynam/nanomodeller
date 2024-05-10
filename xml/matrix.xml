@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Matrix>
+    <Row i="0">
+        <Element im_val="0.5" j="0" real_val="0"/>
+        <Element im_val="0" j="1" real_val="-1"/>
+        <Element im_val="0" j="2" real_val="0"/>
+    </Row>
+    <Row i="1">
+        <Element im_val="0" j="0" real_val="-1"/>
+        <Element im_val="0.5" j="1" real_val="0"/>
+        <Element im_val="0" j="2" real_val="-1"/>
+    </Row>
+    <Row i="2">
+        <Element im_val="0" j="0" real_val="0"/>
+        <Element im_val="0" j="1" real_val="-1"/>
+        <Element im_val="0.0" j="2" real_val="0"/>
+    </Row>
+</Matrix>

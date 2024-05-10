@@ -3,9 +3,9 @@ package org.nanomodeller.XMLMappingFiles;
 import org.nanomodeller.Globals;
 
 import java.io.File;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 
 
 public class XMLHelper {
@@ -15,7 +15,9 @@ public class XMLHelper {
         File file = new File(path);
         GlobalChainProperties gp = null;
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(GlobalChainProperties.class);
+            JAXBContext jaxbContext =
+
+                    JAXBContext.newInstance(GlobalChainProperties.class);
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             gp = (GlobalChainProperties) jaxbUnmarshaller.unmarshal(file);
         }

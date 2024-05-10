@@ -1378,7 +1378,7 @@ public class NanoModeller extends JFrame {
                 }
             }
             if (isOutside){
-                UndoRedoQueue.getInstance().push(mapGlobalPropertiesObject(getTime(), getCurrentDataPath(), getIsActive()));
+                //UndoRedoQueue.getInstance().push(mapGlobalPropertiesObject(getTime(), getCurrentDataPath(), getIsActive()));
                 setHighlightedBound(null);
                 setHighlightedElectrode(null);
                 getMenu().surfaceCouplingTextField.setText(getSurfaceCoupling());

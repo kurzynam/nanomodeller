@@ -372,6 +372,8 @@ public class FileBrowser extends JPanel{
             }
         }
         public void sortByNumber(File[] files) {
+            if(files.length == 0)
+                return;
             Arrays.sort(files, new Comparator<File>() {
                 @Override
                 public int compare(File o1, File o2) {

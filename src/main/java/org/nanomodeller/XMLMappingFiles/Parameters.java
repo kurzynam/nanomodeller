@@ -148,7 +148,7 @@ public class Parameters {
 
     @XmlAttribute(name="grid_size")
     public String getGridSize() {
-        return GridSize;
+        return GridSize == null ? "10" : GridSize;
     }
     public void setGridSize(String gridSize) {
         GridSize = gridSize;
