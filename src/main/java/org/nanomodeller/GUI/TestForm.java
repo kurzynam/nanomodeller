@@ -180,9 +180,9 @@ public class TestForm {
     private void initializeComponents(){
 
         gp = GlobalProperties.getInstance();
-        plotOrderComboBox.setSelectedItem("" + gp.getRowsFirst());
-        fontComboBox.setSelectedItem("" + gp.getFont());
-        multiplotTypeComboBox.setSelectedItem("" + gp.getMultiplotStyle());
+        //plotOrderComboBox.setSelectedItem("" + gp.getRowsFirst());
+        fontComboBox.setSelectedItem(gp.getFont());
+        multiplotTypeComboBox.setSelectedItem(gp.getMultiplotStyle());
         fontSizeTextField.setText(gp.getTextSize() + "");
         marginTextField.setText(gp.getMargin() + "");
         xTicsOffsetTextField.setText(gp.getxTicsOffset() + "");

@@ -148,17 +148,7 @@ public class LeftMenuPanel extends MyPanel {
     }
 
     public void saveStep() {
-        //ActiveString element = (ActiveString)(modeller.getList().getSelectedValue());
-        String time = timeTextField.getText();
-        String name = fileBrowser.getNodes().get(fileBrowser.getSelectedFiles()[0]).getPath()[0].toString();//element.text;
-        if (!name.isEmpty() && !time.isEmpty()){
-//            if (!modeller.getListModel().contains(element)) {
-//                modeller.getListModel().addElement(element);
-//            }
-            //GlobalProperties gp = modeller.mapGlobalPropertiesObject( time, name, true);;
-            modeller.saveData();
-           // modeller.getList().setSelectedIndex(modeller.getListModel().indexOf(name));
-        }
+        modeller.saveData();
     }
 
 }
