@@ -122,10 +122,7 @@ public class NanoModeller extends JFrame {
         inst.setStepRecorder(new LeftMenuPanel());
         inst.readDataFromObject(true, null);
         inst.getStepRecorder().setPreferredSize(new Dimension((int)inst.screenWidth/2, (int)inst.screenHeight/2));
-        new File("undo").mkdir();
-        //inst.readData(null, false);
         inst.setTitle(APP_NAME);
-        //inst.getList().setSelectedIndex(0);
         inst.getPaintSurface().setPreferredSize(new Dimension((int)(inst.getGridSize() * inst.getScreenWidth()),(int)(inst.getGridSize() * inst.getScreenHeight())));
         inst.setSize((int)inst.screenWidth * 3, (int)inst.screenHeight * 3);
         inst.getScrollPane().setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -134,20 +131,6 @@ public class NanoModeller extends JFrame {
         inst.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         inst.setIsInterupted(new Flag(false));
         inst.setIsCanceled(new Flag(false));
-        inst.addWindowListener(new WindowAdapter()
-        {
-            @Override
-            public void windowClosing(WindowEvent e)
-            {
-                File directory = new File("undo");
-                if (directory.exists()){
-                    for (File f : directory.listFiles()){
-                        f.delete();
-                    }
-                }
-                directory.delete();
-            }
-        });
         inst.add(inst.getScrollPane(), BorderLayout.CENTER);
         inst.add(inst.getMenu(), BorderLayout.EAST);
         inst.add(inst.getStepRecorder(), BorderLayout.WEST);
@@ -527,21 +510,7 @@ public class NanoModeller extends JFrame {
 
     }
 
-    private void redo() {
-        if(UndoRedoQueue.getInstance().next() != null) {
-            UndoRedoQueue.getInstance().currentUp();
-            readDataFromObject( true, getStepRecorder().timeTextField);
-            getPaintSurface().repaint();
-        }
-    }
-    private void undo() {
-        if(UndoRedoQueue.getInstance().prev() != null) {
-            UndoRedoQueue.getInstance().currentDown();
-            readDataFromObject( true, getStepRecorder().timeTextField);
-            getPaintSurface().repaint();
-        }
 
-    }
     public void refresh() {
         setHighlightedShape(null);
         setHighlightedBound(null);
@@ -1221,12 +1190,6 @@ public class NanoModeller extends JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_DELETE){
                     clearAll();
                     setCtrlPressed(false);
-                }
-                if (e.getKeyCode() == KeyEvent.VK_Z){
-                    undo();
-                }
-                else if (e.getKeyCode() == KeyEvent.VK_Y){
-                    redo();
                 }
                 else if (e.getKeyCode() == KeyEvent.VK_C){
                     copy();
@@ -1926,9 +1889,7 @@ public class NanoModeller extends JFrame {
         MyButton countNormalisation = new MyButton("Static normalisation(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
         MyButton showNormalisation = new MyButton("Charge(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
         MyButton showLDOS = new MyButton("Static LDOS(i)", new ImageIcon(LDOS_BUTTON_IMAGE_PATH));
-        MyButton undoButton = new MyButton("Undo", new ImageIcon(UNDO_BUTTON_IMAGE_PATH));
-        MyButton redoButton = new MyButton("Redo", new ImageIcon(REDO_BUTTON_IMAGE_PATH));
-        MyButton timeEvolutionButton = new MyButton("Count time evolution", new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
+       MyButton timeEvolutionButton = new MyButton("Count time evolution", new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
         MyButton showLDOSTimeEvolutionButton = new MyButton("LDOS(t)", new ImageIcon(SHOW_LDOS_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
         MyButton showCurrentTimeEvolutionButton = new MyButton("I(t)", new ImageIcon(SHOW_CURRENT_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
         MyButton showTDOSTimeEvolutionButton = new MyButton("TDOS(t)", new ImageIcon(SHOW_LDOS_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
@@ -1982,8 +1943,6 @@ public class NanoModeller extends JFrame {
             Image newimg = img.getScaledInstance( 250, 110,  Image.SCALE_SMOOTH ) ;
             ImageIcon imIc = new ImageIcon(newimg);
             logo.setIcon(imIc);
-            redoButton.setToolTipText("Ctrl + Y");
-            undoButton.setToolTipText("Ctrl + Z");
             showLDOS.setToolTipText("L");
             countStaticProperties.setToolTipText("Ctrl + L");
             GridBagConstraints pointer = new GridBagConstraints();
@@ -2091,10 +2050,6 @@ public class NanoModeller extends JFrame {
             pointer.gridy++;
             add(countNormalisation, pointer);
             pointer.gridy++;
-            add(undoButton, pointer);
-            pointer.gridy++;
-            add(redoButton, pointer);
-            pointer.gridy++;
             add(timeEvolutionButton, pointer);
             pointer.gridy++;
             add(showLDOSTimeEvolutionButton, pointer);
@@ -2118,8 +2073,6 @@ public class NanoModeller extends JFrame {
             showLDOSLastTButton.addActionListener(e -> showLastT(LDOS_FILE_NAME_PATTERN));
             showNormalisationLastTButton.addActionListener(e -> showLastT(NORMALISATION_FILE_NAME_PATTERN));
             showLDOS.addActionListener(e -> showLDOS());
-            undoButton.addActionListener(e -> undo());
-            redoButton.addActionListener(e -> redo());
             countStaticProperties.addActionListener(e -> countStaticProperties());
 
             timeEvolutionButton.addActionListener(evt -> {

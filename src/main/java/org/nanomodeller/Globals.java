@@ -53,8 +53,6 @@ public class Globals {
     public static final String NORMALISATION_BUTTON_IMAGE_PATH = "img/normalisation.png";
     public static final String LOGO_IMAGE_PATH = "img/logo.png";
     public static final String LDOS_BUTTON_IMAGE_PATH = "img/LDOSIImage.png";
-    public static final String UNDO_BUTTON_IMAGE_PATH = "img/undoIcon.png";
-    public static final String REDO_BUTTON_IMAGE_PATH = "img/redoIcon.png";
     public static final String TIME_EVOLUTION_BUTTON_IMAGE_PATH = "img/calculateTime.png";
     public static final String SHOW_LDOS_TIME_EVOLUTION_BUTTON_IMAGE_PATH = "img/timeIcon.png";
     public static final String SHOW_CURRENT_TIME_EVOLUTION_BUTTON_IMAGE_PATH = "img/timeIcon.png";
