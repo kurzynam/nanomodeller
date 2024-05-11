@@ -94,9 +94,7 @@ public class NanoModeller extends JFrame {
     private String currentDataPath;
     private String time = "0.0";
     private boolean isActive = true;
-    private DefaultListModel listModel;
-    private JList list;
-    private JList stepsList;
+
     private String stepCount = "0";
 
     public static long getSerialVersionUID() {
@@ -1171,43 +1169,7 @@ public class NanoModeller extends JFrame {
         this.isActive = isActive;
     }
 
-    public DefaultListModel getListModel() {
-        return listModel;
-    }
 
-    public void setListModel(DefaultListModel listModel) {
-        this.listModel = listModel;
-    }
-
-    public JList getList() {
-        return list;
-    }
-
-    public void setList(JList list) {
-        this.list = list;
-        list.setCellRenderer(new DefaultListCellRenderer() {
-
-            @Override
-            public Component getListCellRendererComponent(JList list, Object value, int index,
-                                                          boolean isSelected, boolean cellHasFocus) {
-                Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof LeftMenuPanel.ActiveString) {
-                    LeftMenuPanel.ActiveString element = (LeftMenuPanel.ActiveString)value;
-                    if (element.isActive) {
-                        setForeground(Color.BLACK);
-                    }else {
-                        setForeground(Color.GRAY);
-                    }
-                    if (isSelected) {
-                        setBackground(Color.GREEN);
-                    }
-                }
-                setBorder(BorderFactory.createEtchedBorder());
-                return component;
-            }
-
-        });
-    }
 
     public String getStepCount() {
         return stepCount;
