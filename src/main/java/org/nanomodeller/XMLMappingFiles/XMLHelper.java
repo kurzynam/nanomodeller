@@ -3,6 +3,7 @@ package org.nanomodeller.XMLMappingFiles;
 import org.nanomodeller.Globals;
 
 import java.io.File;
+
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
@@ -11,15 +12,15 @@ import jakarta.xml.bind.Unmarshaller;
 public class XMLHelper {
 
 
-    public static GlobalChainProperties readParametersFromXMLFile(String path){
+    public static GlobalProperties readGlobalPropertiesFromXMLFile(String path){
         File file = new File(path);
-        GlobalChainProperties gp = null;
+        GlobalProperties gp = null;// GlobalProperties.getInstance();
         try {
             JAXBContext jaxbContext =
 
-                    JAXBContext.newInstance(GlobalChainProperties.class);
+                    JAXBContext.newInstance(GlobalProperties.class);
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            gp = (GlobalChainProperties) jaxbUnmarshaller.unmarshal(file);
+            gp = (GlobalProperties) jaxbUnmarshaller.unmarshal(file);
         }
         catch (Exception ex){
             ex.printStackTrace();
@@ -27,6 +28,25 @@ public class XMLHelper {
         return gp;
     }
 
+    public static void readPropertiesFromXMLFile(String path){
+        File file = new File(path);
+        Parameters properties = null;
+        if (file.exists()) {
+            try {
+                JAXBContext jaxbContext =
+
+                        JAXBContext.newInstance(Parameters.class);
+                Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+                properties = (Parameters) jaxbUnmarshaller.unmarshal(file);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            Parameters.reloadInstance(properties);
+        } else {
+            Parameters.reloadInstance(null);
+        }
+    }
     public static Matrix readMatrixFromXMLFile(String path){
         File file = new File(path);
         Matrix matrix = null;
@@ -41,16 +61,20 @@ public class XMLHelper {
         return matrix;
     }
 
-    public static void convertObjectToXML(Object o) {
+    public static void convertObjectToXML(Object o, String path) {
 
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(o.getClass());
             Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
             jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            jaxbMarshaller.marshal(o, new File(Globals.XML_FILE_PATH));
+            jaxbMarshaller.marshal(o, new File(path));
         }
         catch (Exception ex){
             ex.printStackTrace();
         }
     }
+    public static void convertObjectToXML(Object o){
+        convertObjectToXML(o, Globals.XML_FILE_PATH);
+    }
+
 }

@@ -15,4 +15,7 @@ public class FileOperationHelper {
 
         }
     }
+    public static boolean fileExists(String path){
+        return (new File(path).exists());
+    }
 }

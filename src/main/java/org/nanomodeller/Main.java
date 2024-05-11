@@ -100,7 +100,7 @@ public class Main {
 //
 //        ArrayList<ArrayList<Color>> palettes = new ArrayList<>();
 
-            new NanoModeller();
+            NanoModeller.getInstance().initNanoModeller();
 //        readData(2,2);
 //        palettes.add(pal1);
 //        palettes.add(pal2);

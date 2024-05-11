@@ -6,9 +6,21 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-@XmlRootElement(name="root")
-public class GlobalChainProperties {
+import static org.nanomodeller.Globals.XML_FILE_PATH;
+import static org.nanomodeller.XMLMappingFiles.XMLHelper.readGlobalPropertiesFromXMLFile;
 
+
+@XmlRootElement(name="root")
+public class GlobalProperties {
+
+    private static GlobalProperties instance;
+
+    public static GlobalProperties getInstance(){
+        if (instance == null){
+            instance = readGlobalPropertiesFromXMLFile(XML_FILE_PATH);
+        }
+        return instance;
+    }
     private ArrayList<Parameters> parameters = new ArrayList<Parameters>();
     private HashMap<String, String> paletteColors = new HashMap<>();
     private HashMap<String, Double> userDefinedVariables = new HashMap<>();

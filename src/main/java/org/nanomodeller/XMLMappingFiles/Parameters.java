@@ -1,18 +1,34 @@
 package org.nanomodeller.XMLMappingFiles;
 
+import jakarta.xml.bind.annotation.XmlAttribute;
 import org.nanomodeller.Tools.StringUtils;
 
-import javax.xml.bind.annotation.*;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElements;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 
 @XmlRootElement(name="Parameters")
 public class Parameters {
 
+    private static Parameters instance;
+
+    public static Parameters getInstance(){
+        if (instance == null){
+            instance = new Parameters();
+        }
+        return instance;
+    }
+
+    public static void reloadInstance(Parameters par){
+        instance = par;
+    }
+
     private String id;
     private String time;
     private String kFa;
     private String Number;
-    private String GridSize;
+    private int GridSize;
     private String name;
     private String electrodesEmin;
     private String electrodesEmax;
@@ -147,10 +163,10 @@ public class Parameters {
     }
 
     @XmlAttribute(name="grid_size")
-    public String getGridSize() {
-        return GridSize == null ? "10" : GridSize;
+    public int getGridSize() {
+        return GridSize;
     }
-    public void setGridSize(String gridSize) {
+    public void setGridSize(int gridSize) {
         GridSize = gridSize;
     }
 

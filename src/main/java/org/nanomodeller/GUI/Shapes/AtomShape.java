@@ -123,7 +123,6 @@ public class AtomShape implements Comparable<AtomShape>{
     }
 
     public static class Comparators {
-
         public static Comparator<AtomShape> ID = Comparator.comparingInt(o -> o.getID());
     }
 

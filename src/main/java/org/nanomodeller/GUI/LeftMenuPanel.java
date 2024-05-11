@@ -2,15 +2,13 @@ package org.nanomodeller.GUI;
 
 import org.nanomodeller.GUI.Shapes.ElectrodeShape;
 import org.nanomodeller.GUI.ViewComponents.*;
-import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.Parameters;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
@@ -18,10 +16,9 @@ import java.io.File;
 
 import static org.nanomodeller.Globals.*;
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
 
 
-public class StepRecorder extends MyPanel {
+public class LeftMenuPanel extends MyPanel {
 
     MyButton nextButton;
     MyButton alignButton = new MyButton("Align", new ImageIcon(ALIGN_BUTTON_IMAGE_PATH));
@@ -33,38 +30,24 @@ public class StepRecorder extends MyPanel {
     MyButton clearButton = new MyButton("Clear", new ImageIcon(CLEAR_BUTTON_IMAGE_PATH));
     MyButton refreshButton = new MyButton("Refresh", new ImageIcon(REFRESH_BUTTON_IMAGE_PATH));
 
-    MyButton upButton;
-    MyButton downButton;
+
     ConsolasFontLabel timeLabel;
-    ConsolasFontLabel stepsLabel;
-    MyTextField timeTextField;
+    public MyTextField timeTextField;
     FileBrowser fileBrowser;
     boolean enableScrollListener = true;
-    int previousIndex;
     NanoModeller modeller;
 
-    public NanoModeller getModeller() {
-        return modeller;
-    }
 
-    public void setModeller(NanoModeller modeller) {
-        this.modeller = modeller;
-    }
-
-    public StepRecorder(NanoModeller modeller){
+    public LeftMenuPanel(){
         super("");
-        this.modeller = modeller;
+        this.modeller = NanoModeller.getInstance();
         initializeComponents();
-        initializeList();
         initializeLayout();
         initializeEvents();
     }
     private void initializeComponents(){
         nextButton = new MyButton("NEXT");
-        upButton = new MyButton("Move step UP");
-        downButton = new MyButton("Move step DOWN");
         timeLabel = new ConsolasFontLabel(Color.WHITE,"Duration", 22);
-        stepsLabel = new ConsolasFontLabel(Color.WHITE,"Steps", 22);
         timeTextField = new MyTextField();
         fileBrowser = new FileBrowser(this);
         zoomInButton.setToolTipText("Ctrl+");
@@ -78,7 +61,7 @@ public class StepRecorder extends MyPanel {
     }
     private void initializeList(){
         String[] paths = null;
-        GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+        GlobalProperties gp = GlobalProperties.getInstance();
         modeller.setListModel(new DefaultListModel());
         for (Parameters p : gp.getParameters()) {
             modeller.getListModel().addElement(new ActiveString(p.getName(),p.getIsActive()));
@@ -124,15 +107,8 @@ public class StepRecorder extends MyPanel {
         pointer.gridx = 0;
         pointer.gridy = 0;
         pointer.gridwidth = 2;
-        add(stepsLabel,pointer);
         pointer.gridy++;
 
-        pointer.gridwidth = 1;
-        add(upButton,pointer);
-        pointer.gridx++;
-        add(downButton, pointer);
-        pointer.gridx--;
-        pointer.gridy++;
 
         pointer.gridwidth = 2;
         add(scrollpane, pointer);
@@ -169,7 +145,7 @@ public class StepRecorder extends MyPanel {
 
         delButton.addActionListener(evt -> modeller.delete());
         clearButton.addActionListener(evt -> modeller.clearAll());
-        refreshButton.addActionListener(evt -> modeller.refresh(modeller.getCurrentDataPath()));
+        refreshButton.addActionListener(evt -> modeller.refresh());
         zoomInButton.addActionListener(evt -> this.modeller.zoom(2));
         zoomOutButton.addActionListener(evt -> this.modeller.zoom(-2));
         addButton.addActionListener(evt -> {
@@ -185,35 +161,14 @@ public class StepRecorder extends MyPanel {
         alignButton.addActionListener(evt -> {
             this.modeller.align();
         });
-        upButton.addActionListener((ActionEvent event) -> {
-            if (modeller.getList().getSelectedValue() != null) {
-                int selectedIndex = modeller.getList().getSelectedIndex();
-                if (selectedIndex > 0) {
-                    swapElements(selectedIndex, selectedIndex - 1);
-                    modeller.getList().setSelectedIndex(selectedIndex - 1);
-                }
-                previousIndex = selectedIndex;
-            }
-        });
-
-        downButton.addActionListener((ActionEvent event) -> {
-            if (modeller.getList().getSelectedValue() != null) {
-                int selectedIndex = modeller.getList().getSelectedIndex();
-                if (selectedIndex < modeller.getListModel().getSize() - 1) {
-                    swapElements(selectedIndex, selectedIndex + 1);
-                    modeller.getList().setSelectedIndex(selectedIndex + 1);
-                }
-                previousIndex = selectedIndex;
-            }
-        });
 
         ListSelectionListener listSelectionListener = listSelectionEvent -> {
             if (enableScrollListener){
-                GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+                GlobalProperties gp = GlobalProperties.getInstance();
                 if (modeller.getList().getSelectedValue() == null)
                     return;
                 String selectedVal = getCurrentStepName();
-                modeller.refresh(selectedVal, timeTextField);
+                modeller.refresh();
                 modeller.setCurrentDataPath(selectedVal);
                 modeller.setTime(timeTextField.getText());
                 Parameters par = gp.getParamByName(selectedVal);
@@ -222,7 +177,7 @@ public class StepRecorder extends MyPanel {
                 }
             }
         };
-        modeller.getList().addListSelectionListener(listSelectionListener);
+        //modeller.getList().addListSelectionListener(listSelectionListener);
         MouseAdapter ma = new MouseAdapter() {
             private void myPopupEvent(MouseEvent e) {
                 PopUpMenu menu = new PopUpMenu();
@@ -235,7 +190,7 @@ public class StepRecorder extends MyPanel {
                 if (e.isPopupTrigger()) myPopupEvent(e);
             }
         };
-        modeller.getList().addMouseListener(ma);
+        //modeller.getList().addMouseListener(ma);
     }
     private class PopUpMenu extends JPopupMenu {
 
@@ -265,11 +220,11 @@ public class StepRecorder extends MyPanel {
     }
 
     private void activate() {
-        GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+        GlobalProperties gp = GlobalProperties.getInstance();
         Parameters par = gp.getParamByName(getCurrentStepName());
         par.setActive(!par.getIsActive());
         ((ActiveString)modeller.getList().getSelectedValue()).swapActive();
-        modeller.saveData(gp);
+        modeller.saveData();
         modeller.getList().repaint();
     }
 
@@ -281,8 +236,8 @@ public class StepRecorder extends MyPanel {
                     "Removal Confirmation",
                     JOptionPane.YES_NO_OPTION);
             if (n == JOptionPane.YES_OPTION) {
-                GlobalChainProperties gp = null;
-                gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+                GlobalProperties gp = null;
+                gp = GlobalProperties.getInstance();
                 ActiveString element = ((ActiveString)modeller.getList().getSelectedValue());
                 int pos = modeller.getList().getSelectedIndex();
                 if (pos > 0){
@@ -325,11 +280,11 @@ public class StepRecorder extends MyPanel {
             if (!modeller.getListModel().contains(name)) {
                 modeller.getListModel().add(selectedIndex + 1, name);
             }
-            GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+            GlobalProperties gp = GlobalProperties.getInstance();
             Parameters p = new Parameters();
             p.setName(element.text);
             gp.addParameters(p);
-            modeller.saveData(gp);
+            modeller.saveData();
             modeller.getList().setSelectedIndex(modeller.getListModel().indexOf(name));
         }
     }
@@ -355,16 +310,16 @@ public class StepRecorder extends MyPanel {
             if (!modeller.getListModel().contains(name)) {
                 modeller.getListModel().add(selectedIndex + 1, element);
             }
-            GlobalChainProperties gp = modeller.mapGlobalPropertiesObject( time, name, element.isActive);;
-            modeller.saveData(gp);
+
+            modeller.saveData();
             modeller.getList().setSelectedIndex(selectedIndex + 1);
             modeller.getList().repaint();
         }
     }
 
     private void setNumOfSubSteps() {
-        GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
-        Parameters par = gp.getParamByName(getCurrentStepName());
+        GlobalProperties gp = GlobalProperties.getInstance();
+        Parameters par = Parameters.getInstance();
         if(StringUtils.isNotEmpty(par.getPath())) {
             int n = JOptionPane.showConfirmDialog(
                     this.modeller,
@@ -390,7 +345,7 @@ public class StepRecorder extends MyPanel {
                     }
                     fileBrowser.reload();
                     par.setNumOfSubSteps(newValue);
-                    modeller.saveData(gp);
+                    modeller.saveData();
                 }
                 else if (newValue > 0){
                     JOptionPane.showMessageDialog(this.modeller, "Value cannot be less that one!");
@@ -446,8 +401,7 @@ public class StepRecorder extends MyPanel {
             if (!modeller.getListModel().contains(newValue)) {
                 modeller.getListModel().add(selectedIndex, newValue);
             }
-            GlobalChainProperties gp = modeller.mapGlobalPropertiesObject(time, newValue, element.isActive);;
-            modeller.saveData(gp);
+            modeller.saveData();
             modeller.getList().setSelectedIndex(modeller.getListModel().indexOf(newValue));
         }
     }
@@ -455,16 +409,16 @@ public class StepRecorder extends MyPanel {
         return modeller.getList().getSelectedValue().toString();
     }
     public void saveStep() {
-        ActiveString element = (ActiveString)(modeller.getList().getSelectedValue());
+        //ActiveString element = (ActiveString)(modeller.getList().getSelectedValue());
         String time = timeTextField.getText();
-        String name = element.text;
+        String name = fileBrowser.getNodes().get(fileBrowser.getSelectedFiles()[0]).getPath()[0].toString();//element.text;
         if (!name.isEmpty() && !time.isEmpty()){
-            if (!modeller.getListModel().contains(element)) {
-                modeller.getListModel().addElement(element);
-            }
-            GlobalChainProperties gp = modeller.mapGlobalPropertiesObject( time, name, element.isActive);;
-            modeller.saveData(gp);
-            modeller.getList().setSelectedIndex(modeller.getListModel().indexOf(name));
+//            if (!modeller.getListModel().contains(element)) {
+//                modeller.getListModel().addElement(element);
+//            }
+            //GlobalProperties gp = modeller.mapGlobalPropertiesObject( time, name, true);;
+            modeller.saveData();
+           // modeller.getList().setSelectedIndex(modeller.getListModel().indexOf(name));
         }
     }
     public void swapElements(int pos1, int pos2) {
@@ -472,7 +426,7 @@ public class StepRecorder extends MyPanel {
         modeller.getListModel().set(pos1, modeller.getListModel().get(pos2));
         modeller.getListModel().set(pos2, tmp);
         String selectedVal = getCurrentStepName();
-        modeller.refresh(selectedVal, timeTextField);
+        modeller.refresh();
     }
 
 }

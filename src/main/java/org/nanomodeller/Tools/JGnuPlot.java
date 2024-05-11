@@ -2,7 +2,7 @@ package org.nanomodeller.Tools;
 
 import org.nanomodeller.GUI.Shapes.AtomShape;
 import org.nanomodeller.Globals;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 import com.panayotis.gnuplot.GNUPlotParameters;
 import com.panayotis.gnuplot.JavaPlot;
 import com.panayotis.gnuplot.dataset.FileDataSet;
@@ -14,21 +14,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+
 
 public class JGnuPlot extends JavaPlot {
 
-    public GlobalChainProperties getProperties() {
+    public GlobalProperties getProperties() {
         return properties;
     }
 
     GNUPlotParameters parameters;
-    GlobalChainProperties properties;
+    GlobalProperties properties;
     public JGnuPlot(boolean is3D){
         super(is3D);
         parameters = new GNUPlotParameters(is3D);
         setParameters(parameters);
-        properties = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+        properties = GlobalProperties.getInstance();
     }
     public void setMultiplotStyle(){
         setMapView(true);
@@ -46,7 +46,7 @@ public class JGnuPlot extends JavaPlot {
         super(false);
         parameters = new GNUPlotParameters(false);
         setParameters(parameters);
-        properties = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+        properties = GlobalProperties.getInstance();
     }
 
 

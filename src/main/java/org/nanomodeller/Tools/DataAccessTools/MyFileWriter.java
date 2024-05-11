@@ -1,8 +1,7 @@
 package org.nanomodeller.Tools.DataAccessTools;
 
-import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.StringUtils;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -11,9 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.nanomodeller.Globals.TXT;
 import static org.nanomodeller.Globals.XML_FILE_PATH;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+
 
 public class MyFileWriter {
     PrintWriter pw = null;
@@ -162,7 +160,7 @@ public class MyFileWriter {
     }
 
     public static void saveBlockGivenT(String t, String currentStepPath){
-        GlobalChainProperties gp = readParametersFromXMLFile(XML_FILE_PATH);
+        GlobalProperties gp = GlobalProperties.getInstance();
         String pathToRead = gp.getDynamicPATH() + "/" + currentStepPath + "/" + "LDOS.csv";
         String lasTpattern = "LDOS_t";
         String writePath =  gp.getDynamicPATH() + "/" + currentStepPath + "/" + lasTpattern + ".csv";

@@ -6,22 +6,21 @@ import static org.nanomodeller.CommonPhysics.density;
 import static org.nanomodeller.CommonPhysics.sigma;
 import static org.nanomodeller.CommonPhysics.toEnergyStep;
 import static org.nanomodeller.Globals.*;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.XMLMappingFiles.Matrix;
 import org.nanomodeller.XMLMappingFiles.Parameters;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 import org.jscience.mathematics.number.Complex;
 import org.jscience.mathematics.vector.ComplexMatrix;
-import java.util.ArrayList;
 
 public class StaticProperties {
 
 
     public static void countStaticProperties(String stepName){
 
-        GlobalChainProperties gp = readParametersFromXMLFile(XML_FILE_PATH);
-        Parameters par = gp.getParamByName(stepName);
+        GlobalProperties gp = GlobalProperties.getInstance();
+        Parameters par = Parameters.getInstance();
         MyFileWriter ldosWriter = new MyFileWriter(par.getPath() + "/" +Globals.STATIC_LDOS_FILE_NAME_PATTERN);
         MyFileWriter normalisationWriter = new MyFileWriter(par.getPath() + "/" +Globals.STATIC_NORMALISATION_FILE_NAME_PATTERN);
         Matrix matrix = Matrix.readMatrixFromDataFile(par);

@@ -2,7 +2,7 @@ package org.nanomodeller.GUI;
 
 import org.nanomodeller.GUI.ViewComponents.MyMenuItem;
 import org.nanomodeller.Globals;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,7 +15,7 @@ import javax.swing.event.MenuListener;
 import static org.nanomodeller.Tools.DataAccessTools.FileOperationHelper.runFile;
 import static org.nanomodeller.Tools.DataAccessTools.MyFileWriter.saveBlockGivenT;
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+
 
 public class Menu extends JMenuBar {
     NanoModeller sm;
@@ -64,7 +64,7 @@ public class Menu extends JMenuBar {
         });
         dynamicDataDir.addActionListener((ActionEvent event) -> {
 
-            GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+            GlobalProperties gp = GlobalProperties.getInstance();
             LookAndFeel previousLF = UIManager.getLookAndFeel();
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -89,7 +89,7 @@ public class Menu extends JMenuBar {
             LookAndFeel previousLF = UIManager.getLookAndFeel();
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+                GlobalProperties gp = GlobalProperties.getInstance();
                 JFileChooser chooser = new JFileChooser();
                 chooser.setCurrentDirectory(new File(gp.getStaticPATH()));
                 chooser.setDialogTitle("Select static data directory");

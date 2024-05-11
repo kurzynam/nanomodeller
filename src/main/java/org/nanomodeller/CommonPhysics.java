@@ -1,7 +1,7 @@
 package org.nanomodeller;
 
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 import org.jscience.mathematics.number.Complex;
 
 import static org.nanomodeller.CommonMath.comp;
@@ -12,10 +12,10 @@ import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 
 public class CommonPhysics {
-    public static double toEnergy(int energyStep, double dE, GlobalChainProperties gp){
+    public static double toEnergy(int energyStep, double dE, GlobalProperties gp){
         return gp.getDoubleEmin() + (energyStep * dE);
     }
-    public static int toEnergyStep(double E, double dE, GlobalChainProperties gp){
+    public static int toEnergyStep(double E, double dE, GlobalProperties gp){
         double d = gp.getDoubleEmin();
         return (int)((E-d)/dE);
     }
@@ -30,7 +30,7 @@ public class CommonPhysics {
         return result.times(2*PI);
     }
 
-    public static Complex[] density(GlobalChainProperties gp, DensType type){
+    public static Complex[] density(GlobalProperties gp, DensType type){
         int size = gp.getNumberOfEnergySteps();
         MyFileWriter writer = new MyFileWriter("C:\\Users\\lenovo\\Desktop\\van2.csv");
         Complex[] result = new Complex[size+1];

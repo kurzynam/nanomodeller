@@ -18,7 +18,7 @@ import java.util.*;
 
 import static org.nanomodeller.CommonPhysics.toEnergy;
 import static org.nanomodeller.Globals.*;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+
 import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
@@ -28,7 +28,7 @@ import static org.jscience.mathematics.number.Complex.valueOf;
 public class TimeEvolutionHelper {
 
     //region public members
-    public GlobalChainProperties gp;
+    public GlobalProperties gp;
     public String format;
     public Parameters par;
     public NanoModeller modeller;
@@ -95,7 +95,7 @@ public class TimeEvolutionHelper {
         parser.addFunction("linear", new Linear());
         parser.addFunction("tstep", new TriangularStep());
 
-        gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+        gp = GlobalProperties.getInstance();
         Iterator it = gp.getUserDefinedVariables().entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Double> pair = (Map.Entry)it.next();
@@ -111,253 +111,248 @@ public class TimeEvolutionHelper {
         MyFileWriter chargeList = null;
         MyFileWriter currentList = null;
         MyFileWriter ldosEList = null;
-        for (Parameters par : gp.getParameters()) {
+        Parameters par = Parameters.getInstance();
+        Collections.sort(par.getAtoms(), Atom.Comparators.ID);
+        ArrayList<Bound>[] atomsBindings = new ArrayList[par.getAtoms().size()];
+        double[] atomsElectrodes = new double[par.getAtoms().size()];
+        this.atoms = par.getAtoms().toArray(new Atom[par.getAtoms().size()]);
+        double[] Vsf = new double[par.getAtoms().size()];
+        double[] perturbations = new double[par.getAtoms().size()];
+        for (Atom atom : atoms){
+            ArrayList<Bound> ints = new ArrayList<>();
+            int atomID = atom.getID();
+            for (Atom boundAtom : atoms){
 
-            Collections.sort(par.getAtoms(), Atom.Comparators.ID);
-            if(!par.getActive()){
-                continue;
-            }
-            ArrayList<Bound>[] atomsBindings = new ArrayList[par.getAtoms().size()];
-            double[] atomsElectrodes = new double[par.getAtoms().size()];
-            this.atoms = par.getAtoms().toArray(new Atom[par.getAtoms().size()]);
-            double[] Vsf = new double[par.getAtoms().size()];
-            double[] perturbations = new double[par.getAtoms().size()];
-            for (Atom atom : atoms){
-                ArrayList<Bound> ints = new ArrayList<>();
-                int atomID = atom.getID();
-                for (Atom boundAtom : atoms){
-
-                    if (par.isSurfacePresent()){
-                        //ints.add(boundAtom);
+                if (par.isSurfacePresent()){
+                    //ints.add(boundAtom);
 //                        ints.add(par.getBound(atomID,boundAtom.getID()));
-                    }else {
-                        Bound bound = par.getBound(atomID,boundAtom.getID());
-                        if (bound != null) {
-                            ints.add(bound);
-                        }
+                }else {
+                    Bound bound = par.getBound(atomID,boundAtom.getID());
+                    if (bound != null) {
+                        ints.add(bound);
                     }
                 }
-                atomsBindings[atomID]= ints;
             }
-            electrodes = new Electrode[par.getElectrodes().size()];
-            for (Electrode electrode : par.getElectrodes()) {
-                electrodes[electrode.getId()] = electrode;
-            }
-            if (arraysInitialized && StringUtils.isEmpty(par.getPath())){
-                readData(par.getId());
-            }
-            else {
-                readData(par.getId(), true);
-                integralEnergy = new Complex[par.getAtoms().size()][2];
-                for (int i = 0; i < 2; i++) {
-                    for (int comp = 0; comp < integralEnergy.length; comp++) {
-                        integralEnergy[comp][i] = Complex.ONE;
-                    }
+            atomsBindings[atomID]= ints;
+        }
+        electrodes = new Electrode[par.getElectrodes().size()];
+        for (Electrode electrode : par.getElectrodes()) {
+            electrodes[electrode.getId()] = electrode;
+        }
+        if (arraysInitialized && StringUtils.isEmpty(par.getPath())){
+            readData(par.getId());
+        }
+        else {
+            readData(par.getId(), true);
+            integralEnergy = new Complex[par.getAtoms().size()][2];
+            for (int i = 0; i < 2; i++) {
+                for (int comp = 0; comp < integralEnergy.length; comp++) {
+                    integralEnergy[comp][i] = Complex.ONE;
                 }
-                arraysInitialized = true;
             }
-            stepNo++;
-            String dynamicPATH = par.getPath();
-            if (StringUtils.isEmpty(dynamicPATH)) {
-                dynamicPATH = gp.getDynamicPATH();
-            }
-            chargeList = new MyFileWriter(dynamicPATH + "/" + CHARGE_FILE_NAME_PATTERN + ".csv", true);
-            currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv", true);
-            ldosList = new MyFileWriter(dynamicPATH + "/" + LDOS_FILE_NAME_PATTERN + ".csv", true);
-            ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv", true);
-            ldosList.printf("Step, Time, Energy");
-            chargeList.printf("Step, Time");
-            currentList.printf("Step, Time");
-            for(int p = 0; p < numOfAtoms; p++){
-                ldosList.printf(", LDOS%d", p);
-                chargeList.printf(", Charge %d", p);
-                currentList.printf(", Current %d", p);
+            arraysInitialized = true;
+        }
+        stepNo++;
+        String dynamicPATH = par.getPath();
+        if (StringUtils.isEmpty(dynamicPATH)) {
+            dynamicPATH = gp.getDynamicPATH();
+        }
+        chargeList = new MyFileWriter(dynamicPATH + "/" + CHARGE_FILE_NAME_PATTERN + ".csv", true);
+        currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv", true);
+        ldosList = new MyFileWriter(dynamicPATH + "/" + LDOS_FILE_NAME_PATTERN + ".csv", true);
+        ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv", true);
+        ldosList.printf("Step, Time, Energy");
+        chargeList.printf("Step, Time");
+        currentList.printf("Step, Time");
+        for(int p = 0; p < numOfAtoms; p++){
+            ldosList.printf(", LDOS%d", p);
+            chargeList.printf(", Charge %d", p);
+            currentList.printf(", Current %d", p);
 
-            }
-            ldosList.println();
-            chargeList.println();
-            currentList.println();
-            ldosEList.println();
-            for (int n = 0; n < par.getNumOfSubSteps(); n++) {
+        }
+        ldosList.println();
+        chargeList.println();
+        currentList.println();
+        ldosEList.println();
+        for (int n = 0; n < par.getNumOfSubSteps(); n++) {
 
-                if (par.getNumOfSubSteps() > 1) {
-                    initializeMatrices();
-                    modeller.getApplyToAllButton().setText("Next step ("+ stepNo + "." + n +")");
-                }
-                parser.addVariable("n", n);
-                for (Atom a : par.getAtoms()) {
+            if (par.getNumOfSubSteps() > 1) {
+                initializeMatrices();
+                modeller.getApplyToAllButton().setText("Next step ("+ stepNo + "." + n +")");
+            }
+            parser.addVariable("n", n);
+            for (Atom a : par.getAtoms()) {
 //                    if (ldosList.size() - 1 < par.getAtoms().indexOf(a)) {
 //                        ldosList.add(new MyFileWriter(dynamicPATH + "/" + LDOS_FILE_NAME_PATTERN + par.getAtoms().indexOf(a) + TXT));
 //                        normalisationList.add(new MyFileWriter(dynamicPATH + "/" + NORMALISATION_FILE_NAME_PATTERN + par.getAtoms().indexOf(a) + TXT));
 //                        fermiLDOSList.add(new MyFileWriter(dynamicPATH + "/" + FERMI_LDOS_FILE_NAME_PATTERN + par.getAtoms().indexOf(a) + TXT, true));
 //                    }
-                    int i = a.getID();
-                    parser.parseExpression(a.getN0());
-                    double value = parser.getValue();
-                    this.n.put(i, value);
+                int i = a.getID();
+                parser.parseExpression(a.getN0());
+                double value = parser.getValue();
+                this.n.put(i, value);
 
 //                    atomsElectrodes[i] = par.getElectrodeCouplingsByAtomID(i)/2;
-                    n0.put(i, value);
-                }
-                MyFileWriter sumldosF = new MyFileWriter(dynamicPATH + "/sumLDOSF.txt");
-                MyFileWriter TDOSWriter = new MyFileWriter(dynamicPATH + "/TDOS.txt");
+                n0.put(i, value);
+            }
+            MyFileWriter sumldosF = new MyFileWriter(dynamicPATH + "/sumLDOSF.txt");
+            MyFileWriter TDOSWriter = new MyFileWriter(dynamicPATH + "/TDOS.txt");
 
-                ArrayList<Bound> bounds = par.getBounds();
-                double[] charges = new double[atoms.length];
-                for (int i = 0; i < atoms.length; i++) {
-                    charges[i] = 0;
-                }
-                for (int t = tmax; t < tmax + numOfTimeSteps; t++) {
-                    for (Electrode electrode : par.getElectrodes()) {
-                        double perturbation = 1;
-                        parser.parseExpression(electrode.getPerturbation());
-                        if (StringUtils.isNotEmpty(electrode.getPerturbation())) {
-                            perturbation = parser.getValue();
-                        }
-                        electrode.setParsedPerturbation(perturbation);
-                        double coupling = 0;
-                        parser.parseExpression(electrode.getCoupling());
-                        if (StringUtils.isNotEmpty(electrode.getCoupling())) {
-                            coupling = parser.getValue();
-                        }
-                        electrode.setParsedCoupling(coupling);
+            ArrayList<Bound> bounds = par.getBounds();
+            double[] charges = new double[atoms.length];
+            for (int i = 0; i < atoms.length; i++) {
+                charges[i] = 0;
+            }
+            for (int t = tmax; t < tmax + numOfTimeSteps; t++) {
+                for (Electrode electrode : par.getElectrodes()) {
+                    double perturbation = 1;
+                    parser.parseExpression(electrode.getPerturbation());
+                    if (StringUtils.isNotEmpty(electrode.getPerturbation())) {
+                        perturbation = parser.getValue();
+                    }
+                    electrode.setParsedPerturbation(perturbation);
+                    double coupling = 0;
+                    parser.parseExpression(electrode.getCoupling());
+                    if (StringUtils.isNotEmpty(electrode.getCoupling())) {
+                        coupling = parser.getValue();
+                    }
+                    electrode.setParsedCoupling(coupling);
 //                        double dE = 0;
 //                        parser.parseExpression(electrode.getdE());
 //                        if (StringUtils.isNotEmpty(electrode.getdE())) {
 //                            dE = parser.getValue();
 //                        }
 //                        electrode.setCoupling(dE+"");
+                }
+                int T = t % 2 == 0 ? 1 : 0;;
+                double time = time(t - 1, dt);
+                double[] TDOStemp = new double[numberOfEnergySteps/everyE];
+                if (isInterupted.getValue()) {
+                    tmax = t;
+                    break;
+                }
+                parser.addVariable("t", time);
+                for (Atom a : par.getAtoms()) {
+                    int i = a.getID();
+                    parser.addVariable("j", i);
+                    parser.parseExpression(energies.get(i));
+                    Ei[i] = parser.getValue();
+                    Vsf[i] = Double.parseDouble(a.getSpinFlip());
+                    parser.parseExpression(a.getPerturbation());
+                    if (par.getElectrodesByAtomID(i).size() > 0) {
+                        perturbations[i] = par.getElectrodesByAtomID(i).get(0).getParsedPerturbation();
                     }
-                    int T = t % 2 == 0 ? 1 : 0;;
-                    double time = time(t - 1, dt);
-                    double[] TDOStemp = new double[numberOfEnergySteps/everyE];
-                    if (isInterupted.getValue()) {
-                        tmax = t;
-                        break;
+                    else{
+                        perturbations[i] = 1;
                     }
-                    parser.addVariable("t", time);
-                    for (Atom a : par.getAtoms()) {
-                        int i = a.getID();
-                        parser.addVariable("j", i);
-                        parser.parseExpression(energies.get(i));
-                        Ei[i] = parser.getValue();
-                        Vsf[i] = Double.parseDouble(a.getSpinFlip());
-                        parser.parseExpression(a.getPerturbation());
-                        if (par.getElectrodesByAtomID(i).size() > 0) {
-                            perturbations[i] = par.getElectrodesByAtomID(i).get(0).getParsedPerturbation();
-                        }
-                        else{
-                            perturbations[i] = 1;
-                        }
-                        parser.parseExpression(energies.get(i));
-                        a.setParsedPerturbation(parser.getValue());
-                        atomsElectrodes[i] = par.getElectrodeCouplingsByAtomID(i);
-                        //a.getID();
+                    parser.parseExpression(energies.get(i));
+                    a.setParsedPerturbation(parser.getValue());
+                    atomsElectrodes[i] = par.getElectrodeCouplingsByAtomID(i);
+                    //a.getID();
 //                        parser.parseExpression(a.getN0());
 //
 //                        double value = parser.getValue();
 //                        this.n0.put(a.getID(), value);
 //                        this.n.put(a.getID(),value);
-                    }
-                    for (Bound bound : bounds){
-                        if (bound != null) {
-                            double Vij = 0;
-                            double U = 0;
-                            double perturbation = 1;
-                            parser.parseExpression(bound.getCoupling());
-                            if (StringUtils.isNotEmpty(bound.getCoupling())) {
-                                Vij = parser.getValue();
-                            }
-                            bound.setParsedCoupling(Vij);
-                            parser.parseExpression(bound.getCorrelationCoupling());
-                            if (StringUtils.isNotEmpty(bound.getCorrelationCoupling())) {
-                                U = parser.getValue();
-                            }
-                            bound.setParsedCorrelationCoupling(U);
-                            parser.parseExpression(bound.getPerturbation());
-                            if (StringUtils.isNotEmpty(bound.getPerturbation())) {
-                                perturbation = parser.getValue();
-                            }
-                            bound.setParsedPerturbation(perturbation);
-                        }
-                    }
-
-                        countUt_ij(t);
-
-                    for (Electrode electrode : par.getElectrodes()) {
-                        electrode_id = electrode.getId();
-                        countUt_ik(electrode, Ut_ik.get(electrode_id), t, T, dt, Ek, time,
-                                electrodesWidth, atomsBindings, integralEnergy, Vsf, perturbations,  atomsElectrodes);
-
-                    }
-                    if (par.isSurfacePresent()) {
-                        Electrode surfaceElectrode = new Electrode(-1, null, null, par.getSurfaceCoupling(), gp.getdE(), Globals.SURFACE_ELECTRODE_ID, null);
-                        //countUt_ik(surfaceElectrode, surfaceUt_k, t);
-                    }
-                    double charge;
-                    String chargesList = "";
-                    String currentsList = "";
-                    String ldosesEList = "";
-                    for (int i = 0; i < atoms.length; i++) {
-                        charge = countCharge(i, t, dt);
-                        double current = (charge-charges[i])/dt;
-                        currentsList += current;
-                        charges[i] = charge;
-                        chargesList += charge;
-                        ldosesEList += ldosE;
-                        if (i != atoms.length - 1){
-                            chargesList += ",";
-                            currentsList += ",";
-                            ldosesEList += ",";
-                        }
-                    }
-                    chargeList.println(n + "," + time + "," + chargesList);
-                    currentList.println(n + "," + time + "," + currentsList);
-                    ldosEList.println(n + "," + time + "," + ldosesEList);
-                    int sigmaDim = 1;
-                    if (isSpinOrbit){
-                        sigmaDim = 2;
-                    }
-                    ArrayList<String> ldosArray = new ArrayList<>();
-                    ArrayList<String> normalisationArray = new ArrayList<>();
-                    for (int e = 0; e < numberOfEnergySteps; e++) {
-                        if (e % everyE != 0) {
-                            continue;
-                        }
-                        ldosArray.add(n +"," + time(t, dt)+","+toEnergy(e, dE, gp));
-                    }
-                    for (Atom a : atoms) {
-                        int i = a.getID();
-                        for (int sigma = 0; sigma < sigmaDim; sigma++) {
-                            countDynamicParameters(i, sigma, t, dt, constant,
-                                    ldosArray, normalisationArray,
-                                    TDOStemp, integralEnergy, atomsBindings[i]);
-                        }
-                    }
-                    if (time >= starTimeFrom && t % everyT == 0){
-                        for (int e = 0; e < ldosArray.size(); e++) {
-                            ldosList.println(ldosArray.get(e));
-                        }
-                        ldosList.println();
-                    }
-                    String timeToDisplay = String.format("%.2f\n", time);
-                    modeller.getTimeEvolutionButton().setText("Cancel (" + timeToDisplay + ")");
                 }
-                TDOSWriter.close();
-                sumldosF.close();
-                if (isInterupted.getValue()) {
-                    isInterupted.neg();
-                } else {
-                    tmax += numOfTimeSteps;
+                for (Bound bound : bounds){
+                    if (bound != null) {
+                        double Vij = 0;
+                        double U = 0;
+                        double perturbation = 1;
+                        parser.parseExpression(bound.getCoupling());
+                        if (StringUtils.isNotEmpty(bound.getCoupling())) {
+                            Vij = parser.getValue();
+                        }
+                        bound.setParsedCoupling(Vij);
+                        parser.parseExpression(bound.getCorrelationCoupling());
+                        if (StringUtils.isNotEmpty(bound.getCorrelationCoupling())) {
+                            U = parser.getValue();
+                        }
+                        bound.setParsedCorrelationCoupling(U);
+                        parser.parseExpression(bound.getPerturbation());
+                        if (StringUtils.isNotEmpty(bound.getPerturbation())) {
+                            perturbation = parser.getValue();
+                        }
+                        bound.setParsedPerturbation(perturbation);
+                    }
                 }
-                if (par.getNumOfSubSteps() > 1){
-                    tmax = 0;
+
+                    countUt_ij(t);
+
+                for (Electrode electrode : par.getElectrodes()) {
+                    electrode_id = electrode.getId();
+                    countUt_ik(electrode, Ut_ik.get(electrode_id), t, T, dt, Ek, time,
+                            electrodesWidth, atomsBindings, integralEnergy, Vsf, perturbations,  atomsElectrodes);
+
                 }
-                chargeList.println();
-                currentList.println();
-                ldosEList.println();
-                ldosList.println();
+                if (par.isSurfacePresent()) {
+                    Electrode surfaceElectrode = new Electrode(-1, null, null, par.getSurfaceCoupling(), gp.getdE(), Globals.SURFACE_ELECTRODE_ID, null);
+                    //countUt_ik(surfaceElectrode, surfaceUt_k, t);
+                }
+                double charge;
+                String chargesList = "";
+                String currentsList = "";
+                String ldosesEList = "";
+                for (int i = 0; i < atoms.length; i++) {
+                    charge = countCharge(i, t, dt);
+                    double current = (charge-charges[i])/dt;
+                    currentsList += current;
+                    charges[i] = charge;
+                    chargesList += charge;
+                    ldosesEList += ldosE;
+                    if (i != atoms.length - 1){
+                        chargesList += ",";
+                        currentsList += ",";
+                        ldosesEList += ",";
+                    }
+                }
+                chargeList.println(n + "," + time + "," + chargesList);
+                currentList.println(n + "," + time + "," + currentsList);
+                ldosEList.println(n + "," + time + "," + ldosesEList);
+                int sigmaDim = 1;
+                if (isSpinOrbit){
+                    sigmaDim = 2;
+                }
+                ArrayList<String> ldosArray = new ArrayList<>();
+                ArrayList<String> normalisationArray = new ArrayList<>();
+                for (int e = 0; e < numberOfEnergySteps; e++) {
+                    if (e % everyE != 0) {
+                        continue;
+                    }
+                    ldosArray.add(n +"," + time(t, dt)+","+toEnergy(e, dE, gp));
+                }
+                for (Atom a : atoms) {
+                    int i = a.getID();
+                    for (int sigma = 0; sigma < sigmaDim; sigma++) {
+                        countDynamicParameters(i, sigma, t, dt, constant,
+                                ldosArray, normalisationArray,
+                                TDOStemp, integralEnergy, atomsBindings[i]);
+                    }
+                }
+                if (time >= starTimeFrom && t % everyT == 0){
+                    for (int e = 0; e < ldosArray.size(); e++) {
+                        ldosList.println(ldosArray.get(e));
+                    }
+                    ldosList.println();
+                }
+                String timeToDisplay = String.format("%.2f\n", time);
+                modeller.getTimeEvolutionButton().setText("Cancel (" + timeToDisplay + ")");
             }
+            TDOSWriter.close();
+            sumldosF.close();
+            if (isInterupted.getValue()) {
+                isInterupted.neg();
+            } else {
+                tmax += numOfTimeSteps;
+            }
+            if (par.getNumOfSubSteps() > 1){
+                tmax = 0;
+            }
+            chargeList.println();
+            currentList.println();
+            ldosEList.println();
+            ldosList.println();
         }
         modeller.getTimeEvolutionButton().setImageIcon(new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
         modeller.getTimeEvolutionButton().setText("Count time evolution");
@@ -379,7 +374,7 @@ public class TimeEvolutionHelper {
         readData(paramID, false);
     }
     public void readData(String paramID, boolean initializeMatrices){
-        this.par = gp.getParamByID(paramID);
+        this.par = Parameters.getInstance();
         this.numOfElectrodes = par.getElectrodes().size();
         this.numOfAtoms = Integer.parseInt(par.getNumber());
         this.timeDigits = (gp.getDt() + "").length() - (gp.getDt() + "").indexOf('.') - 1;

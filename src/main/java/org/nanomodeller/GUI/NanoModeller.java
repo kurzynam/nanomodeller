@@ -28,15 +28,26 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import static org.nanomodeller.Tools.DataAccessTools.FileOperationHelper.runFile;
-import static org.nanomodeller.Tools.DataAccessTools.MyFileWriter.saveBlockGivenT;
 import static org.nanomodeller.Tools.DataAccessTools.OverwriteGnuplotFile.*;
 import static org.nanomodeller.Globals.*;
 import static org.nanomodeller.Tools.StringUtils.nvl;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+import static org.nanomodeller.XMLMappingFiles.XMLHelper.*;
 
 public class NanoModeller extends JFrame {
 
+    private static NanoModeller instance;
+    public static NanoModeller getInstance(){
+        if (instance == null){
+            instance = new NanoModeller();
+        }
+        return instance;
+    }
+
+    public String getCurrentPath(){
+        return leftMenuPanel.fileBrowser.getNodes().get(leftMenuPanel.fileBrowser.getSelectedFiles()[0]).getPath()[0].toString();
+    }
+
+    @Serial
     private static final long serialVersionUID = 1L;
     private int x;
     private int y;
@@ -44,18 +55,19 @@ public class NanoModeller extends JFrame {
     private double selectionXMin = -1;
     private double selectionYMax = -1;
     private double selectionYMin = -1;
+
     private Thread dynamicCalculationsThread;
-    private String surfaceCoupling;
-    private String kFa;
-    private String dE;
-    private String bColor;
-    private String dt;
-    private String energyRange;
+//    private String surfaceCoupling;
+//    private String kFa;
+//    private String dE;
+//    private String bColor;
+//    private String dt;
+//    private String energyRange;
     private double screenWidth;
     private double screenHeight;
     private PaintSurface paintSurface = new PaintSurface();
     private JScrollPane scrollPane = new JScrollPane(getPaintSurface());
-    private ArrayList<AtomShape> shapes = new ArrayList<AtomShape>();
+    private ArrayList<AtomShape> shapes = new ArrayList<>();
     private ArrayList<AtomBound> bounds = new ArrayList<AtomBound>();
     private ArrayList<ElectrodeShape> electrodes = new ArrayList<ElectrodeShape>();
     private ArrayList<AtomShape>  selectedAtoms = new ArrayList<AtomShape>();
@@ -64,7 +76,7 @@ public class NanoModeller extends JFrame {
     private ArrayList<AtomBound> selectedBounds = new ArrayList<AtomBound>();
     private ArrayList<AtomShape> copiedAtoms = new ArrayList<AtomShape>();
     private ArrayList<AtomBound> copiedBounds = new ArrayList<AtomBound>();
-    private int gridSize;
+    //private int gridSize;
     private boolean selectionFlag = false;
     private boolean showGrid = true;
     private Flag isInterupted;
@@ -76,7 +88,7 @@ public class NanoModeller extends JFrame {
     private Point anchor;
     private AtomShape currentAtom = null;
     private Menu menu;
-    private StepRecorder stepRecorder;
+    private LeftMenuPanel leftMenuPanel;
     private int maxFileNum = 0;
     private boolean ctrlPressed = false;
     private String currentDataPath;
@@ -99,30 +111,32 @@ public class NanoModeller extends JFrame {
         }
         return null;
     }
-    public NanoModeller() {
+    public  void initNanoModeller() {
 
+        NanoModeller inst = getInstance();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setScreenWidth(screenSize.getWidth()/4);
-        setScreenHeight(screenSize.getHeight()/4);
+        inst.setScreenWidth(screenSize.getWidth()/4);
+        inst.setScreenHeight(screenSize.getHeight()/4);
         ImageIcon icon = new ImageIcon(ICON_IMAGE_PATH);
         Image img = icon.getImage() ;
-        setIconImage(img);
-        setMenu(new Menu());
-        setStepRecorder(new StepRecorder(this));
-        getStepRecorder().setPreferredSize(new Dimension((int)screenWidth/2, (int)screenHeight/2));
+        inst.setIconImage(img);
+        inst.setMenu(new Menu());
+        inst.setStepRecorder(new LeftMenuPanel());
+        inst.readDataFromObject(true, null);
+        inst.getStepRecorder().setPreferredSize(new Dimension((int)inst.screenWidth/2, (int)inst.screenHeight/2));
         new File("undo").mkdir();
-        readData(null, false);
-        setTitle(APP_NAME);
-        this.getList().setSelectedIndex(0);
-        getPaintSurface().setPreferredSize(new Dimension((int)(getGridSize() * getScreenWidth()),(int)(getGridSize() * getScreenHeight())));
-        this.setSize((int)screenWidth * 3, (int)screenHeight * 3);
-        getScrollPane().setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        getScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setBackground(Color.BLACK);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIsInterupted(new Flag(false));
-        setIsCanceled(new Flag(false));
-        this.addWindowListener(new WindowAdapter()
+        //inst.readData(null, false);
+        inst.setTitle(APP_NAME);
+        //inst.getList().setSelectedIndex(0);
+        inst.getPaintSurface().setPreferredSize(new Dimension((int)(inst.getGridSize() * inst.getScreenWidth()),(int)(inst.getGridSize() * inst.getScreenHeight())));
+        inst.setSize((int)inst.screenWidth * 3, (int)inst.screenHeight * 3);
+        inst.getScrollPane().setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        inst.getScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        inst.scrollPane.setBackground(Color.BLACK);
+        inst.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        inst.setIsInterupted(new Flag(false));
+        inst.setIsCanceled(new Flag(false));
+        inst.addWindowListener(new WindowAdapter()
         {
             @Override
             public void windowClosing(WindowEvent e)
@@ -136,53 +150,47 @@ public class NanoModeller extends JFrame {
                 directory.delete();
             }
         });
-        this.add(getScrollPane(), BorderLayout.CENTER);
-        this.add(getMenu(), BorderLayout.EAST);
-        this.add(getStepRecorder(), BorderLayout.WEST);
-        this.setVisible(true);
-        getScrollPane().getVerticalScrollBar().setValue(getScrollPane().getVerticalScrollBar().getValue()+ 1);
+        inst.add(inst.getScrollPane(), BorderLayout.CENTER);
+        inst.add(inst.getMenu(), BorderLayout.EAST);
+        inst.add(inst.getStepRecorder(), BorderLayout.WEST);
+        inst.getScrollPane().getVerticalScrollBar().setValue(inst.getScrollPane().getVerticalScrollBar().getValue()+ 1);
         MovingAdapter ma = new MovingAdapter();
-        getPaintSurface().addMouseListener(ma);
-        getPaintSurface().addMouseMotionListener(ma);
-        getPaintSurface().addMouseWheelListener(ma);
-        getPaintSurface().addKeyListener(new MyKeyAdapter());
-        getPaintSurface().requestFocus();
-        setJMenuBar(new org.nanomodeller.GUI.Menu(this));
-        setVisible(true);
+       inst.getPaintSurface().addMouseListener(ma);
+       inst.getPaintSurface().addMouseMotionListener(ma);
+       inst.getPaintSurface().addMouseWheelListener(ma);
+       inst.getPaintSurface().addKeyListener(new MyKeyAdapter());
+       inst.getPaintSurface().requestFocus();
+       inst.setJMenuBar(new org.nanomodeller.GUI.Menu(inst));
+       inst.setVisible(true);
     }
 
-    public void readData(String path, boolean refreshData){
-        readXMLData(path, refreshData, null);
-    }
-    public void readXMLData(String path, boolean refreshData, MyTextField time) {
-        GlobalChainProperties gp;
-        String XMLPath =  XML_FILE_PATH;
-        gp = readParametersFromXMLFile(XMLPath);
-        readDataFromObject(gp, path, refreshData, time);
-    }
+//    public void readData(String path, boolean refreshData){
+//        readXMLData(path, refreshData, null);
+//    }
+//    public void readXMLData(String path, boolean refreshData, MyTextField time) {
+//        GlobalProperties gp;
+//        String XMLPath =  XML_FILE_PATH;
+//        gp = readGlobalPropertiesFromXMLFile(XMLPath);
+//        readDataFromObject(gp, path, refreshData, time);
+//    }
 
-    public void readDataFromObject(GlobalChainProperties gp, String stepName, boolean refreshData, MyTextField time){
-        Parameters p = null;
+    public void readDataFromObject(boolean refreshData, MyTextField time){
+        Parameters p = Parameters.getInstance();
+        GlobalProperties gp = GlobalProperties.getInstance();
         getShapes().clear();
         bounds.clear();
         getElectrodes().clear();
         int diameter = 2 * getGridSize();
-        if (StringUtils.isEmpty(stepName)){
-            p = gp.getParameters().get(0);
-        }
-        else {
-            p = gp.getParamByName(stepName);
-        }
         getMenu().dTTextField.setText(getDt());
         setbColor(gp.getColor());
         getMenu().colorBox.setSelectedItem(nvl(getbColor(), Globals.WHITE));
-        this.setdE(gp.getdE() + "");
+        double dE = gp.getdE();
         this.setDt(gp.getDt() + "");
         this.setEnergyRange(gp.getEnergyRange());
         getMenu().energyRangeTextField.setText(getEnergyRange());
         if (p != null) {
             if (!refreshData) {
-                setGridSize(Integer.parseInt(p.getGridSize()));
+                setGridSize(p.getGridSize());
                 diameter = 2 * getGridSize();
             }
             if (time != null){
@@ -228,8 +236,7 @@ public class NanoModeller extends JFrame {
     }
 
     private void countStaticProperties() {
-        GlobalChainProperties gp = mapGlobalPropertiesObject(getTime(), getCurrentDataPath(), getIsActive());
-        saveData(gp);
+        saveData();
         StaticProperties.countStaticProperties(getCurrentDataPath());
         ToastMessage toastMessage = new ToastMessage("LDOS counting finished ", TOAST_MESSAGE_DURATION, this);
         toastMessage.setVisible(true);
@@ -262,8 +269,8 @@ public class NanoModeller extends JFrame {
         runGnuplotThread(filePattern, is3D, false);
     }
     private void runGnuplotThread(String filePattern, boolean is3D, boolean isStatic){
-        GlobalChainProperties gp;
-        gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+        GlobalProperties gp;
+        gp = GlobalProperties.getInstance();
         boolean isMultiplot = Globals.MULTIPLOT.equals(gp.getMultiplotStyle());
         if (false/*is3D && !isMultiplot*/) {
             runGnuplotThreads(filePattern,is3D, isStatic);
@@ -277,7 +284,7 @@ public class NanoModeller extends JFrame {
 
     private void runGnuplotThreads(String filePattern, boolean is3D, boolean isStatic){
         if (getSelectedAtoms() != null && getSelectedAtoms().size() > 0) {
-            TreePath[] selectedFilesPATHS = stepRecorder.fileBrowser.getTree().getSelectionPaths();
+            TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
             ArrayList<String> selectedSteps = new ArrayList<>();
             DefaultMutableTreeNode lastPathComponent = (DefaultMutableTreeNode) selectedFilesPATHS[0].getLastPathComponent();
             FileBrowser.FileNode fn = (FileBrowser.FileNode) (lastPathComponent.getUserObject());
@@ -327,7 +334,7 @@ public class NanoModeller extends JFrame {
     private void showPlot(String filePattern, boolean is3D, boolean isMultiplot){
 
         if (getSelectedAtoms() != null && getSelectedAtoms().size() > 0) {
-            TreePath[] selectedFilesPATHS = stepRecorder.fileBrowser.getTree().getSelectionPaths();
+            TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
             ArrayList<String> selectedSteps = new ArrayList<>();
             DefaultMutableTreeNode lastPathComponent = (DefaultMutableTreeNode) selectedFilesPATHS[0].getLastPathComponent();
             FileBrowser.FileNode fn = (FileBrowser.FileNode)(lastPathComponent.getUserObject());
@@ -525,27 +532,27 @@ public class NanoModeller extends JFrame {
     private void redo() {
         if(UndoRedoQueue.getInstance().next() != null) {
             UndoRedoQueue.getInstance().currentUp();
-            readDataFromObject(UndoRedoQueue.getInstance().currentElement.value, getCurrentDataPath(), true, getStepRecorder().timeTextField);
+            readDataFromObject( true, getStepRecorder().timeTextField);
             getPaintSurface().repaint();
         }
     }
     private void undo() {
         if(UndoRedoQueue.getInstance().prev() != null) {
             UndoRedoQueue.getInstance().currentDown();
-            readDataFromObject(UndoRedoQueue.getInstance().currentElement.value, getCurrentDataPath(), true, getStepRecorder().timeTextField);
+            readDataFromObject( true, getStepRecorder().timeTextField);
             getPaintSurface().repaint();
         }
 
     }
-    public void refresh(String path){
-        refresh(path, null);
-    }
-    public void refresh(String path, MyTextField time) {
+    public void refresh() {
         setHighlightedShape(null);
         setHighlightedBound(null);
         setHighlightedElectrode(null);
-        readXMLData(path,true, time);
         getPaintSurface().repaint();
+    }
+
+    public void reload(){
+
     }
     protected void zoom(int zoomMagnitude) {
 
@@ -559,27 +566,13 @@ public class NanoModeller extends JFrame {
             getPaintSurface().repaint();
         }
     }
-
-    public GlobalChainProperties mapGlobalPropertiesObject(String time, String path, boolean active){
-        GlobalChainProperties gp;
-        gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
-
-        Parameters p = gp.getParamByName(path);
-        if (p == null){
-            p = new Parameters();
-            p.setName(path);
-            gp.addParameters(p);
-        }
-        p.setId("0");
+    public Parameters mapParameters(){
+        Parameters p = Parameters.getInstance();
         p.setTime(time);
-        p.setActive(active);
-        gp.setEnergyRange(getEnergyRange());
-        gp.setDt(Double.parseDouble(getDt()));
-        gp.setColor(getbColor());
         p.setSurfaceCoupling(getSurfaceCoupling());
         p.setkFa(getkFa());
         p.setNumber("" + getShapes().size());
-        p.setGridSize(getGridSize() + "");
+        //p.setGridSize(getGridSize() + "");
         p.getAtoms().clear();
         int ii = 0;
         Collections.sort(getShapes());
@@ -610,21 +603,79 @@ public class NanoModeller extends JFrame {
             bound.updateAtoms();
             p.addBound(bound.getBound());
         }
-        if (getList() != null){
-            ArrayList<Parameters> paramsCopy = new ArrayList<Parameters>();
-            for(int i = 0; i< getListModel().getSize(); i++){
-                Parameters param = gp.getParamByName(getList().getModel().getElementAt(i).toString());
-                param.setId((i+1) + "");
-                paramsCopy.add(param);
-            }
-            gp.setParameters(paramsCopy);
-        }
+        return p;
+    }
+    public GlobalProperties mapGlobalPropertiesObject(String time, String path, boolean active){
+        GlobalProperties gp;
+        gp = GlobalProperties.getInstance();
+      //  readPropertiesFromXMLFile(getCurrentPath());
+
+
+//        Parameters p = gp.getParamByName(path);
+//        if (p == null){
+//            p = new Parameters();
+//            p.setName(path);
+//            gp.addParameters(p);
+//        }
+//        p.setId("0");
+//        p.setTime(time);
+//        p.setActive(active);
+        gp.setEnergyRange(getEnergyRange());
+        gp.setDt(Double.parseDouble(getDt()));
+        gp.setColor(getbColor());
+//        p.setSurfaceCoupling(getSurfaceCoupling());
+//        p.setkFa(getkFa());
+//        p.setNumber("" + getShapes().size());
+//        p.setGridSize(getGridSize() + "");
+//        p.getAtoms().clear();
+//        int ii = 0;
+//        Collections.sort(getShapes());
+//        for (AtomShape s : getShapes()) {
+//            s.getAtom().setX(s.getShape().getBounds().x/(1.0 * getGridSize())+"");
+//            s.getAtom().setY(s.getShape().getBounds().y/(1.0 * getGridSize())+ "");
+//            p.addAtom(s.getAtom());
+//            s.setID(ii++);
+//        }
+//        p.getElectrodes().clear();
+//        ListIterator iter = getElectrodes().listIterator();
+//        while (iter.hasNext()){
+//            ElectrodeShape electrode = (ElectrodeShape)iter.next();
+//            Electrode electrodeToSave = electrode.getElectrode();
+//            electrodeToSave.setX("" + electrode.getRectangle().getBounds().x/(getGridSize() * 1.0));
+//            electrodeToSave.setY("" + electrode.getRectangle().getBounds().y/(getGridSize() * 1.0));
+//            if (electrode.getLine() != null){
+//                electrodeToSave.setAtomIndex(electrode.getAtom().getID());
+//            }
+//            else{
+//                electrodeToSave.setAtomIndex(-1);
+//            }
+//            electrodeToSave.setId(iter.nextIndex() - 1);
+//            p.addElectode(electrodeToSave);
+//        }
+//        p.getBounds().clear();
+//        for (AtomBound bound : bounds) {
+//            bound.updateAtoms();
+//            p.addBound(bound.getBound());
+//        }
+//        if (getList() != null){
+//           // ArrayList<Parameters> paramsCopy = new ArrayList<Parameters>();
+////            for(int i = 0; i< getListModel().getSize(); i++){
+////                Parameters param = gp.getParamByName(getList().getModel().getElementAt(i).toString());
+////                param.setId((i+1) + "");
+////                paramsCopy.add(param);
+////            }
+//           // gp.setParameters();
+//        }
         return gp;
     }
 
-    public void saveData(GlobalChainProperties gp) {
+    public void saveData() {
         try {
-            convertObjectToXML(gp);
+            convertObjectToXML(GlobalProperties.getInstance());
+            String path = "parameters.xml";
+            String fullPath = leftMenuPanel.fileBrowser.createFile(path);
+            mapParameters();
+            convertObjectToXML(Parameters.getInstance(),fullPath);
             ToastMessage toastMessage = new ToastMessage("Data saved", TOAST_MESSAGE_DURATION, this);
             toastMessage.setVisible(true);
 
@@ -834,51 +885,47 @@ public class NanoModeller extends JFrame {
     }
 
     public String getSurfaceCoupling() {
-        return surfaceCoupling;
+        return Parameters.getInstance().getSurfaceCoupling();
     }
 
     public void setSurfaceCoupling(String surfaceCoupling) {
-        this.surfaceCoupling = surfaceCoupling;
+        Parameters.getInstance().setSurfaceCoupling(surfaceCoupling);
     }
 
     public String getkFa() {
-        return kFa;
+        return Parameters.getInstance().getkFa();
     }
 
     public void setkFa(String kFa) {
-        this.kFa = kFa;
+        Parameters.getInstance().setkFa(kFa);
     }
 
-    public String getdE() {
-        return dE;
-    }
 
-    public void setdE(String dE) {
-        this.dE = dE;
-    }
 
     public String getbColor() {
-        return bColor;
+        return  GlobalProperties.getInstance().getColor();
     }
 
     public void setbColor(String bColor) {
-        this.bColor = bColor;
+        GlobalProperties.getInstance().setColor(bColor);
     }
 
     public String getDt() {
-        return dt;
+        return GlobalProperties.getInstance().getDt() + "";
     }
 
     public void setDt(String dt) {
-        this.dt = dt;
+        if (StringUtils.isNotEmpty(dt))
+            GlobalProperties.getInstance().setDt(Double.parseDouble(dt));
     }
 
     public String getEnergyRange() {
-        return energyRange;
+        return GlobalProperties.getInstance().getEnergyRange();
     }
 
     public void setEnergyRange(String energyRange) {
-        this.energyRange = energyRange;
+        if (StringUtils.isNotEmpty(energyRange))
+            GlobalProperties.getInstance().setEnergyRange(energyRange);
     }
 
     public double getScreenWidth() {
@@ -900,17 +947,8 @@ public class NanoModeller extends JFrame {
     public PaintSurface getPaintSurface() {
         return paintSurface;
     }
-
-    public void setPaintSurface(PaintSurface paintSurface) {
-        this.paintSurface = paintSurface;
-    }
-
     public JScrollPane getScrollPane() {
         return scrollPane;
-    }
-
-    public void setScrollPane(JScrollPane scrollPane) {
-        this.scrollPane = scrollPane;
     }
 
     private AtomShape getShapeByID(int id){
@@ -986,11 +1024,11 @@ public class NanoModeller extends JFrame {
     }
 
     public int getGridSize() {
-        return gridSize;
+        return Parameters.getInstance().getGridSize() > 0 ? Parameters.getInstance().getGridSize() : 20;
     }
 
     public void setGridSize(int gridSize) {
-        this.gridSize = gridSize;
+        Parameters.getInstance().setGridSize(gridSize);
     }
 
     public boolean isSelectionFlag() {
@@ -1085,12 +1123,12 @@ public class NanoModeller extends JFrame {
         this.menu = menu;
     }
 
-    public StepRecorder getStepRecorder() {
-        return stepRecorder;
+    public LeftMenuPanel getStepRecorder() {
+        return leftMenuPanel;
     }
 
-    public void setStepRecorder(StepRecorder stepRecorder) {
-        this.stepRecorder = stepRecorder;
+    public void setStepRecorder(LeftMenuPanel leftMenuPanel) {
+        this.leftMenuPanel = leftMenuPanel;
     }
 
     public int getMaxFileNum() {
@@ -1153,8 +1191,8 @@ public class NanoModeller extends JFrame {
             public Component getListCellRendererComponent(JList list, Object value, int index,
                                                           boolean isSelected, boolean cellHasFocus) {
                 Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof StepRecorder.ActiveString) {
-                    StepRecorder.ActiveString element = (StepRecorder.ActiveString)value;
+                if (value instanceof LeftMenuPanel.ActiveString) {
+                    LeftMenuPanel.ActiveString element = (LeftMenuPanel.ActiveString)value;
                     if (element.isActive) {
                         setForeground(Color.BLACK);
                     }else {
@@ -1251,12 +1289,11 @@ public class NanoModeller extends JFrame {
                     setCtrlPressed(false);
                 }
                 if (e.getKeyCode() == KeyEvent.VK_R){
-                    refresh(null);
+                    refresh();
                     setCtrlPressed(false);
                 }
                 if (e.getKeyCode() == KeyEvent.VK_S){
-                    GlobalChainProperties gp = mapGlobalPropertiesObject(getTime(), getCurrentDataPath(), getIsActive());
-                    saveData(gp);
+                    saveData();
                     setCtrlPressed(false);
                 }
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
@@ -2617,7 +2654,7 @@ public class NanoModeller extends JFrame {
                 JOptionPane.YES_NO_OPTION);
         if (n == JOptionPane.YES_OPTION) {
 
-            TreePath[] selectedFilesPATHS = stepRecorder.fileBrowser.getTree().getSelectionPaths();
+            TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
             File[] files = new File[getSelectedAtoms().size()];
             int i = 0;
             if (selectedFilesPATHS.length != 1) {
@@ -2643,7 +2680,7 @@ public class NanoModeller extends JFrame {
     }
 
     private void showTDOSTimeEvolution() {
-        TreePath[] selectedFilesPATHS = stepRecorder.fileBrowser.getTree().getSelectionPaths();
+        TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
         if (selectedFilesPATHS.length != 1){
             JOptionPane.showMessageDialog(this, "You cannot have multiple diectories selected!");
             return;

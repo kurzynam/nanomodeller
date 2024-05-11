@@ -2,17 +2,15 @@ package org.nanomodeller.GUI;
 
 
 import org.nanomodeller.Globals;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-
-import static org.nanomodeller.Globals.XML_FILE_PATH;
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 public class TestForm {
@@ -90,7 +88,7 @@ public class TestForm {
     private JTextField xticsStepTextField;
     private JLabel timeSavingStartLabel;
     private JTextField timeSavingStartTextField;
-    private GlobalChainProperties gp;
+    private GlobalProperties gp;
 
     public JPanel getMainPanel() {
         return MainPanel;
@@ -181,7 +179,7 @@ public class TestForm {
 
     private void initializeComponents(){
 
-        gp = readParametersFromXMLFile(XML_FILE_PATH);
+        gp = GlobalProperties.getInstance();
         plotOrderComboBox.setSelectedItem("" + gp.getRowsFirst());
         fontComboBox.setSelectedItem("" + gp.getFont());
         multiplotTypeComboBox.setSelectedItem("" + gp.getMultiplotStyle());

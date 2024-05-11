@@ -2,7 +2,7 @@ package org.nanomodeller.GUI;
 
 import org.nanomodeller.GUI.ViewComponents.MyButton;
 import org.nanomodeller.Tools.StringUtils;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -30,14 +30,14 @@ public class JTableSample
     private JButton saveButton;
     private JButton cancelButton;
     private JPanel panelButton;
-    private GlobalChainProperties gp;
+    private GlobalProperties gp;
 
     private void addRow(Vector rowData) {
         defaultTableModel.addRow(rowData);
         table.validate();
     }
 
-    public JTableSample(GlobalChainProperties gp)
+    public JTableSample(GlobalProperties gp)
     {
         mainFrame = new JFrame("JTableSample");
 

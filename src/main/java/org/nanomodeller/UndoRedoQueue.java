@@ -1,6 +1,6 @@
 package org.nanomodeller;
 
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import java.util.ArrayList;
 
@@ -31,19 +31,19 @@ public class UndoRedoQueue {
         }
         return queue.get(queue.size() - 1);
     }
-    public GlobalChainProperties next(){
+    public GlobalProperties next(){
         if (currentElement == null || currentElement.next == null){
             return null;
         }
         return currentElement.next.value;
     }
-    public GlobalChainProperties prev(){
+    public GlobalProperties prev(){
         if (top() == null || top().previous == null){
             return null;
         }
         return top().previous.value;
     }
-    public void push(GlobalChainProperties gp){
+    public void push(GlobalProperties gp){
         UndoRedoElement element = new UndoRedoElement(gp);
         if (queue.size()> max_queue_length){
             queue.remove(0);
@@ -58,11 +58,11 @@ public class UndoRedoQueue {
         queue.get(0).previous = null;
     }
     public class UndoRedoElement {
-        public GlobalChainProperties value;
+        public GlobalProperties value;
         public UndoRedoElement previous;
         public UndoRedoElement next;
 
-        public UndoRedoElement (GlobalChainProperties value){
+        public UndoRedoElement (GlobalProperties value){
             this.value = value;
         }
     }

@@ -7,7 +7,7 @@ import org.nanomodeller.GUI.ViewComponents.MyColorBox;
 import org.nanomodeller.GUI.ViewComponents.MyTextField;
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.StringUtils;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,9 +20,9 @@ import static org.nanomodeller.Globals.BACKGROUND_IMAGE_PATH;
 
 public class PaletteChooserFrame extends JFrame {
 
-    GlobalChainProperties gp;
+    GlobalProperties gp;
 
-    public PaletteChooserFrame(GlobalChainProperties gp){
+    public PaletteChooserFrame(GlobalProperties gp){
         super("Options");
         this.gp = gp;
         setBackground(new Color(1));

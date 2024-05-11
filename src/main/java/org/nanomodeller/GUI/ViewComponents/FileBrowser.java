@@ -1,9 +1,10 @@
 package org.nanomodeller.GUI.ViewComponents;
 
-import org.nanomodeller.GUI.StepRecorder;
-import org.nanomodeller.Globals;
+import org.nanomodeller.GUI.NanoModeller;
+import org.nanomodeller.GUI.LeftMenuPanel;
+import org.nanomodeller.Tools.DataAccessTools.FileOperationHelper;
 import org.nanomodeller.Tools.StringUtils;
-import org.nanomodeller.XMLMappingFiles.GlobalChainProperties;
+import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -18,15 +19,27 @@ import javax.swing.*;
 import javax.swing.tree.*;
 
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.readParametersFromXMLFile;
+import static org.nanomodeller.XMLMappingFiles.XMLHelper.readPropertiesFromXMLFile;
+
 
 public class FileBrowser extends JPanel{
 
-    private StepRecorder recorder;
+    private String currentNodeName;
+
+    public boolean isNodeChanged(String name){
+        return StringUtils.isNotEmpty(currentNodeName) && !currentNodeName.equals(name);
+    }
+    private LeftMenuPanel recorder;
     private DefaultMutableTreeNode root;
+
     private DefaultMutableTreeNode assignedNode;
     private DefaultTreeModel treeModel;
     private JTree tree;
+
+    public ArrayList<DefaultMutableTreeNode> getNodes() {
+        return nodes;
+    }
+
     private ArrayList<DefaultMutableTreeNode> nodes;
 
     public DefaultMutableTreeNode getAssignedNode() {
@@ -37,6 +50,9 @@ public class FileBrowser extends JPanel{
         return tree;
     }
 
+    public String getCurrentPath(){
+        return getNodes().get(getSelectedFiles()[0]).getPath()[0].toString();
+    }
     public void changeRootNode(String path){
         FileNode fileRoot = new FileNode(path);
         DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(fileRoot);
@@ -48,7 +64,10 @@ public class FileBrowser extends JPanel{
         TreePath treePath = new TreePath(root.getPath());
         tree.setSelectionPath(treePath);
     }
-    public FileBrowser(StepRecorder recorder){
+    public int[] getSelectedFiles(){
+       return tree.getSelectionRows();
+    }
+    public FileBrowser(LeftMenuPanel recorder){
 
         this.recorder = recorder;
         MouseAdapter ma = new MouseAdapter() {
@@ -59,13 +78,19 @@ public class FileBrowser extends JPanel{
                 }
             }
             public void mousePressed(MouseEvent e) {
-                if (e.isPopupTrigger()) myPopupEvent(e);
+                String path = ((JTree) e.getSource()).getAnchorSelectionPath().getLastPathComponent().toString();
+                if (isNodeChanged(path)){
+                    readPropertiesFromXMLFile(getAbsolutePath() + "/parameters.xml");
+                    NanoModeller.getInstance().readDataFromObject( true, NanoModeller.getInstance().getStepRecorder().timeTextField);;
+                    NanoModeller.getInstance().refresh();
+                }
+                currentNodeName = path;
             }
             public void mouseReleased(MouseEvent e) {
                 if (e.isPopupTrigger()) myPopupEvent(e);
             }
         };
-        GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+        GlobalProperties gp = GlobalProperties.getInstance();
         FileNode fileRoot = new FileNode(gp.getDynamicPATH());
         root = new DefaultMutableTreeNode(fileRoot);
         nodes = new ArrayList<>();
@@ -107,6 +132,7 @@ public class FileBrowser extends JPanel{
                                                       boolean leaf, int row, boolean hasFocus) {
 
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+
             Object o = node.getUserObject();
             if (o instanceof FileNode) {
                 FileNode fnode = (FileNode) o;
@@ -164,24 +190,24 @@ public class FileBrowser extends JPanel{
     }
 
     private void assignDirectory() {
-        int n = JOptionPane.showConfirmDialog(
-                this.recorder.getModeller(),
-                "Do you want to assign this directory to current step?",
-                "Assignation Confirmation",
-                JOptionPane.YES_NO_OPTION);
-        if (n == JOptionPane.YES_OPTION) {
-            DefaultMutableTreeNode selectedNode =
-                    getSelectedNode(tree);
-            GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
-            gp.getParamByName(recorder.getCurrentStepName()).setPath(((FileNode)selectedNode.getUserObject()).getAbsolutePath());
-            convertObjectToXML(gp);
-            assignedNode = selectedNode;
-            tree.repaint();
-            treeModel.reload();
-            TreePath path = new TreePath(selectedNode.getPath());
-            tree.setSelectionPath(path);
-            tree.scrollPathToVisible(path);
-        }
+//        int n = JOptionPane.showConfirmDialog(
+//                NanoModeller.getInstance(),
+//                "Do you want to assign this directory to current step?",
+//                "Assignation Confirmation",
+//                JOptionPane.YES_NO_OPTION);
+//        if (n == JOptionPane.YES_OPTION) {
+//            DefaultMutableTreeNode selectedNode =
+//                    getSelectedNode(tree);
+//            GlobalProperties gp = GlobalProperties.getInstance();
+//            gp.getParamByName(recorder.getCurrentStepName()).setPath(((FileNode)selectedNode.getUserObject()).getAbsolutePath());
+//            convertObjectToXML(gp);
+//            assignedNode = selectedNode;
+//            tree.repaint();
+//            treeModel.reload();
+//            TreePath path = new TreePath(selectedNode.getPath());
+//            tree.setSelectionPath(path);
+//            tree.scrollPathToVisible(path);
+//        }
     }
 
     public DefaultMutableTreeNode getSelectedNode(JTree tree) {
@@ -191,7 +217,7 @@ public class FileBrowser extends JPanel{
     private void removeDirectory() {
 
         int n = JOptionPane.showConfirmDialog(
-                this.recorder.getModeller(),
+                NanoModeller.getInstance(),
                 "Are you sure you want to delete this directory?",
                 "Removal Confirmation",
                 JOptionPane.YES_NO_OPTION);
@@ -224,7 +250,7 @@ public class FileBrowser extends JPanel{
         DefaultMutableTreeNode selectedNode =
                 (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
         String newDirName = (String)JOptionPane.showInputDialog(
-                this.recorder.getModeller(),
+                NanoModeller.getInstance(),
                 "New name:",
                 "Rename Directory",
                 JOptionPane.PLAIN_MESSAGE,
@@ -241,7 +267,7 @@ public class FileBrowser extends JPanel{
         else{
             File parent = ((FileNode)root.getUserObject()).getParentFile();
             newDir = new FileNode(parent.getPath() + "/" + newDirName);
-            GlobalChainProperties gp = readParametersFromXMLFile(Globals.XML_FILE_PATH);
+            GlobalProperties gp = GlobalProperties.getInstance();
             gp.setDynamicPATH(newDir.getAbsolutePath());
             convertObjectToXML(gp);
         }
@@ -270,13 +296,13 @@ public class FileBrowser extends JPanel{
 
     private void addNewDir() {
         String newDirName = (String)JOptionPane.showInputDialog(
-                this.recorder.getModeller(),
+                NanoModeller.getInstance(),
                 "Directory name:",
                 "New Directory",
                 JOptionPane.PLAIN_MESSAGE,
                 null,
                 null,
-                recorder.getCurrentStepName());
+                getCurrentPath());
         if(StringUtils.isEmpty(newDirName)){
             return;
         }
@@ -286,6 +312,27 @@ public class FileBrowser extends JPanel{
         treeModel.reload();
     }
 
+    public String getAbsolutePath() {
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+        FileNode fileRoot = ((FileNode) selectedNode.getUserObject());
+        return fileRoot.getAbsolutePath();
+    }
+
+    public String createFile(String path){
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
+        FileNode fileRoot = ((FileNode)selectedNode.getUserObject());
+        String fullPath = fileRoot.getAbsolutePath()+"/"+path;
+        if(FileOperationHelper.fileExists(fullPath)){
+            return fullPath;
+        }
+        FileNode newDir = new FileNode(fullPath);
+        try {
+            newDir.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return fullPath;
+    }
     public TreePath createDir(String newDirName, boolean fromAssignedNode){
 
         DefaultMutableTreeNode selectedNode = null;
