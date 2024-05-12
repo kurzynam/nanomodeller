@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.nanomodeller.Globals.GNUPLOT_PATH;
 
 
 public class JGnuPlot extends JavaPlot {
@@ -25,7 +26,7 @@ public class JGnuPlot extends JavaPlot {
     GNUPlotParameters parameters;
     GlobalProperties properties;
     public JGnuPlot(boolean is3D){
-        super(is3D);
+        super(GNUPLOT_PATH, is3D);
         parameters = new GNUPlotParameters(is3D);
         setParameters(parameters);
         properties = GlobalProperties.getInstance();

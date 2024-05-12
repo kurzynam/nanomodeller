@@ -101,13 +101,13 @@ public class Main {
 //
 //        ArrayList<ArrayList<Color>> palettes = new ArrayList<>();
 
-            //NanoModeller.getInstance().initNanoModeller();
+            NanoModeller.getInstance().initNanoModeller();
 
-        JavaPlot p = new JavaPlot("gnuplot\\bin\\wgnuplot.exe");
+//        JavaPlot p = new JavaPlot("gnuplot\\bin\\wgnuplot.exe");
+//
+//        p.addPlot("sin(x)");
 
-        p.addPlot("sin(x)");
-
-        p.plot();
+//        p.plot();
 //        readData(2,2);
 //        palettes.add(pal1);
 //        palettes.add(pal2);

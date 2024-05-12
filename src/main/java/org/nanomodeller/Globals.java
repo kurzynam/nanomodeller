@@ -6,6 +6,8 @@ public class Globals {
 
     //region file PATHS
     public static final String XML_FILE_PATH = "xml/data.xml";
+
+    public static final String GNUPLOT_PATH = "gnuplot\\bin\\wgnuplot.exe";
     public static final String LDOS_FILE_NAME_PATTERN = "LDOS";
     public static final String LDOS_E_FILE_NAME_PATTERN = "LDOS_E";
     public static final String NORMALISATION_FILE_NAME_PATTERN = "normalisation";
