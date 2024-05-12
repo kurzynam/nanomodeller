@@ -169,49 +169,20 @@ public class FileBrowser extends JPanel{
 
         private static final long serialVersionUID = 1L;
         JMenuItem newDirItem;
-        JMenuItem stepsDirItem;
         JMenuItem renameDirItem;
         JMenuItem removeDirItem;
         public PopUpMenu(){
             newDirItem = new MyMenuItem("New Directory","img/addDirIcon.png", 30, 25);
-            stepsDirItem = new MyMenuItem("Assign to current step","img/assignedDirIcon.png", 30, 25);
             renameDirItem = new MyMenuItem("Rename directory","img/renameDirIcon.png", 30, 25);
             removeDirItem = new MyMenuItem("Remove directory", "img/removeDirIcon.png", 30, 25);
 
             add(newDirItem);
-            add(stepsDirItem);
             add(renameDirItem);
             add(removeDirItem);
             newDirItem.addActionListener(evt -> addNewDir());
             renameDirItem.addActionListener(evt -> renameDirectory());
             removeDirItem.addActionListener(evt -> removeDirectory());
-            stepsDirItem.addActionListener(evt -> assignDirectory());
         }
-    }
-
-    private void assignDirectory() {
-//        int n = JOptionPane.showConfirmDialog(
-//                NanoModeller.getInstance(),
-//                "Do you want to assign this directory to current step?",
-//                "Assignation Confirmation",
-//                JOptionPane.YES_NO_OPTION);
-//        if (n == JOptionPane.YES_OPTION) {
-//            DefaultMutableTreeNode selectedNode =
-//                    getSelectedNode(tree);
-//            GlobalProperties gp = GlobalProperties.getInstance();
-//            gp.getParamByName(recorder.getCurrentStepName()).setPath(((FileNode)selectedNode.getUserObject()).getAbsolutePath());
-//            convertObjectToXML(gp);
-//            assignedNode = selectedNode;
-//            tree.repaint();
-//            treeModel.reload();
-//            TreePath path = new TreePath(selectedNode.getPath());
-//            tree.setSelectionPath(path);
-//            tree.scrollPathToVisible(path);
-//        }
-    }
-
-    public DefaultMutableTreeNode getSelectedNode(JTree tree) {
-        return (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
     }
 
     private void removeDirectory() {
@@ -307,7 +278,6 @@ public class FileBrowser extends JPanel{
             return;
         }
         TreePath path = createDir(newDirName, false);
-        assignDirectory();
         tree.scrollPathToVisible(path);
         treeModel.reload();
     }

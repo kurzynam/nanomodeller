@@ -639,6 +639,7 @@ public class NanoModeller extends JFrame {
     public void saveData() {
         try {
             convertObjectToXML(GlobalProperties.getInstance());
+            Parameters.getInstance().setPath(leftMenuPanel.fileBrowser.getAbsolutePath());
             String path = "parameters.xml";
             String fullPath = leftMenuPanel.fileBrowser.createFile(path);
             mapParameters();

@@ -14,25 +14,21 @@ import static org.nanomodeller.Globals.XML_FILE_PATH;
 
 
 public class MyFileWriter {
-    PrintWriter pw = null;
+    BufferedWriter pw = null;
     public MyFileWriter(String filePath){
         try {
             createFileIfNotExists(filePath);
-            pw = new PrintWriter(new FileWriter(filePath));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-    public MyFileWriter(String filePath, boolean autoflush){
-        try {
-            createFileIfNotExists(filePath);
-            pw = new PrintWriter(new FileWriter(filePath), autoflush);
+            pw = new BufferedWriter(new FileWriter(filePath));
         }catch (Exception e){
             e.printStackTrace();
         }
     }
     public void printf(String format, Object... args){
-        pw.printf(format, args);
+        try {
+            pw.write(String.format(format, args));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
     public void printcsv(String... args){
         String res = "";
@@ -41,16 +37,24 @@ public class MyFileWriter {
             if (i == args.length -1)
                 res += ",";
         }
-        pw.printf(res);
+        printf(res);
     }
     public void println(String text){
-        pw.println(text);
+        try {
+            pw.write(text + "\n");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
     public void println(){
-        pw.println();
+        println("");
     }
     public void close(){
-        pw.close();
+        try {
+            pw.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void createFileIfNotExists(String path){
@@ -113,7 +117,7 @@ public class MyFileWriter {
                         break;
                     }
                     split = lines[i].split(" ");
-                    if (split != null && split.length > 1) {
+                    if (split.length > 1) {
                         summedValue += Double.parseDouble(split[2]);
                     }
                 }

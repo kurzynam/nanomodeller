@@ -31,10 +31,8 @@ public class Menu extends JMenuBar {
         about.setMnemonic(KeyEvent.VK_A);
         menu.setMnemonic(KeyEvent.VK_M);
         help.setMnemonic(KeyEvent.VK_H);
-        MyMenuItem matrixItemOptions = new MyMenuItem("Open matrix file");
         MyMenuItem plotOptions = new MyMenuItem("Plot options");
-        MyMenuItem dynamicDataDir= new MyMenuItem("Select dynamic data directory");
-        MyMenuItem staticDataDir= new MyMenuItem("Select static data directory");
+        MyMenuItem dynamicDataDir= new MyMenuItem("Select root directory");
         MyMenuItem showGrid = new MyMenuItem("Show/hide grid");
         MyMenuItem calculateT = new MyMenuItem("Create crossection at given t");
         MyMenuItem menuItemExit = new MyMenuItem("Exit");
@@ -85,35 +83,8 @@ public class Menu extends JMenuBar {
 
             }
         });
-        staticDataDir.addActionListener((ActionEvent event) -> {
-            LookAndFeel previousLF = UIManager.getLookAndFeel();
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                GlobalProperties gp = GlobalProperties.getInstance();
-                JFileChooser chooser = new JFileChooser();
-                chooser.setCurrentDirectory(new File(gp.getStaticPATH()));
-                chooser.setDialogTitle("Select static data directory");
-                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                chooser.setAcceptAllFileFilterUsed(false);
-                if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                    String staticPATH = chooser.getSelectedFile().getPath();
-                    gp.setStaticPATH(staticPATH);
-                    convertObjectToXML(gp);
-                }
-                UIManager.setLookAndFeel(previousLF);
-            }
-            catch (Exception e) {
 
-            }
-        });
-        matrixItemOptions.addActionListener((ActionEvent event) -> {
-            FileDialog fd = new FileDialog(new JFrame());
-            fd.setVisible(true);
-            File[] f = fd.getFiles();
-            if(f.length > 0){
-                System.out.println(fd.getFiles()[0].getAbsolutePath());
-            }
-        });
+
         help.addMenuListener(new MenuListener() {
 
             public void menuSelected(MenuEvent e) {
@@ -130,9 +101,7 @@ public class Menu extends JMenuBar {
 
             }
         });
-        menu.add(matrixItemOptions);
         menu.add(plotOptions);
-        menu.add(staticDataDir);
         menu.add(dynamicDataDir);
         menu.add(showGrid);
         menu.add(calculateT);
