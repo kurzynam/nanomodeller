@@ -1,7 +1,6 @@
 package org.nanomodeller.GUI;
 
 import org.nanomodeller.*;
-import org.nanomodeller.Dynamics.TimeEvolutionHelper;
 import org.nanomodeller.GUI.Shapes.AtomBound;
 import org.nanomodeller.GUI.Shapes.AtomShape;
 import org.nanomodeller.GUI.Shapes.ElectrodeShape;
@@ -20,10 +19,6 @@ import java.io.*;
 import java.util.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
@@ -65,9 +60,27 @@ public class NanoModeller extends JFrame {
 //    private String energyRange;
     private double screenWidth;
     private double screenHeight;
-    private PaintSurface paintSurface = new PaintSurface();
+    private PaintSurface paintSurface = new PaintSurface(this);
     private JScrollPane scrollPane = new JScrollPane(getPaintSurface());
     private ArrayList<AtomShape> shapes = new ArrayList<>();
+
+    public ArrayList<AtomBound> getAtomBounds() {
+        return bounds;
+    }
+
+    public RightMenuPanel getRightMenuPanel() {
+        return rightMenuPanel;
+    }
+
+    public LeftMenuPanel getLeftMenuPanel() {
+        return leftMenuPanel;
+    }
+
+    @Override
+    public boolean isActive() {
+        return isActive;
+    }
+
     private ArrayList<AtomBound> bounds = new ArrayList<AtomBound>();
     private ArrayList<ElectrodeShape> electrodes = new ArrayList<ElectrodeShape>();
     private ArrayList<AtomShape>  selectedAtoms = new ArrayList<AtomShape>();
@@ -87,7 +100,7 @@ public class NanoModeller extends JFrame {
     private Rectangle selection = null;
     private Point anchor;
     private AtomShape currentAtom = null;
-    private Menu menu;
+    private RightMenuPanel rightMenuPanel;
     private LeftMenuPanel leftMenuPanel;
     private int maxFileNum = 0;
     private boolean ctrlPressed = false;
@@ -118,7 +131,7 @@ public class NanoModeller extends JFrame {
         ImageIcon icon = new ImageIcon(ICON_IMAGE_PATH);
         Image img = icon.getImage() ;
         inst.setIconImage(img);
-        inst.setMenu(new Menu());
+        inst.setMenu(new RightMenuPanel(this));
         inst.setStepRecorder(new LeftMenuPanel());
         inst.readDataFromObject(true, null);
         inst.getStepRecorder().setPreferredSize(new Dimension((int)inst.screenWidth/2, (int)inst.screenHeight/2));
@@ -216,13 +229,13 @@ public class NanoModeller extends JFrame {
         }
     }
 
-    private void countStaticProperties() {
+    public void countStaticProperties() {
         saveData();
         StaticProperties.countStaticProperties(getCurrentDataPath());
         ToastMessage toastMessage = new ToastMessage("LDOS counting finished ", TOAST_MESSAGE_DURATION, this);
         toastMessage.setVisible(true);
     }
-    private void showNormalisation() {
+    public void showNormalisation() {
         runGnuplotThread(SNORM_FILE_NAME_PATTERN, false, true);
     }
 
@@ -413,23 +426,23 @@ public class NanoModeller extends JFrame {
         }
     }
 
-    private void showLDOSTimeEvolution() {
+    public void showLDOSTimeEvolution() {
         runGnuplotThread(LDOS_FILE_NAME_PATTERN, true);
     }
-    private void showNormalisationTimeEvolution() {
+    public void showNormalisationTimeEvolution() {
         runGnuplotThread(NORMALISATION_FILE_NAME_PATTERN, true);
     }
-    private void showChargeTimeEvolution() {
+    public void showChargeTimeEvolution() {
         runGnuplotThread(CHARGE_FILE_NAME_PATTERN, false);
     }
-    private void showCurrentTimeEvolution() {
+    void showCurrentTimeEvolution() {
         runGnuplotThread(CURRENT_FILE_NAME_PATTERN, false);
     }
-    private void showFermiLDOSTimeEvolution() {
+    public void showFermiLDOSTimeEvolution() {
         runGnuplotThread(LDOS_E_FILE_NAME_PATTERN, false);
     }
 
-    private void showLastT(String filePattern) {
+    public void showLastT(String filePattern) {
 
 //            saveBlockGivenT("/" + filePattern   ".csv");
 //            overwriteLastTFile(filePattern, index);
@@ -437,7 +450,7 @@ public class NanoModeller extends JFrame {
 //            runFile(path);
     }
 
-    private void showLDOS() {
+    public void showLDOS() {
         runGnuplotThread(SLDOS_FILE_NAME_PATTERN, false, true);
     }
     public void clearAll() {
@@ -1083,12 +1096,12 @@ public class NanoModeller extends JFrame {
         this.currentAtom = currentAtom;
     }
 
-    public Menu getMenu() {
-        return menu;
+    public RightMenuPanel getMenu() {
+        return rightMenuPanel;
     }
 
-    public void setMenu(Menu menu) {
-        this.menu = menu;
+    public void setMenu(RightMenuPanel rightMenuPanel) {
+        this.rightMenuPanel = rightMenuPanel;
     }
 
     public LeftMenuPanel getStepRecorder() {
@@ -1669,891 +1682,15 @@ public class NanoModeller extends JFrame {
         getMenu().applyToAllButton.setImageIcon(new ImageIcon(APPLY_E_ALL_BUTTON_IMAGE_PATH));
     }
 
-    private class PaintSurface extends JComponent {
-
-        private static final long serialVersionUID = 1L;
-
-        public void paint(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            int screenHeight = PaintSurface.this.getSize().height;
-            int screenWidth = PaintSurface.this.getSize().width;
-            g2.setColor(getMenu().colorBox.colors.get(getbColor()));
-            g2.fillRect(0, 0, screenWidth, screenHeight);
-            Stroke thindashed = new BasicStroke(4.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-                    1.0f,new float[] { 8.0f, 3.0f, 2.0f, 3.0f },0.0f);
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if (Globals.DARK_GRAY.equals(getbColor())){
-                g2.setPaint(Color.LIGHT_GRAY);
-            }
-            else {
-                g2.setPaint(Color.DARK_GRAY);
-            }
-
-            if (isShowGrid()) {
-                for (int i = 0; i < screenWidth; i += getGridSize())
-                    g2.draw(new Line2D.Float(i, 0, i, screenHeight));
-                for (int i = 0; i < screenHeight; i += getGridSize())
-                    g2.draw(new Line2D.Float(0, i, screenWidth, i));
-            }
-            g2.setColor(Color.BLACK);
-            g2.setStroke(new BasicStroke(4));
-            for (AtomShape s : getShapes()){
-                String color = s.getColor();
-                Color innerColor = Color.BLACK;
-                Color selectedColor = Color.orange;
-                if (Globals.BLACK.equals(color) || Globals.DARK_GRAY.equals(color)){
-                    innerColor = Color.WHITE;
-                }
-                else if (Globals.YELLOW.equals(color) || Globals.DARK_YELLOW.equals(color) || Globals.ORANGE.equals(color)){
-                    selectedColor = Color.RED;
-                }
-                double centerX = s.getShape().getCenterX();
-                double centerY = s.getShape().getCenterY();
-                double outerRadius = s.getShape().getWidth() / 2.5;
-                double innerRadius = 0.55 * s.getShape().getWidth();
-                g2.setPaint(new RadialGradientPaint(
-                        (float)centerX, (float)centerY, (float)outerRadius, new float[] { 0, 1 },
-                        new Color[] { Color.darkGray, getMenu().colorBox.colors.get(s.getColor()) }));
-
-                g2.fill(createStar(centerX, centerY,
-                        innerRadius,
-                        outerRadius, 13, 2));
-                if (s != getHighlightedShape() && !getSelectedAtoms().contains(s)) {
-                    g2.setPaint(new RadialGradientPaint(
-                            (float) centerX, (float) centerY, (float) outerRadius, new float[]{0, 1},
-                            new Color[]{innerColor, getMenu().colorBox.colors.get(s.getColor())}));
-
-                }
-                else{
-                    g2.setPaint(new RadialGradientPaint(
-                            (float)centerX, (float)centerY, (float)outerRadius, new float[] { 0, 1 },
-                            new Color[] { selectedColor, getMenu().colorBox.colors.get(s.getColor()) }));
-                }
-
-                g2.fill(createStar(centerX, centerY,
-                        innerRadius/2,
-                        outerRadius/2, 13, 2));
-            }
-            for (AtomBound bound : bounds) {
-                g2.setColor(Color.BLACK);
-                if (bound != getHighlightedBound()){
-                    g2.setColor(getMenu().colorBox.colors.get(bound.getColor()));
-                    g2.draw(bound.getLine());
-                }
-            }
-            g2.setColor(Color.BLACK);
-            for (ElectrodeShape e : getElectrodes()) {
-
-                String color = e.getColor();
-                Color innerColor = Color.BLACK;
-                Color selectedColor = Color.GREEN;
-                if ("BLACK".equals(color) || "DARK GRAY".equals(color)){
-                    innerColor = Color.WHITE;
-                }
-                else if ("GREEN".equals(color) || "DARK GREEN".equals(color)){
-                    selectedColor = Color.RED;
-                }
-                int outerRadius = (int)(e.getRectangle().getWidth() / 1.76);
-                Rectangle2D rect = e.getRectangle();
-                g2.setColor(getMenu().colorBox.colors.get(e.getColor()));
-                Hexagon hexagon = new Hexagon(new Point((int)rect.getX() + (int)rect.getWidth()/2, (int)rect.getY() + (int)rect.getWidth()/2), outerRadius);
-                Hexagon innerHexagon = new Hexagon(new Point((int)rect.getX() + (int)rect.getWidth()/2, (int)rect.getY() + (int)rect.getWidth()/2), outerRadius/2);
-                g2.setPaint(new RadialGradientPaint(
-                        new Point((int)rect.getX() + (int)rect.getWidth()/2, (int)rect.getY() + (int)rect.getWidth()/2), (float)outerRadius, new float[] { 0, 1 },
-                        new Color[] { Color.darkGray, getMenu().colorBox.colors.get(e.getColor()) }));
-                g2.drawPolygon(hexagon.getHexagon());
-                g2.fillPolygon(hexagon.getHexagon());
-                if (e != getHighlightedElectrode() && !getSelectedElectrodes().contains(e)) {
-                    g2.setPaint(new RadialGradientPaint(
-                            new Point((int)rect.getX() + (int)rect.getWidth()/2, (int)rect.getY() + (int)rect.getWidth()/2), (float)outerRadius, new float[] { 0, 1 },
-                            new Color[] { innerColor, getMenu().colorBox.colors.get(e.getColor()) }));
-                }else{
-                    g2.setPaint(new RadialGradientPaint(
-                            new Point((int)rect.getX() + (int)rect.getWidth()/2, (int)rect.getY() + (int)rect.getWidth()/2), (float)outerRadius, new float[] { 0, 1 },
-                            new Color[] { selectedColor, getMenu().colorBox.colors.get(e.getColor()) }));
-                }
-                g2.drawPolygon(innerHexagon.getHexagon());
-                g2.fillPolygon(innerHexagon.getHexagon());
-
-                if(e.getLine() != null){
-                    if (Globals.BLACK.equals(getbColor())) {
-                        g2.setColor(Color.WHITE);
-                    }
-                    else {
-                        g2.setColor(Color.BLACK);
-                    }
-                    g2.setStroke(thindashed);
-                    g2.draw(e.getLine());
-                    g2.setStroke(new BasicStroke(4));
-                }
-            }
-            g2.setColor(Color.ORANGE);
-            for (AtomBound s : getSelectedBounds())
-                if (bounds.contains(s))
-                    g2.draw(s.getLine());
-            if (getHighlightedBound() != null){
-                g2.setColor(Color.GREEN);
-                g2.draw(getHighlightedBound().getLine());
-            }
-            g2.setColor(Color.GRAY);
-            if (getSelection() != null)
-                g2.draw(getSelection());
-        }
-        private Shape createDefaultStar(double radius, double centerX,
-                                        double centerY)
-        {
-            return createStar(centerX, centerY, radius, radius * 2.63, 5,
-                    Math.toRadians(-18));
-        }
-
-        private Shape createStar(double centerX, double centerY,
-                                 double innerRadius, double outerRadius, int numRays,
-                                 double startAngleRad)
-        {
-            Path2D path = new Path2D.Double();
-            double deltaAngleRad = Math.PI / numRays;
-            for (int i = 0; i < numRays * 2; i++)
-            {
-                double angleRad = startAngleRad + i * deltaAngleRad;
-                double ca = Math.cos(angleRad);
-                double sa = Math.sin(angleRad);
-                double relX = ca;
-                double relY = sa;
-                if ((i & 1) == 0)
-                {
-                    relX *= outerRadius;
-                    relY *= outerRadius;
-                }
-                else
-                {
-                    relX *= innerRadius;
-                    relY *= innerRadius;
-                }
-                if (i == 0)
-                {
-                    path.moveTo(centerX + relX, centerY + relY);
-                }
-                else
-                {
-                    path.lineTo(centerX + relX, centerY + relY);
-                }
-            }
-            path.closePath();
-            return path;
-        }
-        public class Hexagon {
-            private final int radius;
-
-            private final Point center;
-
-            private final Polygon hexagon;
-
-            public Hexagon(Point center, int radius) {
-                this.center = center;
-                this.radius = radius;
-                this.hexagon = createHexagon();
-            }
-
-            private Polygon createHexagon() {
-                Polygon polygon = new Polygon();
-
-                for (int i = 0; i < 6; i++) {
-                    int xval = (int) (center.x + radius
-                            * Math.cos(i * 2 * Math.PI / 6D));
-                    int yval = (int) (center.y + radius
-                            * Math.sin(i * 2 * Math.PI / 6D));
-                    polygon.addPoint(xval, yval);
-                }
-
-                return polygon;
-            }
-            public Polygon getHexagon() {
-                return hexagon;
-            }
-
-        }
-    }
     public MyButton getApplyToAllButton() {
-        return menu.applyToAllButton;
+        return rightMenuPanel.applyToAllButton;
     }
 
     public MyButton getTimeEvolutionButton() {
-        return menu.timeEvolutionButton;
+        return rightMenuPanel.timeEvolutionButton;
     }
 
 
-    private class Menu extends MyPanel {
-
-        private static final long serialVersionUID = 1L;
-        MyButton applyToAllButton = new MyButton("", null);
-        MyButton countStaticProperties = new MyButton("Count static properties", new ImageIcon(COUNT_LDOS_BUTTON_IMAGE_PATH));
-        MyButton countNormalisation = new MyButton("Static normalisation(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
-        MyButton showNormalisation = new MyButton("Charge(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
-        MyButton showLDOS = new MyButton("Static LDOS(i)", new ImageIcon(LDOS_BUTTON_IMAGE_PATH));
-       MyButton timeEvolutionButton = new MyButton("Count time evolution", new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        MyButton showLDOSTimeEvolutionButton = new MyButton("LDOS(t)", new ImageIcon(SHOW_LDOS_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        MyButton showCurrentTimeEvolutionButton = new MyButton("I(t)", new ImageIcon(SHOW_CURRENT_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        MyButton showTDOSTimeEvolutionButton = new MyButton("TDOS(t)", new ImageIcon(SHOW_LDOS_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        MyButton showAVGDOSTimeEvolutionButton = new MyButton("AVG(LDOS(t))", new ImageIcon(SHOW_LDOS_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        MyButton showChargeTimeEvolutionButton = new MyButton("N(t)", new ImageIcon(SHOW_NORMALISATION_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        MyButton showFermiLDOSTimeEvolutionButton = new MyButton("<html>LDOS<sub>E</sub>(t)</html>", new ImageIcon(SHOW_NORMALISATION_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        MyButton showLDOSLastTButton = new MyButton("LDOS(T_max)", new ImageIcon(LDOS_LAST_T_IMAGE_PATH));
-        MyButton showNormalisationLastTButton = new MyButton("N(T_max)", new ImageIcon(NORMALISATION_LAST_T_IMAGE_PATH));
-        JLabel additionalParamsLabel = new ConsolasFontLabel(Color.WHITE,"Surface Coupling", 16);
-        JLabel parameterLabel = new ConsolasFontLabel(Color.WHITE,"Time Step", 16);
-        JLabel secondAdditionalParamsLabel = new ConsolasFontLabel(Color.WHITE,"<html>k<sub>F</sub>a</html>", 16);
-        JLabel thirdAdditionalParamsLabel = new ConsolasFontLabel(Color.WHITE,"Energy range", 16);
-        JLabel atomIDLabel = new ConsolasFontLabel(Color.WHITE,"ID", 16);
-        JLabel atomDataSavingLabel = new ConsolasFontLabel(Color.WHITE,"Data saving", 16);
-        JLabel perturbationLabel = new ConsolasFontLabel(Color.WHITE,"Perturbation", 16);
-        JLabel logo = new JLabel();
-        JComboBox atomIDComboBox;
-        MyColorBox colorBox = new MyColorBox();
-        JComboCheckBox atomSavingComboBox;
-        MyTextField perturbationTextField = new MyTextField();
-
-        MyTextField energyRangeTextField = new MyTextField();
-        MyTextField electrodeTypeTextField = new MyTextField();
-        MyTextField atomTypeTextField = new MyTextField();
-        MyTextField boundTypeTextField = new MyTextField();
-
-        MyTextField kfaTextField = new MyTextField();
-        MyTextField nZeroTextField = new MyTextField();
-        MyTextField correlationTextField = new MyTextField();
-        MyTextField electrodeTextField = new MyTextField();
-
-        MyTextField dTTextField = new MyTextField();
-        MyTextField dETextField = new MyTextField();
-        MyTextField boundVTextField = new MyTextField();
-        MyTextField atomEnergyTextField = new MyTextField();
-
-        MyTextField surfaceCouplingTextField = new MyTextField();
-        MyTextField electrodeCouplingTextField = new MyTextField();
-        MyTextField spinOrbitTextField = new MyTextField();
-        MyTextField spinFlipTextField = new MyTextField();
-
-        SortedComboBoxModel model;
-
-        public Menu() {
-            super("");
-            GridBagLayout layout = new GridBagLayout();
-            setLayout(layout);
-            applyToAllButton.setEnabled(false);
-            ImageIcon icon = new ImageIcon(LOGO_IMAGE_PATH);
-            Image img = icon.getImage() ;
-            Image newimg = img.getScaledInstance( 250, 110,  Image.SCALE_SMOOTH ) ;
-            ImageIcon imIc = new ImageIcon(newimg);
-            logo.setIcon(imIc);
-            showLDOS.setToolTipText("L");
-            countStaticProperties.setToolTipText("Ctrl + L");
-            GridBagConstraints pointer = new GridBagConstraints();
-            model = new SortedComboBoxModel(new Vector());
-            perturbationLabel.setVisible(false);
-            atomIDComboBox = new JComboBox(model);
-            atomIDComboBox.setVisible(false);
-            atomIDLabel.setVisible(false);
-            perturbationTextField.setVisible(false);
-            Vector v = new Vector();
-            v.add("Select...");
-            v.add(new JCheckBox("LDOS", true));
-            v.add(new JCheckBox("Normalisation", true));
-            atomSavingComboBox = new JComboCheckBox(v);
-            atomSavingComboBox.setVisible(false);
-            atomDataSavingLabel.setVisible(false);
-            pointer.fill = GridBagConstraints.HORIZONTAL;
-            pointer.weightx = 0.5;
-            pointer.weighty = 0.5;
-            pointer.gridx = 0;
-            pointer.gridy = 0;
-            pointer.gridwidth = 2;
-            add(logo, pointer);
-            pointer.gridy++;
-            pointer.gridwidth = 1;
-            add(parameterLabel,pointer);
-            pointer.gridy++;
-            pointer.gridwidth = 2;
-
-            //First parameters;
-            add(boundVTextField, pointer);
-            add(dTTextField, pointer);
-            add(dETextField, pointer);
-            pointer.gridy--;
-            pointer.gridwidth = 1;
-            pointer.gridx++;
-            add(atomDataSavingLabel, pointer);
-            pointer.gridx--;
-            pointer.gridy++;
-
-            add(atomEnergyTextField, pointer);
-
-            pointer.gridx++;
-            add(atomSavingComboBox, pointer);
-            pointer.gridx--;
-            pointer.gridy++;
-            pointer.gridwidth = 2;
-            add(additionalParamsLabel, pointer);
-            pointer.gridy++;
-
-            //Second parameters
-
-            add(spinOrbitTextField, pointer);
-            add(spinFlipTextField, pointer);
-            add(electrodeCouplingTextField, pointer);
-            add(surfaceCouplingTextField, pointer);
-            pointer.gridy++;
-
-            pointer.gridwidth = 1;
-            add(secondAdditionalParamsLabel,pointer);
-            pointer.gridy++;
-
-
-            pointer.gridwidth = 2;
-
-            //Third parameters
-            add(nZeroTextField,pointer);
-            add(correlationTextField,pointer);
-            add(kfaTextField,pointer);
-            add(electrodeTextField, pointer);
-
-            pointer.gridy++;
-
-
-            add(thirdAdditionalParamsLabel,pointer);
-            pointer.gridwidth = 1;
-            pointer.gridx++;
-
-            add(atomIDLabel, pointer);
-            add(perturbationLabel, pointer);
-            pointer.gridx--;
-            pointer.gridy++;
-
-            //Fourth parameters
-
-            add(electrodeTypeTextField,pointer);
-            add(energyRangeTextField,pointer);
-            add(atomTypeTextField,pointer);
-            add(boundTypeTextField,pointer);
-            pointer.gridx++;
-
-            add(atomIDComboBox, pointer);
-            add(perturbationTextField, pointer);
-            pointer.gridx--;
-            pointer.gridy++;
-            pointer.gridwidth = 2;
-
-            add(colorBox, pointer);
-            pointer.gridy++;
-            add(applyToAllButton, pointer);
-            pointer.gridy++;
-            add(countStaticProperties, pointer);
-            pointer.gridy++;
-            add(showLDOS, pointer);
-            pointer.gridy++;
-            add(countNormalisation, pointer);
-            pointer.gridy++;
-            add(timeEvolutionButton, pointer);
-            pointer.gridy++;
-            add(showLDOSTimeEvolutionButton, pointer);
-            pointer.gridy++;
-            add(showCurrentTimeEvolutionButton, pointer);
-            pointer.gridy++;
-            add(showAVGDOSTimeEvolutionButton, pointer);
-            pointer.gridy++;
-            add(showTDOSTimeEvolutionButton, pointer);
-            pointer.gridy++;
-            add(showChargeTimeEvolutionButton, pointer);
-            pointer.gridy++;
-            add(showFermiLDOSTimeEvolutionButton, pointer);
-            pointer.gridy++;
-            add(showNormalisation,pointer);
-            pointer.gridy++;
-            add(showLDOSLastTButton, pointer);
-            pointer.gridy++;
-            add(showNormalisationLastTButton, pointer);
-
-            showLDOSLastTButton.addActionListener(e -> showLastT(LDOS_FILE_NAME_PATTERN));
-            showNormalisationLastTButton.addActionListener(e -> showLastT(NORMALISATION_FILE_NAME_PATTERN));
-            showLDOS.addActionListener(e -> showLDOS());
-            countStaticProperties.addActionListener(e -> countStaticProperties());
-
-            timeEvolutionButton.addActionListener(evt -> {
-                if (getDynamicCalculationsThread() != null){
-                    getDynamicCalculationsThread().stop();
-                    setDynamicCalculationsThread(null);
-                    timeEvolutionButton.setImageIcon(new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-                    timeEvolutionButton.setText("Count time evolution");
-                    getMenu().applyToAllButton.setIcon(null);
-                    getMenu().applyToAllButton.setEnabled(false);
-                    getMenu().applyToAllButton.setText("");
-                    setStepCount("0");
-                }
-                else
-                {
-                    getIsCanceled().setValue(false);
-                    timeEvolutionButton.setImageIcon(new ImageIcon(DELETE_BUTTON_IMAGE_PATH));
-                    timeEvolutionButton.setText("Cancel");
-                    Runnable myRunnable = () -> new TimeEvolutionHelper(NanoModeller.this, getIsInterupted());
-                    setDynamicCalculationsThread(new Thread(myRunnable));
-                    getMenu().applyToAllButton.setEnabled(true);
-                    getMenu().applyToAllButton.setImageIcon(new ImageIcon(NEXT_STEP_IMAGE_PATH));
-                    getMenu().applyToAllButton.setEnabled(true);
-                    NanoModeller.this.repaint();
-                    getDynamicCalculationsThread().start();
-                }
-
-            });
-            showLDOSTimeEvolutionButton.addActionListener(evt -> showLDOSTimeEvolution());
-            showCurrentTimeEvolutionButton.addActionListener(evt -> showCurrentTimeEvolution());
-            showTDOSTimeEvolutionButton.addActionListener(evt -> showTDOSTimeEvolution());
-            showAVGDOSTimeEvolutionButton.addActionListener(evt -> showAVGDOSTimeEvolution());
-            showChargeTimeEvolutionButton.addActionListener(evt -> showNormalisationTimeEvolution());
-            showFermiLDOSTimeEvolutionButton.addActionListener(evt -> showFermiLDOSTimeEvolution());
-            showNormalisation.addActionListener(evt -> showChargeTimeEvolution());
-            colorBox.setSelectedItem(Globals.BLACK);
-            colorBox.addItemListener(itemEvent -> {
-                if (getHighlightedShape() != null)
-                {
-                    getHighlightedShape().setColor(colorBox.getSelectedItem() + "");
-                }
-                else if (getHighlightedElectrode() != null){
-                    getHighlightedElectrode().setColor(colorBox.getSelectedItem() + "");
-                }
-                else if (getHighlightedBound() != null){
-                    getHighlightedBound().setColor(colorBox.getSelectedItem() + "");
-                }
-                else {
-                    setbColor(colorBox.getSelectedItem() + "");
-                }
-                getPaintSurface().repaint();
-            });
-            countNormalisation.addActionListener(evt -> showNormalisation());
-
-            dETextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    if (getHighlightedElectrode() != null){
-                        getHighlightedElectrode().setdE(dETextField.getText());
-                    }
-                }
-            });
-            atomEnergyTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    if (getHighlightedShape() != null)
-                    {
-                        getHighlightedShape().setEnergy(atomEnergyTextField.getText());
-                    }
-                }
-            });
-            boundVTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    if (getHighlightedBound() != null){
-                        getHighlightedBound().setValue(boundVTextField.getText());
-                    }
-                }
-            });
-            dTTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                        setDt(dTTextField.getText());
-                }
-            });
-
-            electrodeCouplingTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    //performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = electrodeCouplingTextField.getText();
-                    if (getHighlightedElectrode() != null){
-                        getHighlightedElectrode().setCoupling(text);
-                    }
-                }
-            });
-            surfaceCouplingTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    //performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = surfaceCouplingTextField.getText();
-                    setSurfaceCoupling(text);
-                }
-            });
-            spinOrbitTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    //performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = spinOrbitTextField.getText();
-                    if (getHighlightedBound() != null){
-                        getHighlightedBound().setSpinOrbit(text);
-                    }
-                }
-            });
-            spinFlipTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    //performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = spinFlipTextField.getText();
-                    if (getHighlightedShape() != null){
-                        getHighlightedShape().setSpinFlip(text);
-                    }
-                }
-            });
-            energyRangeTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = energyRangeTextField.getText();
-                    setEnergyRange(text);
-                    getPaintSurface().repaint();
-                }
-            });
-            boundTypeTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = boundTypeTextField.getText();
-                    if (getHighlightedBound() != null){
-                        getHighlightedBound().setType(text);
-                    }
-                    getPaintSurface().repaint();
-                }
-            });
-            electrodeTypeTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = electrodeTypeTextField.getText();
-                    if (getHighlightedElectrode() != null){
-                        getHighlightedElectrode().setType(text);
-                    }
-                    getPaintSurface().repaint();
-                }
-            });
-            atomTypeTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = atomTypeTextField.getText();
-                    if (getHighlightedShape() != null){
-                        getHighlightedShape().setType(text);
-                    }
-                    getPaintSurface().repaint();
-                }
-            });
-
-            atomIDComboBox.addItemListener(itemEvent -> {
-                if (getHighlightedShape() != null)
-                {
-                    int previousID = getHighlightedShape().getID();
-                    int newID = (Integer) atomIDComboBox.getSelectedItem();
-                    for (AtomShape shape : getShapes()){
-                        if (shape.getID() == newID){
-                            shape.setID(previousID);
-                        }
-                    }
-                    getHighlightedShape().setID(newID);
-
-                }
-            });
-
-            perturbationTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = perturbationTextField.getText();
-                    if (getHighlightedBound() != null) {
-                        getHighlightedBound().setPerturbation(text);
-
-                    } else if (getHighlightedElectrode() != null) {
-                        getHighlightedElectrode().setPerturbation(text);
-                    }
-                }
-            });
-            atomSavingComboBox.addItemListener(new ItemListener() {
-                public void itemStateChanged(ItemEvent itemEvent) {
-                    if (getHighlightedShape() != null){
-                        atomSavingComboBox.setPopupVisible(true);
-                    }
-                }
-            });
-            atomSavingComboBox.addPopupMenuListener(new PopupMenuListener() {
-                @Override
-                public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-
-                }
-
-                @Override
-                public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                    if (getHighlightedShape() != null){
-                        getHighlightedShape().setSaveLDOS(atomSavingComboBox.getLDOS());
-                        getHighlightedShape().setSaveNormalisation(atomSavingComboBox.getNormalisation());
-                        atomSavingComboBox.setSelectedIndex(0);
-                    }
-                }
-
-                @Override
-                public void popupMenuCanceled(PopupMenuEvent e) {
-
-                }
-            });
-            kfaTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = kfaTextField.getText();
-                    setkFa(text);
-                }
-            });
-            correlationTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = correlationTextField.getText();
-                    if (getHighlightedBound() != null){
-                        getHighlightedBound().setCorrelationCoupling(text);
-                    }
-                }
-            });
-            nZeroTextField.getDocument().addDocumentListener(new DocumentListener() {
-                @Override
-                public void insertUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                @Override
-                public void removeUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void changedUpdate(DocumentEvent e) {
-                    performAction();
-                }
-                public void performAction(){
-                    String text = nZeroTextField.getText();
-                    if (getHighlightedShape() != null){
-                        getHighlightedShape().setnZero(text);
-                    }
-                }
-            });
-            applyToAllButton.addActionListener(evt -> {
-                if (getHighlightedElectrode() != null){
-                    for (ElectrodeShape e : getElectrodes()){
-                        if (StringUtils.equalsIgnoreNullWhitespace(getHighlightedElectrode().getType(), e.getType())){
-                            e.setdE(dETextField.getText());
-                            e.setCoupling(electrodeCouplingTextField.getText());
-                            e.setColor(getHighlightedElectrode().getColor());
-                            e.setPerturbation(getHighlightedElectrode().getPerturbation());
-                        }
-                    }
-                    ToastMessage toastMessage = new ToastMessage("Applied to all electrodes", TOAST_MESSAGE_DURATION, NanoModeller.this);
-                    toastMessage.setVisible(true);
-                }
-                else if (getHighlightedBound() != null){
-                    for (AtomBound b : bounds){
-                        if (StringUtils.equalsIgnoreNullWhitespace(getHighlightedBound().getType(), b.getType())) {
-                            b.setValue(boundVTextField.getText());
-                            b.setCorrelationCoupling(correlationTextField.getText());
-                            b.setSpinOrbit(spinOrbitTextField.getText());
-                            b.setColor(getHighlightedBound().getColor());
-                            b.setPerturbation(getHighlightedBound().getPerturbation());
-                        }
-                    }
-                    ToastMessage toastMessage = new ToastMessage("Applied to all bounds", TOAST_MESSAGE_DURATION, NanoModeller.this);
-                    toastMessage.setVisible(true);
-                }
-                else if (getHighlightedShape() != null){
-                    for(AtomShape shape: getShapes()){
-                        if (StringUtils.equalsIgnoreNullWhitespace(getHighlightedShape().getType(), shape.getType())) {
-                            shape.setEnergy(atomEnergyTextField.getText());
-                            shape.setSpinFlip(spinFlipTextField.getText());
-                            shape.setnZero(nZeroTextField.getText());
-                            shape.setColor(getHighlightedShape().getColor());
-                            shape.setCorrelation(getHighlightedShape().getCorrelation());
-                            shape.setSaveNormalisation(getHighlightedShape().isSaveNormalisation());
-                            shape.setSaveLDOS(getHighlightedShape().isSaveLDOS());
-                        }
-                    }
-                    ToastMessage toastMessage = new ToastMessage("Applied to all atoms", TOAST_MESSAGE_DURATION, NanoModeller.this);
-                    toastMessage.setVisible(true);
-                }
-                else if (getDynamicCalculationsThread() != null){
-                    getIsInterupted().neg();
-                    NanoModeller.this.repaint();
-                }
-                getPaintSurface().repaint();
-            });
-            setTextFieldsVisibility(TextFieldType.SURFACE);
-        }
-
-
-
-        private void setTextFieldsVisibility(TextFieldType type){
-
-            spinOrbitTextField.setVisible(TextFieldType.BOUND.equals(type));
-            boundVTextField.setVisible(TextFieldType.BOUND.equals(type));
-            boundTypeTextField.setVisible(TextFieldType.BOUND.equals(type));
-            correlationTextField.setVisible(TextFieldType.BOUND.equals(type));
-
-
-            spinFlipTextField.setVisible(TextFieldType.ATOM.equals(type));
-            atomEnergyTextField.setVisible(TextFieldType.ATOM.equals(type));
-            atomTypeTextField.setVisible(TextFieldType.ATOM.equals(type));
-            nZeroTextField.setVisible(TextFieldType.ATOM.equals(type));
-            atomSavingComboBox.setVisible(TextFieldType.ATOM.equals(type));
-            atomDataSavingLabel.setVisible(TextFieldType.ATOM.equals(type));
-
-            dETextField.setVisible(TextFieldType.ELECTRODE.equals(type));
-            electrodeCouplingTextField.setVisible(TextFieldType.ELECTRODE.equals(type));
-            electrodeTypeTextField.setVisible(TextFieldType.ELECTRODE.equals(type));
-            electrodeTextField.setVisible(TextFieldType.ELECTRODE.equals(type));
-
-            surfaceCouplingTextField.setVisible(TextFieldType.SURFACE.equals(type));
-            dTTextField.setVisible(TextFieldType.SURFACE.equals(type));
-            energyRangeTextField.setVisible(TextFieldType.SURFACE.equals(type));
-            kfaTextField.setVisible(TextFieldType.SURFACE.equals(type));
-
-
-        }
-    }
     enum TextFieldType {
         ATOM,
         BOUND,
@@ -2561,7 +1698,7 @@ public class NanoModeller extends JFrame {
         SURFACE
     }
 
-    private void showAVGDOSTimeEvolution() {
+    public void showAVGDOSTimeEvolution() {
 
         int n = JOptionPane.showConfirmDialog(
                 this,
@@ -2595,7 +1732,7 @@ public class NanoModeller extends JFrame {
 
     }
 
-    private void showTDOSTimeEvolution() {
+    public void showTDOSTimeEvolution() {
         TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
         if (selectedFilesPATHS.length != 1){
             JOptionPane.showMessageDialog(this, "You cannot have multiple diectories selected!");

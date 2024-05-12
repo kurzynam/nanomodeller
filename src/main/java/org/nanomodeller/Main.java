@@ -1,5 +1,6 @@
 package org.nanomodeller;
 
+import com.panayotis.gnuplot.JavaPlot;
 import org.nanomodeller.GUI.NanoModeller;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.jscience.mathematics.number.Complex;
@@ -100,7 +101,13 @@ public class Main {
 //
 //        ArrayList<ArrayList<Color>> palettes = new ArrayList<>();
 
-            NanoModeller.getInstance().initNanoModeller();
+            //NanoModeller.getInstance().initNanoModeller();
+
+        JavaPlot p = new JavaPlot("gnuplot\\bin\\wgnuplot.exe");
+
+        p.addPlot("sin(x)");
+
+        p.plot();
 //        readData(2,2);
 //        palettes.add(pal1);
 //        palettes.add(pal2);
