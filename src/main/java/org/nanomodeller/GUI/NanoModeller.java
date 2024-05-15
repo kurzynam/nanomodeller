@@ -61,7 +61,7 @@ public class NanoModeller extends JFrame {
     private double screenWidth;
     private double screenHeight;
     private PaintSurface paintSurface = new PaintSurface(this);
-    private JScrollPane scrollPane = new JScrollPane(getPaintSurface());
+    private JScrollPane scrollPane = new FuturisticScrollPane(getPaintSurface());
     private ArrayList<AtomShape> shapes = new ArrayList<>();
 
     public ArrayList<AtomBound> getAtomBounds() {
@@ -1307,7 +1307,7 @@ public class NanoModeller extends JFrame {
                         break;
                     }
                 }
-                int diameter = 2* getGridSize();
+                int diameter = 2 * getGridSize();
                 if (!isPlaceOcupied && isCtrlPressed()){
                     Rectangle2D newElectrode = new Rectangle2D.Float(e.getX() - getGridSize(), e.getY() - getGridSize(), diameter, diameter);
                     getElectrodes().add(new ElectrodeShape(newElectrode, electrodeIDSeq()));
@@ -1491,6 +1491,26 @@ public class NanoModeller extends JFrame {
             getPaintSurface().repaint();
         }
 
+//        private void showTextArea(){
+//            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//            int width = (int)screenSize.getWidth();
+//            int height = (int)screenSize.getHeight();
+//            JTextArea tf = new JTextArea(gp.getCustomGnuplotCommands());
+//            tf.setAutoscrolls(true);
+//            tf.setFont(new Font("Consolas", Font.PLAIN, 20));
+//            //tf.setPreferredSize(new Dimension(width/3,height/4));
+//            tf.setLineWrap(true);
+//
+//            JScrollPane sp = new JScrollPane(tf);
+//            sp.setPreferredSize(new Dimension(width/3,height/4));
+//            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+//            int result = JOptionPane.showConfirmDialog(
+//                    null, sp, "Input",
+//                    JOptionPane.OK_CANCEL_OPTION);
+//            if (result == JOptionPane.OK_OPTION) {
+//                gp.setCustomGnuplotCommands(tf.getText());
+//            }
+//        }
         public void mousePressed(MouseEvent e) {
             if (e.isPopupTrigger())
                 doPop(e);

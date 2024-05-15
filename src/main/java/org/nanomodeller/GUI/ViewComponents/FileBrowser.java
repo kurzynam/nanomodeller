@@ -70,6 +70,7 @@ public class FileBrowser extends JPanel{
     public FileBrowser(LeftMenuPanel recorder){
 
         this.recorder = recorder;
+
         MouseAdapter ma = new MouseAdapter() {
             private void myPopupEvent(MouseEvent e) {
                 if(!getSelectedFileNode().isHidden()) {
@@ -78,6 +79,9 @@ public class FileBrowser extends JPanel{
                 }
             }
             public void mousePressed(MouseEvent e) {
+                if (null == ((JTree) e.getSource()).getAnchorSelectionPath()){
+                    return;
+                }
                 String path = ((JTree) e.getSource()).getAnchorSelectionPath().getLastPathComponent().toString();
                 if (isNodeChanged(path)){
                     readPropertiesFromXMLFile(getAbsolutePath() + "/parameters.xml");
@@ -102,15 +106,16 @@ public class FileBrowser extends JPanel{
                 DISCONTIGUOUS_TREE_SELECTION);
         tree.setShowsRootHandles(true);
         tree.setFont(new Font("Consolas", Font.PLAIN, 22));
-        tree.setCellRenderer(new MyTreeCellRenderer());
-        JScrollPane scrollPane = new JScrollPane(tree);
 
+        tree.setCellRenderer(new MyTreeCellRenderer());
+        JScrollPane scrollPane = new FuturisticScrollPane(tree);
+        tree.setBackground(Color.gray);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int width = (int)screenSize.getWidth();
         int height = (int)screenSize.getHeight();
         scrollPane.setPreferredSize(new Dimension(width/8, height/5));
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         add(scrollPane);
         setMinimumSize(new Dimension(width/11, height/5));
         setVisible(true);
@@ -126,6 +131,7 @@ public class FileBrowser extends JPanel{
 
         MyTreeCellRenderer() {
             label = new JLabel();
+            label.setForeground(Color.WHITE);
         }
 
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded,
@@ -159,6 +165,7 @@ public class FileBrowser extends JPanel{
 
                 label.setIcon(imIc);
                 label.setText(fnode.toString());
+
             } else {
                 label.setIcon(null);
             }
@@ -172,9 +179,9 @@ public class FileBrowser extends JPanel{
         JMenuItem renameDirItem;
         JMenuItem removeDirItem;
         public PopUpMenu(){
-            newDirItem = new MyMenuItem("New Directory","img/addDirIcon.png", 30, 25);
-            renameDirItem = new MyMenuItem("Rename directory","img/renameDirIcon.png", 30, 25);
-            removeDirItem = new MyMenuItem("Remove directory", "img/removeDirIcon.png", 30, 25);
+            newDirItem = new MyMenuItem("New subdirectory","img/addDirIcon.png", 30, 25);
+            renameDirItem = new MyMenuItem("Rename","img/renameDirIcon.png", 30, 25);
+            removeDirItem = new MyMenuItem("Remove", "img/removeDirIcon.png", 30, 25);
 
             add(newDirItem);
             add(renameDirItem);

@@ -79,11 +79,11 @@ class RightMenuPanel extends MyPanel {
         GridBagLayout layout = new GridBagLayout();
         setLayout(layout);
         applyToAllButton.setEnabled(false);
-        ImageIcon icon = new ImageIcon(LOGO_IMAGE_PATH);
-        Image img = icon.getImage();
-        Image newimg = img.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
-        ImageIcon imIc = new ImageIcon(newimg);
-        logo.setIcon(imIc);
+//        ImageIcon icon = new ImageIcon(LOGO_IMAGE_PATH);
+//        Image img = icon.getImage();
+//        Image newimg = img.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+//        ImageIcon imIc = new ImageIcon(newimg);
+//        logo.setIcon(imIc);
         showLDOS.setToolTipText("L");
         countStaticProperties.setToolTipText("Ctrl + L");
         GridBagConstraints pointer = new GridBagConstraints();
@@ -105,8 +105,8 @@ class RightMenuPanel extends MyPanel {
         pointer.weighty = 0.5;
         pointer.gridx = 0;
         pointer.gridy = 0;
-        pointer.gridwidth = 2;
-        add(logo, pointer);
+//        pointer.gridwidth = 2;
+//        add(logo, pointer);
         pointer.gridy++;
         pointer.gridwidth = 1;
         add(parameterLabel, pointer);

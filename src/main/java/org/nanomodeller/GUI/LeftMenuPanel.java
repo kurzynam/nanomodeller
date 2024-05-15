@@ -21,6 +21,7 @@ import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
 public class LeftMenuPanel extends MyPanel {
 
     MyButton nextButton;
+    JLabel logo = new JLabel();
     MyButton alignButton = new MyButton("Align", new ImageIcon(ALIGN_BUTTON_IMAGE_PATH));
     MyButton zoomInButton = new MyButton("Zoom+", new ImageIcon(ZOOM_IN_BUTTON_IMAGE_PATH));
     MyButton zoomOutButton = new MyButton("Zoom-", new ImageIcon(ZOOM_OUT_BUTTON_IMAGE_PATH));
@@ -46,6 +47,12 @@ public class LeftMenuPanel extends MyPanel {
         initializeEvents();
     }
     private void initializeComponents(){
+
+        ImageIcon icon = new ImageIcon(LOGO_IMAGE_PATH);
+        Image img = icon.getImage();
+        Image newimg = img.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+        ImageIcon imIc = new ImageIcon(newimg);
+        logo.setIcon(imIc);
         nextButton = new MyButton("NEXT");
         timeLabel = new ConsolasFontLabel(Color.WHITE,"Duration", 22);
         timeTextField = new MyTextField();
@@ -86,13 +93,14 @@ public class LeftMenuPanel extends MyPanel {
         int width = (int)screenSize.getWidth();
         int height = (int)screenSize.getHeight();
         setLayout(layout);
+        add(logo);
         GridBagConstraints pointer = new GridBagConstraints();
         pointer.fill = GridBagConstraints.HORIZONTAL;
+
         pointer.weightx = 0.5;
         pointer.weighty = 0.5;
         pointer.gridx = 0;
         pointer.gridy = 0;
-        pointer.gridwidth = 2;
         pointer.gridy++;
 
 

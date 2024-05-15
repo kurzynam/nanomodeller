@@ -4,8 +4,24 @@ import com.panayotis.gnuplot.JavaPlot;
 import org.nanomodeller.GUI.NanoModeller;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.jscience.mathematics.number.Complex;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.swing.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 import static org.nanomodeller.MixedPalette.*;
@@ -107,6 +123,8 @@ public class Main {
 //
 //        p.addPlot("sin(x)");
 
+//        amethod();
+
 //        p.plot();
 //        readData(2,2);
 //        palettes.add(pal1);
@@ -121,6 +139,41 @@ public class Main {
 
     }
 
+
+//public static void amethod(){
+//
+//    JEditorPane editor = new JEditorPane();
+//    editor.setBounds(114, 65, 262, 186);
+//    JFrame frame = new JFrame();
+//    frame.setSize(300,400);
+//    frame.getContentPane().add(editor);
+//    editor.setContentType( "html" );
+//    File file=new File("parameters.xml");
+//    try {
+//        editor.setPage(file.toURI().toURL());
+//    } catch (IOException e) {
+//        throw new RuntimeException(e);
+//    }
+//    try (InputStream xml = getClass().getResourceAsStream("parameters.xml")) {
+//        DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+//        Document doc = db.parse(xml);
+//
+//        StringWriter output = new StringWriter();
+//        TransformerFactory tf = TransformerFactory.newInstance();
+//
+//        String html = output.toString();
+//
+//        // JEditorPane doesn't like the META tag...
+//        html = html.replace("<META http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">", "");
+//        editor.setContentType("text/html; charset=UTF-8");
+//
+//        editor.setText(html);
+//    } catch (IOException | ParserConfigurationException | SAXException  e) {
+//        editor.setText("Unable to format document due to:\n\t" + e);
+//    }
+//    frame.show();
+//    editor.setCaretPosition(0);
+//}
 
 
 
