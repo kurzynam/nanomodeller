@@ -3,6 +3,8 @@ package org.nanomodeller.XMLMappingFiles;
 import org.nanomodeller.Globals;
 
 import java.io.File;
+import java.io.StringReader;
+import java.io.StringWriter;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
@@ -61,7 +63,7 @@ public class XMLHelper {
         return matrix;
     }
 
-    public static void convertObjectToXML(Object o, String path) {
+    public static void convertObjectToXMLFile(Object o, String path) {
 
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(o.getClass());
@@ -73,8 +75,36 @@ public class XMLHelper {
             ex.printStackTrace();
         }
     }
-    public static void convertObjectToXML(Object o){
-        convertObjectToXML(o, Globals.XML_FILE_PATH);
+
+    public static String convertObjectToXMLString(Object o) {
+
+        try {
+            StringWriter writer = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(o.getClass());
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            jaxbMarshaller.marshal(o, writer);
+            return writer.toString();
+        }
+        catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Atom convertXMLStringToAtom(String xml){
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(Atom.class);
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            StringReader reader = new StringReader(xml);
+            return (Atom) unmarshaller.unmarshal(reader);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public static void convertObjectToXMLFile(Object o){
+        convertObjectToXMLFile(o, Globals.XML_FILE_PATH);
     }
 
 }

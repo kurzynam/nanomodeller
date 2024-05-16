@@ -1,30 +1,11 @@
 package org.nanomodeller;
 
-import com.panayotis.gnuplot.JavaPlot;
-import org.nanomodeller.GUI.NanoModeller;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.jscience.mathematics.number.Complex;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
-import javax.swing.*;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
-
-import static org.nanomodeller.MixedPalette.*;
 
 public class Main {
 
@@ -117,7 +98,7 @@ public class Main {
 //
 //        ArrayList<ArrayList<Color>> palettes = new ArrayList<>();
 
-            NanoModeller.getInstance().initNanoModeller();
+            NanoModeler.getInstance().initNanoModeller();
 
 //        JavaPlot p = new JavaPlot("gnuplot\\bin\\wgnuplot.exe");
 //

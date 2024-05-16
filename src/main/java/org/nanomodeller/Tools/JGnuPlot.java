@@ -248,7 +248,7 @@ public class JGnuPlot extends JavaPlot {
                 }
 
                 int id = shapes.get(i).getID() + 4;
-                String e_zero = shapes.get(i).getEnergy();
+                String e_zero = shapes.get(i).getAtom().getString("OnSiteEnergy").toString();
                 String ids = "2:($3-3):" + id;
                 String command = String.format("splot %s i %s u %s every  %s:%s title %s with pm3d",
                         StringUtils.toSingleQuotes(path), step, ids, properties.getEveryT(),

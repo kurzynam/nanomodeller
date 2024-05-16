@@ -154,7 +154,7 @@ applications using wxWidgets.
 However, if you distribute wxGTK or wxMotif (with Lesstif)
 version of your application, don't forget that it is linked
 against GTK+ (or Lesstif) which is covered by LGPL *without*
-exception notice and so is bound by its requirements.
+exception notice and so is bond by its requirements.
 
 If you use TIFF image handler, please see src/tiff/COPYRIGHT
 for libtiff licence details.

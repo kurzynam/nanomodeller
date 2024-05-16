@@ -1,7 +1,6 @@
 package org.nanomodeller.GUI;
 
 import org.nanomodeller.GUI.ViewComponents.MyMenuItem;
-import org.nanomodeller.Globals;
 import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import java.awt.*;
@@ -14,13 +13,13 @@ import javax.swing.event.MenuListener;
 
 import static org.nanomodeller.Tools.DataAccessTools.FileOperationHelper.runFile;
 import static org.nanomodeller.Tools.DataAccessTools.MyFileWriter.saveBlockGivenT;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
+import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXMLFile;
 
 
 public class Menu extends JMenuBar {
-    NanoModeller sm;
+    NanoModeler sm;
 
-    public Menu(NanoModeller sm) {
+    public Menu(NanoModeler sm) {
         this.sm = sm;
         JMenu menu = new JMenu("Menu");
         JMenu about= new JMenu("About");
@@ -74,7 +73,7 @@ public class Menu extends JMenuBar {
                 if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                     String dynamicPATH = chooser.getSelectedFile().getPath();
                     gp.setDynamicPATH(dynamicPATH);
-                    convertObjectToXML(gp);
+                    convertObjectToXMLFile(gp);
                     this.sm.getStepRecorder().fileBrowser.changeRootNode(dynamicPATH);
                 }
                 UIManager.setLookAndFeel(previousLF);

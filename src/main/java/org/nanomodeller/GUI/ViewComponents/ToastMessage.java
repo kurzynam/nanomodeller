@@ -1,6 +1,6 @@
 package org.nanomodeller.GUI.ViewComponents;
 
-import org.nanomodeller.GUI.NanoModeller;
+import org.nanomodeller.GUI.NanoModeler;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -9,7 +9,7 @@ import java.awt.*;
 public class ToastMessage extends JDialog {
     int miliseconds;
 
-    public ToastMessage(String toastString, int time, NanoModeller sm) {
+    public ToastMessage(String toastString, int time, NanoModeler sm) {
         this.miliseconds = time;
         setUndecorated(true);
         getContentPane().setLayout(new BorderLayout(0, 0));

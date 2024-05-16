@@ -1,6 +1,6 @@
 package org.nanomodeller.GUI;
 
-import org.nanomodeller.GUI.Shapes.AtomBound;
+import org.nanomodeller.GUI.Shapes.AtomBond;
 import org.nanomodeller.GUI.Shapes.AtomShape;
 import org.nanomodeller.GUI.Shapes.ElectrodeShape;
 import org.nanomodeller.Globals;
@@ -14,36 +14,89 @@ class PaintSurface extends Component {
 
     private static final long serialVersionUID = 1L;
 
-    private final NanoModeller nanoModeller;
+    private final NanoModeler nanoModeler;
 
-    public PaintSurface(NanoModeller nanoModeller) {
-        this.nanoModeller = nanoModeller;
+    public PaintSurface(NanoModeler nanoModeler) {
+        this.nanoModeler = nanoModeler;
     }
 
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         int screenHeight = PaintSurface.this.getSize().height;
         int screenWidth = PaintSurface.this.getSize().width;
-        g2.setColor(nanoModeller.getMenu().colorBox.colors.get(nanoModeller.getbColor()));
+        g2.setColor(nanoModeler.getMenu().colorBox.colors.get(nanoModeler.getbColor()));
         g2.fillRect(0, 0, screenWidth, screenHeight);
         Stroke thindashed = new BasicStroke(4.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                 1.0f, new float[]{8.0f, 3.0f, 2.0f, 3.0f}, 0.0f);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        if (Globals.DARK_GRAY.equals(nanoModeller.getbColor())) {
+        if (Globals.DARK_GRAY.equals(nanoModeler.getbColor())) {
             g2.setPaint(Color.LIGHT_GRAY);
         } else {
             g2.setPaint(Color.DARK_GRAY);
         }
 
-        if (nanoModeller.isShowGrid()) {
-            for (int i = 0; i < screenWidth; i += nanoModeller.getGridSize())
+        if (nanoModeler.isShowGrid()) {
+            for (int i = 0; i < screenWidth; i += nanoModeler.getGridSize())
                 g2.draw(new Line2D.Float(i, 0, i, screenHeight));
-            for (int i = 0; i < screenHeight; i += nanoModeller.getGridSize())
+            for (int i = 0; i < screenHeight; i += nanoModeler.getGridSize())
                 g2.draw(new Line2D.Float(0, i, screenWidth, i));
         }
         g2.setColor(Color.BLACK);
         g2.setStroke(new BasicStroke(4));
-        for (AtomShape s : nanoModeller.getShapes()) {
+        for (AtomBond bound : nanoModeler.getAtomBounds()) {
+
+            if (bound.getFirstAtom() != null && bound != nanoModeler.getHighlightedBound()) {
+                g2.setColor(nanoModeler.getMenu().colorBox.colors.get(bound.getColor()));
+                g2.draw(bound.getLine());
+            }
+        }
+        g2.setColor(Color.BLACK);
+        for (ElectrodeShape e : nanoModeler.getElectrodes()) {
+
+            if (e.getLine() != null) {
+                if (Globals.BLACK.equals(nanoModeler.getbColor())) {
+                    g2.setColor(Color.WHITE);
+                } else {
+                    g2.setColor(Color.BLACK);
+                }
+                g2.setStroke(thindashed);
+                g2.draw(e.getLine());
+                g2.setStroke(new BasicStroke(4));
+            }
+
+            String color = e.getColor();
+            Color innerColor = Color.BLACK;
+            Color selectedColor = Color.GREEN;
+            if ("BLACK".equals(color) || "DARK GRAY".equals(color)) {
+                innerColor = Color.WHITE;
+            } else if ("GREEN".equals(color) || "DARK GREEN".equals(color)) {
+                selectedColor = Color.RED;
+            }
+            int outerRadius = (int) (e.getRectangle().getWidth() / 1.76);
+            Rectangle2D rect = e.getRectangle();
+            g2.setColor(nanoModeler.getMenu().colorBox.colors.get(e.getColor()));
+            Hexagon hexagon = new Hexagon(new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), outerRadius);
+            Hexagon innerHexagon = new Hexagon(new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), outerRadius / 2);
+            g2.setPaint(new RadialGradientPaint(
+                    new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), (float) outerRadius, new float[]{0, 1},
+                    new Color[]{Color.darkGray, nanoModeler.getMenu().colorBox.colors.get(e.getColor())}));
+            g2.drawPolygon(hexagon.getHexagon());
+            g2.fillPolygon(hexagon.getHexagon());
+            if (e != nanoModeler.getHighlightedElectrode() && !nanoModeler.getSelectedElectrodes().contains(e)) {
+                g2.setPaint(new RadialGradientPaint(
+                        new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), (float) outerRadius, new float[]{0, 1},
+                        new Color[]{innerColor, nanoModeler.getMenu().colorBox.colors.get(e.getColor())}));
+            } else {
+                g2.setPaint(new RadialGradientPaint(
+                        new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), (float) outerRadius, new float[]{0, 1},
+                        new Color[]{selectedColor, nanoModeler.getMenu().colorBox.colors.get(e.getColor())}));
+            }
+            g2.drawPolygon(innerHexagon.getHexagon());
+            g2.fillPolygon(innerHexagon.getHexagon());
+
+
+        }
+        for (AtomShape s : nanoModeler.getShapes()) {
             String color = s.getColor();
             Color innerColor = Color.BLACK;
             Color selectedColor = Color.orange;
@@ -58,88 +111,39 @@ class PaintSurface extends Component {
             double innerRadius = 0.55 * s.getShape().getWidth();
             g2.setPaint(new RadialGradientPaint(
                     (float) centerX, (float) centerY, (float) outerRadius, new float[]{0, 1},
-                    new Color[]{Color.darkGray, nanoModeller.getMenu().colorBox.colors.get(s.getColor())}));
+                    new Color[]{Color.darkGray, nanoModeler.getMenu().colorBox.colors.get(s.getColor())}));
 
             g2.fill(createStar(centerX, centerY,
                     innerRadius,
                     outerRadius, 13, 2));
-            if (s != nanoModeller.getHighlightedShape() && !nanoModeller.getSelectedAtoms().contains(s)) {
+            if (s != nanoModeler.getHighlightedShape() && !nanoModeler.getSelectedAtoms().contains(s)) {
                 g2.setPaint(new RadialGradientPaint(
                         (float) centerX, (float) centerY, (float) outerRadius, new float[]{0, 1},
-                        new Color[]{innerColor, nanoModeller.getMenu().colorBox.colors.get(s.getColor())}));
+                        new Color[]{innerColor, nanoModeler.getMenu().colorBox.colors.get(s.getColor())}));
 
             } else {
                 g2.setPaint(new RadialGradientPaint(
                         (float) centerX, (float) centerY, (float) outerRadius, new float[]{0, 1},
-                        new Color[]{selectedColor, nanoModeller.getMenu().colorBox.colors.get(s.getColor())}));
+                        new Color[]{selectedColor, nanoModeler.getMenu().colorBox.colors.get(s.getColor())}));
             }
 
             g2.fill(createStar(centerX, centerY,
                     innerRadius / 2,
                     outerRadius / 2, 13, 2));
         }
-        for (AtomBound bound : nanoModeller.getAtomBounds()) {
-            g2.setColor(Color.BLACK);
-            if (bound != nanoModeller.getHighlightedBound()) {
-                g2.setColor(nanoModeller.getMenu().colorBox.colors.get(bound.getColor()));
-                g2.draw(bound.getLine());
-            }
-        }
-        g2.setColor(Color.BLACK);
-        for (ElectrodeShape e : nanoModeller.getElectrodes()) {
 
-            String color = e.getColor();
-            Color innerColor = Color.BLACK;
-            Color selectedColor = Color.GREEN;
-            if ("BLACK".equals(color) || "DARK GRAY".equals(color)) {
-                innerColor = Color.WHITE;
-            } else if ("GREEN".equals(color) || "DARK GREEN".equals(color)) {
-                selectedColor = Color.RED;
-            }
-            int outerRadius = (int) (e.getRectangle().getWidth() / 1.76);
-            Rectangle2D rect = e.getRectangle();
-            g2.setColor(nanoModeller.getMenu().colorBox.colors.get(e.getColor()));
-            Hexagon hexagon = new Hexagon(new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), outerRadius);
-            Hexagon innerHexagon = new Hexagon(new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), outerRadius / 2);
-            g2.setPaint(new RadialGradientPaint(
-                    new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), (float) outerRadius, new float[]{0, 1},
-                    new Color[]{Color.darkGray, nanoModeller.getMenu().colorBox.colors.get(e.getColor())}));
-            g2.drawPolygon(hexagon.getHexagon());
-            g2.fillPolygon(hexagon.getHexagon());
-            if (e != nanoModeller.getHighlightedElectrode() && !nanoModeller.getSelectedElectrodes().contains(e)) {
-                g2.setPaint(new RadialGradientPaint(
-                        new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), (float) outerRadius, new float[]{0, 1},
-                        new Color[]{innerColor, nanoModeller.getMenu().colorBox.colors.get(e.getColor())}));
-            } else {
-                g2.setPaint(new RadialGradientPaint(
-                        new Point((int) rect.getX() + (int) rect.getWidth() / 2, (int) rect.getY() + (int) rect.getWidth() / 2), (float) outerRadius, new float[]{0, 1},
-                        new Color[]{selectedColor, nanoModeller.getMenu().colorBox.colors.get(e.getColor())}));
-            }
-            g2.drawPolygon(innerHexagon.getHexagon());
-            g2.fillPolygon(innerHexagon.getHexagon());
 
-            if (e.getLine() != null) {
-                if (Globals.BLACK.equals(nanoModeller.getbColor())) {
-                    g2.setColor(Color.WHITE);
-                } else {
-                    g2.setColor(Color.BLACK);
-                }
-                g2.setStroke(thindashed);
-                g2.draw(e.getLine());
-                g2.setStroke(new BasicStroke(4));
-            }
-        }
         g2.setColor(Color.ORANGE);
-        for (AtomBound s : nanoModeller.getSelectedBounds())
-            if (nanoModeller.getAtomBounds().contains(s))
+        for (AtomBond s : nanoModeler.getSelectedBounds())
+            if (nanoModeler.getAtomBounds().contains(s))
                 g2.draw(s.getLine());
-        if (nanoModeller.getHighlightedBound() != null) {
+        if (nanoModeler.getHighlightedBound() != null) {
             g2.setColor(Color.GREEN);
-            g2.draw(nanoModeller.getHighlightedBound().getLine());
+            g2.draw(nanoModeler.getHighlightedBound().getLine());
         }
         g2.setColor(Color.GRAY);
-        if (nanoModeller.getSelection() != null)
-            g2.draw(nanoModeller.getSelection());
+        if (nanoModeler.getSelection() != null)
+            g2.draw(nanoModeler.getSelection());
     }
 
     private Shape createDefaultStar(double radius, double centerX,

@@ -1,7 +1,9 @@
 package org.nanomodeller.GUI;
 
+import org.apache.commons.math3.util.Pair;
 import org.nanomodeller.*;
-import org.nanomodeller.GUI.Shapes.AtomBound;
+import org.nanomodeller.Calculation.StaticProperties;
+import org.nanomodeller.GUI.Shapes.AtomBond;
 import org.nanomodeller.GUI.Shapes.AtomShape;
 import org.nanomodeller.GUI.Shapes.ElectrodeShape;
 import org.nanomodeller.GUI.ViewComponents.*;
@@ -28,12 +30,12 @@ import static org.nanomodeller.Globals.*;
 import static org.nanomodeller.Tools.StringUtils.nvl;
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.*;
 
-public class NanoModeller extends JFrame {
+public class NanoModeler extends JFrame {
 
-    private static NanoModeller instance;
-    public static NanoModeller getInstance(){
+    private static NanoModeler instance;
+    public static NanoModeler getInstance(){
         if (instance == null){
-            instance = new NanoModeller();
+            instance = new NanoModeler();
         }
         return instance;
     }
@@ -64,8 +66,8 @@ public class NanoModeller extends JFrame {
     private JScrollPane scrollPane = new FuturisticScrollPane(getPaintSurface());
     private ArrayList<AtomShape> shapes = new ArrayList<>();
 
-    public ArrayList<AtomBound> getAtomBounds() {
-        return bounds;
+    public ArrayList<AtomBond> getAtomBounds() {
+        return bonds;
     }
 
     public RightMenuPanel getRightMenuPanel() {
@@ -81,21 +83,21 @@ public class NanoModeller extends JFrame {
         return isActive;
     }
 
-    private ArrayList<AtomBound> bounds = new ArrayList<AtomBound>();
+    private ArrayList<AtomBond> bonds = new ArrayList<AtomBond>();
     private ArrayList<ElectrodeShape> electrodes = new ArrayList<ElectrodeShape>();
     private ArrayList<AtomShape>  selectedAtoms = new ArrayList<AtomShape>();
     private ArrayList<ElectrodeShape> selectedElectrodes = new ArrayList<ElectrodeShape>();
     private ArrayList<ElectrodeShape> copiedElectrodes = new ArrayList<ElectrodeShape>();
-    private ArrayList<AtomBound> selectedBounds = new ArrayList<AtomBound>();
+    //private ArrayList<AtomBond> selectedBounds = new ArrayList<AtomBond>();
     private ArrayList<AtomShape> copiedAtoms = new ArrayList<AtomShape>();
-    private ArrayList<AtomBound> copiedBounds = new ArrayList<AtomBound>();
+    private ArrayList<AtomBond> copiedBounds = new ArrayList<AtomBond>();
     //private int gridSize;
     private boolean selectionFlag = false;
     private boolean showGrid = true;
     private Flag isInterupted;
     private Flag isCanceled;
     private AtomShape highlightedShape = null;
-    private AtomBound highlightedBound = null;
+    private AtomBond highlightedBound = null;
     private ElectrodeShape highlightedElectrode = null;
     private Rectangle selection = null;
     private Point anchor;
@@ -124,7 +126,12 @@ public class NanoModeller extends JFrame {
     }
     public  void initNanoModeller() {
 
-        NanoModeller inst = getInstance();
+        try {
+            UIManager.setLookAndFeel("com.formdev.flatlaf.FlatDarkLaf");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        NanoModeler inst = getInstance();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         inst.setScreenWidth(screenSize.getWidth()/4);
         inst.setScreenHeight(screenSize.getHeight()/4);
@@ -149,13 +156,13 @@ public class NanoModeller extends JFrame {
         inst.add(inst.getStepRecorder(), BorderLayout.WEST);
         inst.getScrollPane().getVerticalScrollBar().setValue(inst.getScrollPane().getVerticalScrollBar().getValue()+ 1);
         MovingAdapter ma = new MovingAdapter();
-       inst.getPaintSurface().addMouseListener(ma);
-       inst.getPaintSurface().addMouseMotionListener(ma);
-       inst.getPaintSurface().addMouseWheelListener(ma);
-       inst.getPaintSurface().addKeyListener(new MyKeyAdapter());
-       inst.getPaintSurface().requestFocus();
-       inst.setJMenuBar(new org.nanomodeller.GUI.Menu(inst));
-       inst.setVisible(true);
+           inst.getPaintSurface().addMouseListener(ma);
+           inst.getPaintSurface().addMouseMotionListener(ma);
+           inst.getPaintSurface().addMouseWheelListener(ma);
+           inst.getPaintSurface().addKeyListener(new MyKeyAdapter());
+           inst.getPaintSurface().requestFocus();
+           inst.setJMenuBar(new org.nanomodeller.GUI.Menu(inst));
+           inst.setVisible(true);
     }
 
 //    public void readData(String path, boolean refreshData){
@@ -172,16 +179,14 @@ public class NanoModeller extends JFrame {
         Parameters p = Parameters.getInstance();
         GlobalProperties gp = GlobalProperties.getInstance();
         getShapes().clear();
-        bounds.clear();
+        bonds.clear();
         getElectrodes().clear();
         int diameter = 2 * getGridSize();
-        getMenu().dTTextField.setText(getDt());
         setbColor(gp.getColor());
         getMenu().colorBox.setSelectedItem(nvl(getbColor(), Globals.WHITE));
         double dE = gp.getdE();
         this.setDt(gp.getDt() + "");
         this.setEnergyRange(gp.getEnergyRange());
-        getMenu().energyRangeTextField.setText(getEnergyRange());
         if (p != null) {
             if (!refreshData) {
                 setGridSize(p.getGridSize());
@@ -191,13 +196,11 @@ public class NanoModeller extends JFrame {
                 time.setText(p.getTime());
             }
             this.setSurfaceCoupling(p.getSurfaceCoupling());
-            getMenu().surfaceCouplingTextField.setText(getSurfaceCoupling());
             this.setkFa(p.getkFa());
-            getMenu().kfaTextField.setText(getkFa());
 
             for (Atom atom : p.getAtoms()){
-                AtomShape newAtom = new AtomShape(new Ellipse2D.Float(Float.parseFloat(atom.getX()) * getGridSize(),
-                        Float.parseFloat(atom.getY()) * getGridSize(), diameter, diameter),
+                AtomShape newAtom = new AtomShape(new Ellipse2D.Double(atom.getX() * getGridSize(),
+                        atom.getY() * getGridSize(), diameter, diameter),
                         atom);
                 if (!getMenu().model.contains(atom.getID()))
                     getMenu().model.addElement(atom.getID());
@@ -205,26 +208,20 @@ public class NanoModeller extends JFrame {
 
             }
             for(Electrode e : p.getElectrodes()){
-                Line2D line2d = null;
-                int index = e.getIntAtomIndex();
+                int index = e.getAtomIndex();
                 AtomShape atom = index > -1 ? getAtomByID(index) : null;
-                if (atom != null){
-                    line2d = new Line2D.Float(Float.parseFloat(e.getX()) * getGridSize() + (float) atom.getShape().getWidth() / 2,
-                            Float.parseFloat(e.getY()) * getGridSize() + (float) atom.getShape().getHeight() / 2,
-                            (float) atom.getShape().getX() + (float) atom.getShape().getWidth() / 2,
-                            (float) atom.getShape().getY() + (float) atom.getShape().getHeight() / 2);
-
-                }
                 ElectrodeShape newElectrode = new ElectrodeShape(atom, new Rectangle2D.Float(Float.parseFloat(e.getX()) * getGridSize(),
-                        Float.parseFloat(e.getY()) * getGridSize(), diameter, diameter), line2d, e);
+                        Float.parseFloat(e.getY()) * getGridSize(), diameter, diameter), e);
                 getElectrodes().add(newElectrode);
             }
-            for(Bound b : p.getBounds()){
+            for(Bond b : p.getBonds()){
                 AtomShape shape = getAtomByID(b.getFirst());
                 AtomShape prevShape = getAtomByID(b.getSecond());
-                AtomBound loadedBound = new AtomBound(shape.getAtom(), prevShape.getAtom(), null, b);
-                loadedBound.updateLine(shape, prevShape);
-                bounds.add(loadedBound);
+                if (shape != null && prevShape != null) {
+                    AtomBond loadedBound = new AtomBond(shape, prevShape, b);
+                    loadedBound.updateLine();
+                    bonds.add(loadedBound);
+                }
             }
         }
     }
@@ -458,14 +455,14 @@ public class NanoModeller extends JFrame {
         setHighlightedBound(null);
         setHighlightedElectrode(null);
         getShapes().clear();
-        bounds.clear();
+        bonds.clear();
         getElectrodes().clear();
         getPaintSurface().repaint();
     }
     protected void delete() {
-        ArrayList<AtomBound> boundsToDelete = new ArrayList<AtomBound>();
+        ArrayList<AtomBond> boundsToDelete = new ArrayList<AtomBond>();
 
-        for (AtomBound bound : bounds) {
+        for (AtomBond bound : bonds) {
             if (getHighlightedShape() != null) {
                 if (getHighlightedShape().getShape().contains(bound.getLine().getX1(), bound.getLine().getY1())
                         || getHighlightedShape().getShape().contains(bound.getLine().getX2(), bound.getLine().getY2())) {
@@ -473,15 +470,15 @@ public class NanoModeller extends JFrame {
                 }
             }
         }
-        for (AtomBound bound : bounds) {
+        for (AtomBond bound : bonds) {
             if (getSelectedBounds().contains(bound)) {
                 boundsToDelete.add(bound);
             }
         }
-        for (AtomBound s : boundsToDelete) {
-            bounds.remove(s);
+        for (AtomBond s : boundsToDelete) {
+            bonds.remove(s);
         }
-        bounds.remove(getHighlightedBound());
+        bonds.remove(getHighlightedBound());
         setHighlightedBound(null);
         removeAtom(getHighlightedShape());
         for(ElectrodeShape e : getElectrodes()){
@@ -554,15 +551,19 @@ public class NanoModeller extends JFrame {
         p.setNumber("" + getShapes().size());
         //p.setGridSize(getGridSize() + "");
         p.getAtoms().clear();
+        p.getBonds().clear();
+        p.getElectrodes().clear();
         int ii = 0;
         Collections.sort(getShapes());
         for (AtomShape s : getShapes()) {
-            s.getAtom().setX(s.getShape().getBounds().x/(1.0 * getGridSize())+"");
-            s.getAtom().setY(s.getShape().getBounds().y/(1.0 * getGridSize())+ "");
+            s.getAtom().setX(s.getShape().getBounds().x/(1.0 * getGridSize()));
+            s.getAtom().setY(s.getShape().getBounds().y/(1.0 * getGridSize()));
             p.addAtom(s.getAtom());
             s.setID(ii++);
         }
-        p.getElectrodes().clear();
+        for (AtomBond bond : bonds){
+            p.addBound(bond.getBond());
+        }
         ListIterator iter = getElectrodes().listIterator();
         while (iter.hasNext()){
             ElectrodeShape electrode = (ElectrodeShape)iter.next();
@@ -575,13 +576,8 @@ public class NanoModeller extends JFrame {
             else{
                 electrodeToSave.setAtomIndex(-1);
             }
-            electrodeToSave.setId(iter.nextIndex() - 1);
+            electrodeToSave.setID(iter.nextIndex() - 1);
             p.addElectode(electrodeToSave);
-        }
-        p.getBounds().clear();
-        for (AtomBound bound : bounds) {
-            bound.updateAtoms();
-            p.addBound(bound.getBound());
         }
         return p;
     }
@@ -633,7 +629,7 @@ public class NanoModeller extends JFrame {
 //            p.addElectode(electrodeToSave);
 //        }
 //        p.getBounds().clear();
-//        for (AtomBound bound : bounds) {
+//        for (AtomBond bound : bounds) {
 //            bound.updateAtoms();
 //            p.addBound(bound.getBound());
 //        }
@@ -651,12 +647,12 @@ public class NanoModeller extends JFrame {
 
     public void saveData() {
         try {
-            convertObjectToXML(GlobalProperties.getInstance());
+            convertObjectToXMLFile(GlobalProperties.getInstance());
             Parameters.getInstance().setPath(leftMenuPanel.fileBrowser.getAbsolutePath());
             String path = "parameters.xml";
             String fullPath = leftMenuPanel.fileBrowser.createFile(path);
             mapParameters();
-            convertObjectToXML(Parameters.getInstance(),fullPath);
+            convertObjectToXMLFile(Parameters.getInstance(),fullPath);
             ToastMessage toastMessage = new ToastMessage("Data saved", TOAST_MESSAGE_DURATION, this);
             toastMessage.setVisible(true);
 
@@ -668,8 +664,8 @@ public class NanoModeller extends JFrame {
         for (AtomShape atom : getShapes()){
             atom.getShape().setFrame(atom.getShape().getX() * mlply  , atom.getShape().getY() * mlply, atom.getShape().getWidth() * mlply, atom.getShape().getHeight() * mlply);
         }
-        for (AtomBound bound : bounds){
-            bound.updateLine(getShapeByID(bound.getFirst()),getShapeByID(bound.getSecond()));
+        for (AtomBond bound : bonds){
+            bound.updateLine();
         }
         for (ElectrodeShape electrode : getElectrodes()){
             electrode.getRectangle().setFrame(electrode.getRectangle().getX() * mlply  , electrode.getRectangle().getY() * mlply, electrode.getRectangle().getWidth() * mlply, electrode.getRectangle().getHeight() * mlply);
@@ -684,8 +680,8 @@ public class NanoModeller extends JFrame {
             double newY = yMultiplier * getGridSize();
             atom.getShape().setFrame(newX, newY, atom.getShape().getWidth(), atom.getShape().getHeight());
         }
-        for (AtomBound bound : bounds){
-            bound.updateLine(getShapeByID(bound.getFirst()),getShapeByID(bound.getSecond()));
+        for (AtomBond bound : bonds){
+            bound.updateLine();
         }
         for (ElectrodeShape electrode : getElectrodes()){
             int xMultiplier = (int)Math.round(electrode.getRectangle().getX()/ getGridSize());
@@ -706,8 +702,8 @@ public class NanoModeller extends JFrame {
             newSelectionXMax = (newX > newSelectionXMax) ? newX : newSelectionXMax ;
             atom.getShape().setFrame(newX , atom.getShape().getY(), atom.getShape().getWidth(), atom.getShape().getHeight());
         }
-        for (AtomBound bound : getSelectedBounds()){
-            bound.updateLine(getShapeByID(bound.getFirst()),getShapeByID(bound.getSecond()));
+        for (AtomBond bound : getSelectedBounds()){
+            bound.updateLine();
         }
         for (ElectrodeShape electrode : getSelectedElectrodes()){
             double newX = 2 * selectionWidth - electrode.getRectangle().getX();
@@ -727,8 +723,8 @@ public class NanoModeller extends JFrame {
             newSelectionYMax = (newY > newSelectionYMax) ? newY : newSelectionYMax ;
             atom.getShape().setFrame(atom.getShape().getX(), newY, atom.getShape().getWidth(), atom.getShape().getHeight());
         }
-        for (AtomBound bound : getSelectedBounds()){
-            bound.updateLine(getShapeByID(bound.getFirst()),getShapeByID(bound.getSecond()));
+        for (AtomBond bound : getSelectedBounds()){
+            bound.updateLine();
         }
         for (ElectrodeShape electrode : getSelectedElectrodes()){
             double newY = 2 * selecionYcenter - electrode.getRectangle().getY();
@@ -743,9 +739,8 @@ public class NanoModeller extends JFrame {
         int x0 = getX() -(int) getCopiedAtoms().get(0).getShape().getX();
         int y0 = getY() -(int) getCopiedAtoms().get(0).getShape().getY();
         ArrayList<AtomShape> newSelection = new ArrayList<AtomShape>();
-        ArrayList<AtomBound> newBoundSelection = new ArrayList<AtomBound>();
+        ArrayList<AtomBond> newBoundSelection = new ArrayList<AtomBond>();
         ArrayList<ElectrodeShape> newElectrodeSelection = new ArrayList<ElectrodeShape>();
-        int translation = getShapes().size();
         int diameter = 2 * getGridSize();
         Hashtable<AtomShape, AtomShape> copy = new Hashtable<>();
         for (AtomShape s: getCopiedAtoms()){
@@ -761,22 +756,20 @@ public class NanoModeller extends JFrame {
             if (!getMenu().model.contains(as.getID()))
                 getMenu().model.addElement(as.getID());
         }
-        for (AtomBound bound: getCopiedBounds()){
+        for (AtomBond bound: getCopiedBounds()){
             Line2D newline = new Line2D.Float((int)(bound.getLine().getX1() + x0), (int)(bound.getLine().getY1() + y0), (int)(bound.getLine().getX2() + x0), (int)(bound.getLine().getY2() + y0));
-            AtomBound newBound = new AtomBound( newline, new Bound(copy.get(getAtomByID(bound.getFirst())).getID(), copy.get(getAtomByID(bound.getSecond())).getID(), bound.getBound()));
-            bounds.add(newBound);
+            AtomBond newBound = new AtomBond(copy.get(getAtomByID(bound.getFirst())),
+                    copy.get(getAtomByID(bound.getSecond())) ,
+                    new Bond(copy.get(getAtomByID(bound.getFirst())).getID(), copy.get(getAtomByID(bound.getSecond())).getID(), bound.getBond()));
+            bonds.add(newBound);
             newBoundSelection.add(newBound);
         }
         for (ElectrodeShape electrode: getCopiedElectrodes()){
-            Line2D newline = null;
             AtomShape as = null;
-            if (electrode.getLine() != null) {
-                newline = new Line2D.Float((int) (electrode.getLine().getX1() + x0), (int) (electrode.getLine().getY1() + y0), (int) (electrode.getLine().getX2() + x0), (int) (electrode.getLine().getY2() + y0));
-            }
             if(electrode.getAtom() != null){
                 as = copy.get(electrode.getAtom());
             }
-            ElectrodeShape el = new ElectrodeShape(as, new Rectangle2D.Float((int)(electrode.getRectangle().getX() + x0), (int)(electrode.getRectangle().getY() + y0), diameter, diameter), newline, new Electrode(as.getID(), electrodeIDSeq(),electrode.getElectrode()));
+            ElectrodeShape el = new ElectrodeShape(as, new Rectangle2D.Float((int)(electrode.getRectangle().getX() + x0), (int)(electrode.getRectangle().getY() + y0), diameter, diameter), new Electrode(as.getID(), electrodeIDSeq(),electrode.getElectrode().getX(),electrode.getElectrode().getY()));
             getElectrodes().add(el);
             setSelectionXMax((el.getRectangle().getX() > getSelectionXMax()) ? el.getRectangle().getX() : getSelectionXMax());
             setSelectionXMin((el.getRectangle().getX() < getSelectionXMin() ||  getSelectionXMin() < 0) ? el.getRectangle().getX() : getSelectionXMin());
@@ -785,10 +778,9 @@ public class NanoModeller extends JFrame {
             newElectrodeSelection.add(el);
         }
         getSelectedAtoms().clear();
-        getSelectedBounds().clear();
         getSelectedElectrodes().clear();
         setSelectedAtoms((ArrayList<AtomShape>)newSelection.clone());
-        setSelectedBounds((ArrayList<AtomBound>)newBoundSelection.clone());
+        //setSelectedBounds((ArrayList<AtomBond>)newBoundSelection.clone());
         setSelectedElectrodes((ArrayList<ElectrodeShape>)newElectrodeSelection.clone());
         getPaintSurface().repaint();
     }
@@ -797,9 +789,9 @@ public class NanoModeller extends JFrame {
         setCopiedAtoms((ArrayList<AtomShape>) getSelectedAtoms().clone());
         setCopiedElectrodes((ArrayList<ElectrodeShape>) getSelectedElectrodes().clone());
         getCopiedBounds().clear();
-        ArrayList <AtomBound> resultBounds = new ArrayList();
-        ArrayList <AtomBound> boundsToCopy = (ArrayList<AtomBound>) getSelectedBounds().clone();
-        for (AtomBound bound : boundsToCopy){
+        ArrayList <AtomBond> resultBounds = new ArrayList();
+        ArrayList <AtomBond> boundsToCopy = (ArrayList<AtomBond>) getSelectedBounds().clone();
+        for (AtomBond bound : boundsToCopy){
             if (getCopiedAtoms().contains(getAtomByID(bound.getFirst())) && getCopiedAtoms().contains(getAtomByID(bound.getSecond()))){
                 resultBounds.add(bound);
             }
@@ -980,13 +972,23 @@ public class NanoModeller extends JFrame {
         this.copiedElectrodes = copiedElectrodes;
     }
 
-    public ArrayList<AtomBound> getSelectedBounds() {
+    public ArrayList<AtomBond> getSelectedBounds() {
+        ArrayList<AtomBond> selectedBounds = new ArrayList<>();
+        for (AtomBond bound : bonds){
+            int first = bound.getBond().getFirst();
+            int second = bound.getBond().getFirst();
+            for (AtomShape atom : selectedAtoms){
+                if (atom.getID() == first || atom.getID() == second){
+                    selectedBounds.add(bound);
+                }
+            }
+        }
         return selectedBounds;
     }
 
-    public void setSelectedBounds(ArrayList<AtomBound> selectedBounds) {
-        this.selectedBounds = selectedBounds;
-    }
+//    public void setSelectedBounds(ArrayList<AtomBond> selectedBounds) {
+//        this.selectedBounds = ge;
+//    }
 
     public ArrayList<AtomShape> getCopiedAtoms() {
         return copiedAtoms;
@@ -996,11 +998,11 @@ public class NanoModeller extends JFrame {
         this.copiedAtoms = copiedAtoms;
     }
 
-    public ArrayList<AtomBound> getCopiedBounds() {
+    public ArrayList<AtomBond> getCopiedBounds() {
         return copiedBounds;
     }
 
-    public void setCopiedBounds(ArrayList<AtomBound> copiedBounds) {
+    public void setCopiedBounds(ArrayList<AtomBond> copiedBounds) {
         this.copiedBounds = copiedBounds;
     }
 
@@ -1056,11 +1058,11 @@ public class NanoModeller extends JFrame {
 //        }
     }
 
-    public AtomBound getHighlightedBound() {
+    public AtomBond getHighlightedBound() {
         return highlightedBound;
     }
 
-    public void setHighlightedBound(AtomBound highlightedBound) {
+    public void setHighlightedBound(AtomBond highlightedBound) {
         this.highlightedBound = highlightedBound;
     }
 
@@ -1169,19 +1171,26 @@ public class NanoModeller extends JFrame {
         JMenuItem pasteItem;
         JMenuItem flipVerticalItem;
         JMenuItem flipHorizontalItem;
+
+        JMenuItem propertiesItem;
         public PopUpMenu(){
             copyItem = new MyMenuItem("Copy", new ImageIcon("img/copyIcon.png"));
             pasteItem = new MyMenuItem("Paste", new ImageIcon("img/pasteIcon.png"));
             flipVerticalItem = new MyMenuItem("Flip vertically", new ImageIcon("img/flipRight.png"));
             flipHorizontalItem = new MyMenuItem("Flip horizontally", new ImageIcon("img/flipUp.png"));
+            propertiesItem = new MyMenuItem("Properties", new ImageIcon("img/flipUp.png"));
+
             add(copyItem);
             add(pasteItem);
             add(flipVerticalItem);
             add(flipHorizontalItem);
+            if (getSelectedAtoms().size() == 1)
+                add(propertiesItem);
             copyItem.addActionListener(evt -> copy());
             flipHorizontalItem.addActionListener(evt -> flipHorizontally());
             flipVerticalItem.addActionListener(evt -> flipVertically());
             pasteItem.addActionListener(evt -> paste());
+            propertiesItem.addActionListener(evt -> showAtomPropertiesTextArea());
         }
 
     }
@@ -1279,25 +1288,19 @@ public class NanoModeller extends JFrame {
         }
     }
     class MovingAdapter extends MouseAdapter {
-
         @Override
         public void mouseClicked(MouseEvent e) {
 
             getMenu().colorBox.setEnabled(true);
-            getMenu().atomIDComboBox.setVisible(false);
-            getMenu().perturbationLabel.setVisible(false);
-            getMenu().perturbationTextField.setVisible(false);
-            getMenu().atomSavingComboBox.setVisible(false);
-            getMenu().atomIDLabel.setVisible(false);
-            getMenu().atomDataSavingLabel.setVisible(false);
             getPaintSurface().requestFocus();
-            getSelectedBounds().clear();
-            getSelectedAtoms().clear();
             getSelectedElectrodes().clear();
             setSelectionFlag(false);
             getPaintSurface().repaint();
             boolean checkBounds = true;
             boolean isRightMouseButton = SwingUtilities.isRightMouseButton(e);
+            if (isRightMouseButton && highlightedShape != null){
+                getSelectedAtoms().add(highlightedShape);
+            }
             if (!isRightMouseButton && e.getClickCount() == 2 && !e.isConsumed()) {
                 e.consume();
                 boolean isPlaceOcupied = false;
@@ -1327,55 +1330,21 @@ public class NanoModeller extends JFrame {
             setX(e.getX());
             setY(e.getY());
 
-            boolean isOutside = true;
+            boolean isOutside = true ;
 
             for (ElectrodeShape electrode : getElectrodes()) {
                 if (electrode.getRectangle().intersects(getX(), getY(), 20, 20)) {
                     setHighlightedElectrode(electrode);
                     setHighlightedShape(null);
                     setHighlightedBound(null);
-                    getMenu().electrodeCouplingTextField.setText(electrode.getCoupling());
-                    getMenu().additionalParamsLabel.setText("Electrode Coupling");
-                    getMenu().secondAdditionalParamsLabel.setText("Not implemented");
-                    getMenu().setTextFieldsVisibility(TextFieldType.ELECTRODE);
-                    getMenu().parameterLabel.setText("Energy Step");
-                    getMenu().perturbationTextField.setVisible(true);
-                    getMenu().perturbationTextField.setText(electrode.getPerturbation());
-                    getMenu().perturbationLabel.setVisible(true);
-                    getMenu().applyToAllButton.setText("Apply to all electrodes");
-                    getMenu().applyToAllButton.setEnabled(true);
                     getMenu().colorBox.setSelectedItem(getHighlightedElectrode().getColor());
-                    getMenu().electrodeTypeTextField.setText(getHighlightedElectrode().getType());
-                    getMenu().thirdAdditionalParamsLabel.setText("Elec. Type");
-                    getMenu().applyToAllButton.setImageIcon(new ImageIcon(APPLY_E_ALL_ELECTRODES_BUTTON_IMAGE_PATH));
-                    getMenu().dETextField.setText(electrode.getdE());
                     checkBounds = false;
                     isOutside = false;
                 }
             }
             if (isOutside){
-                //UndoRedoQueue.getInstance().push(mapGlobalPropertiesObject(getTime(), getCurrentDataPath(), getIsActive()));
                 setHighlightedBound(null);
                 setHighlightedElectrode(null);
-                getMenu().surfaceCouplingTextField.setText(getSurfaceCoupling());
-                getMenu().additionalParamsLabel.setText("Surface Coupling");
-                getMenu().setTextFieldsVisibility(TextFieldType.SURFACE);
-                getMenu().secondAdditionalParamsLabel.setText("kFa");
-                getMenu().parameterLabel.setText("Time Step");
-                if (getDynamicCalculationsThread() != null){
-                    getMenu().applyToAllButton.setText("Next step (" + getStepCount() +")");
-                    NanoModeller.this.repaint();
-                    getMenu().applyToAllButton.setEnabled(true);
-                    getMenu().applyToAllButton.setImageIcon(new ImageIcon(NEXT_STEP_IMAGE_PATH));
-                }else{
-                    getMenu().applyToAllButton.setText("");
-                    getMenu().applyToAllButton.setIcon(null);
-                    getMenu().applyToAllButton.setEnabled(false);
-                }
-                getMenu().energyRangeTextField.setText(getEnergyRange());
-                getMenu().thirdAdditionalParamsLabel.setText("Energy range");
-                getMenu().kfaTextField.setText(getkFa());
-                getMenu().dTTextField.setText(getDt());
             }
 
             ElectrodeShape currentElectrode = null;
@@ -1398,74 +1367,32 @@ public class NanoModeller extends JFrame {
                 }
             }
             if (checkBounds){
-                for (AtomBound bound : bounds) {
+                for (AtomBond bound : bonds) {
                     if (bound.getLine().intersects(getX(), getY(), 50, 50)) {
                         setHighlightedShape(null);
                         setHighlightedElectrode(null);
                         setHighlightedBound(bound);
-                        AtomBound highlightedBound = getHighlightedBound();
+                        AtomBond highlightedBound = getHighlightedBound();
                         getMenu().colorBox.setSelectedItem(highlightedBound.getColor());
-                        getMenu().boundVTextField.setText(highlightedBound.getValue());
-                        getMenu().correlationTextField.setText(highlightedBound.getCorrelationCoupling());
-                        getMenu().parameterLabel.setText("Coupling");
-                        getMenu().perturbationTextField.setVisible(true);
-                        getMenu().perturbationTextField.setText(highlightedBound.getPerturbation());
-                        getMenu().perturbationLabel.setVisible(true);
-                        getMenu().applyToAllButton.setText("Apply to all bounds");
-                        getMenu().secondAdditionalParamsLabel.setText("Correlation U");
-                        getMenu().applyToAllButton.setEnabled(true);
-                        getMenu().boundTypeTextField.setText(highlightedBound.getType());
-                        getMenu().thirdAdditionalParamsLabel.setText("Coupling Type");
-                        getMenu().applyToAllButton.setImageIcon(new ImageIcon(APPLY_V_ALL_BUTTON_IMAGE_PATH));
-                        getMenu().additionalParamsLabel.setText("Spin-orbit coupling");
-                        getMenu().setTextFieldsVisibility(TextFieldType.BOUND);
-                        getMenu().spinOrbitTextField.setText(bound.getSpinOrbit());
-
                         getPaintSurface().repaint();
                         return;
                     }
                 }
             }
 
-            if (isOutside){
+            if (isOutside && !isRightMouseButton){
                 setHighlightedShape(null);
                 setHighlightedBound(null);
                 setHighlightedElectrode(null);
+                getSelectedAtoms().clear();
                 getPaintSurface().repaint();
-                getMenu().setTextFieldsVisibility(TextFieldType.SURFACE);
                 getMenu().colorBox.setSelectedItem(getbColor());
-                getMenu().secondAdditionalParamsLabel.setText("kFa");
-                getMenu().atomIDComboBox.setVisible(false);
-                getMenu().atomIDLabel.setVisible(false);
-                getMenu().perturbationTextField.setVisible(false);
-                getMenu().perturbationLabel.setVisible(false);
-                getMenu().parameterLabel.setText("Time Step");
-                if (getDynamicCalculationsThread() != null){
-                    getMenu().applyToAllButton.setText("Next step (" + getStepCount() +")");
-                    NanoModeller.this.repaint();
-                    getMenu().applyToAllButton.setEnabled(true);
-                }else{
-                    getMenu().applyToAllButton.setText("");
-                    getMenu().applyToAllButton.setIcon(null);
-                    getMenu().applyToAllButton.setEnabled(false);
-                }
-                getMenu().energyRangeTextField.setText(getEnergyRange());
-                getMenu().thirdAdditionalParamsLabel.setText("Energy range");
-                getMenu().dTTextField.setText(getDt());
-                getMenu().surfaceCouplingTextField.setText(getSurfaceCoupling());
-                getMenu().kfaTextField.setText(getkFa());
                 return;
             }
             if (isCtrlPressed() && getCurrentAtom() != null && getHighlightedShape() != null && getCurrentAtom() != getHighlightedShape()) {
-
-                Line2D line = new Line2D.Float((int) getCurrentAtom().getShape().getX() + (int) getCurrentAtom().getShape().getWidth() / 2, (int) getCurrentAtom().getShape().getY() + (int) getCurrentAtom().getShape().getHeight() / 2,
-                        (int) getHighlightedShape().getShape().getX() + (int) getHighlightedShape().getShape().getWidth() / 2, (int) getHighlightedShape().getShape().getY() + (int) getHighlightedShape().getShape().getHeight() / 2);
-                bounds.add(new AtomBound(getCurrentAtom().getID(), getHighlightedShape().getID(), line));
+                bonds.add(new AtomBond(getCurrentAtom(), getHighlightedShape(),  new Bond()));
                 setHighlightedShape(null);
                 setCurrentAtom(null);
-                getMenu().boundVTextField.setText("");
-                getMenu().spinOrbitTextField.setText("");
-
             }
             else if (isCtrlPressed() && (currentElectrode != null && getHighlightedShape() != null )){
 
@@ -1490,27 +1417,6 @@ public class NanoModeller extends JFrame {
             }
             getPaintSurface().repaint();
         }
-
-//        private void showTextArea(){
-//            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//            int width = (int)screenSize.getWidth();
-//            int height = (int)screenSize.getHeight();
-//            JTextArea tf = new JTextArea(gp.getCustomGnuplotCommands());
-//            tf.setAutoscrolls(true);
-//            tf.setFont(new Font("Consolas", Font.PLAIN, 20));
-//            //tf.setPreferredSize(new Dimension(width/3,height/4));
-//            tf.setLineWrap(true);
-//
-//            JScrollPane sp = new JScrollPane(tf);
-//            sp.setPreferredSize(new Dimension(width/3,height/4));
-//            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-//            int result = JOptionPane.showConfirmDialog(
-//                    null, sp, "Input",
-//                    JOptionPane.OK_CANCEL_OPTION);
-//            if (result == JOptionPane.OK_OPTION) {
-//                gp.setCustomGnuplotCommands(tf.getText());
-//            }
-//        }
         public void mousePressed(MouseEvent e) {
             if (e.isPopupTrigger())
                 doPop(e);
@@ -1544,8 +1450,6 @@ public class NanoModeller extends JFrame {
                     return;
                 }
             }
-            getSelectedAtoms().clear();
-            getSelectedBounds().clear();
             getSelectedElectrodes().clear();
             if(getSelection() != null){
                 for (AtomShape ashape : getShapes()) {
@@ -1570,7 +1474,7 @@ public class NanoModeller extends JFrame {
                         setSelectionYMin((y < getSelectionYMin() || getSelectionYMin() < 0) ? y : getSelectionYMin());
                     }
                 }
-                for (AtomBound bound : bounds) {
+                for (AtomBond bound : bonds) {
                     if (bound.getLine().intersects(getSelection())) {
 //                    if (getSelectedAtoms().contains(bound.getFirst()) || getSelectedAtoms().contains(bound.getSecond())){
                         getSelectedBounds().add(bound);
@@ -1580,7 +1484,6 @@ public class NanoModeller extends JFrame {
             setSelection(null);
             if (isSelectionFlag()){
                 getSelectedAtoms().clear();
-                getSelectedBounds().clear();
                 getSelectedElectrodes().clear();
                 setSelectionXMax(-1);
                 setSelectionXMin(-1);
@@ -1602,8 +1505,8 @@ public class NanoModeller extends JFrame {
             int dx = e.getX() - getX();
             int dy = e.getY() - getY();
             if (isRightMouseButton){
-                getSelection().setBounds( (int)Math.min(getAnchor().x,e.getX()), (int)Math.min(getAnchor().y,e.getY()),
-                        (int)Math.abs(e.getX()- getAnchor().x), (int)Math.abs(e.getY()- getAnchor().y));
+                getSelection().setBounds( Math.min(getAnchor().x,e.getX()), Math.min(getAnchor().y,e.getY()),
+                        Math.abs(e.getX()- getAnchor().x), Math.abs(e.getY()- getAnchor().y));
                 getPaintSurface().repaint();
                 return;
             }
@@ -1624,8 +1527,8 @@ public class NanoModeller extends JFrame {
                 for (AtomShape atom : getSelectedAtoms()){
                     atom.getShape().setFrame(atom.getShape().getX() + dx, atom.getShape().getY() + dy, atom.getShape().getWidth(), atom.getShape().getHeight());
                 }
-                for (AtomBound bound : getSelectedBounds()){
-                    bound.updateLine(getShapeByID(bound.getFirst()),getShapeByID(bound.getSecond()));
+                for (AtomBond s : bonds) {
+                    s.updateLine();
                 }
                 for (ElectrodeShape electrode : getElectrodes()){
                     if (getSelectedElectrodes().contains(electrode)) {
@@ -1640,18 +1543,8 @@ public class NanoModeller extends JFrame {
             }
 
             AtomShape shape = getHighlightedShape();
-            AtomBound line = null;
-            for (AtomBound s : bounds) {
-                if (shape != null && shape.getShape().contains(e.getPoint())) {
-                    if (s.getFirst() == shape.getID()) {
-                        line = s;
-                        line.getLine().setLine(line.getLine().getX1() + dx, line.getLine().getY1() + dy, line.getLine().getX2(), line.getLine().getY2());
-                    }
-                    if (s.getSecond() == shape.getID()) {
-                        line = s;
-                        line.getLine().setLine(line.getLine().getX1(), line.getLine().getY1(), line.getLine().getX2() + dx, line.getLine().getY2() + dy);
-                    }
-                }
+            for (AtomBond s : bonds) {
+                s.updateLine();
             }
             for (ElectrodeShape electrode : getElectrodes()){
                 if (electrode.getAtom() == shape && electrode.getLine() != null){
@@ -1673,37 +1566,8 @@ public class NanoModeller extends JFrame {
 
     public void reloadAtomFields() {
         setHighlightedShape(getCurrentAtom());
-        getMenu().atomEnergyTextField.setText(getHighlightedShape().getEnergy());
-        getMenu().spinFlipTextField.setText(getHighlightedShape().getSpinFlip());
-        getMenu().nZeroTextField.setText(getHighlightedShape().getnZero());
-        getMenu().atomSavingComboBox.setLDOS(getHighlightedShape().isSaveLDOS());
-        getMenu().atomSavingComboBox.setNormalisation(getHighlightedShape().isSaveNormalisation());
-        getMenu().atomTypeTextField.setText(getHighlightedShape().getType());
-        getMenu().thirdAdditionalParamsLabel.setText("Atom Type");
-        getMenu().atomIDComboBox.setSelectedItem(getHighlightedShape().getID());
-//        getMenu().perturbationLabel.setText("Perturbation");
-//        getMenu().perturbationTextField.setText(getHighlightedShape().getPerturbation());
-        getMenu().atomIDLabel.setText("Atom ID");
-        getMenu().additionalParamsLabel.setText("Spin-flip");
-        getMenu().setTextFieldsVisibility(TextFieldType.ATOM);
-        getMenu().secondAdditionalParamsLabel.setText("Init charge");
-        getMenu().atomIDComboBox.setVisible(true);
-        getMenu().perturbationLabel.setText("Perturbation");
-        getMenu().perturbationTextField.setVisible(false);
-        getMenu().perturbationLabel.setVisible(false);
-        getMenu().atomSavingComboBox.setVisible(true);
-        getMenu().atomIDLabel.setVisible(true);
-        getMenu().atomDataSavingLabel.setVisible(true);
-
         getMenu().colorBox.setSelectedItem(getHighlightedShape().getColor());
-        getMenu().parameterLabel.setText("Energy");
-        getMenu().applyToAllButton.setText("Apply to all atoms");
-        getMenu().applyToAllButton.setEnabled(true);
-        getMenu().applyToAllButton.setImageIcon(new ImageIcon(APPLY_E_ALL_BUTTON_IMAGE_PATH));
-    }
 
-    public MyButton getApplyToAllButton() {
-        return rightMenuPanel.applyToAllButton;
     }
 
     public MyButton getTimeEvolutionButton() {
@@ -1737,7 +1601,7 @@ public class NanoModeller extends JFrame {
             DefaultMutableTreeNode lastPathComponent = (DefaultMutableTreeNode) selectedFilesPATHS[0].getLastPathComponent();
             File directory = (FileBrowser.FileNode) (lastPathComponent.getUserObject());
             for (AtomShape atom : getSelectedAtoms()) {
-                if (!atom.getAtom().isSaveLDOS()) {
+                if (!Globals.isTrue(atom.getAtom().getString("save_ldos").toString())) {
                     JOptionPane.showMessageDialog(this, "For atom with ID " + atom.getID() +
                             " there was no LDOS calculated. You cannot proceed!");
                     return;
@@ -1772,7 +1636,7 @@ public class NanoModeller extends JFrame {
         max++;
         return max;
     }
-    protected int electrodeIDSeq() {
+    int electrodeIDSeq() {
         int max = -1;
         for (ElectrodeShape e : getElectrodes()){
             max = e.getID() > max ? e.getID() : max;
@@ -1782,5 +1646,95 @@ public class NanoModeller extends JFrame {
     }
     public void repaint(){
         getPaintSurface().repaint();
+    }
+
+    private void showAtomPropertiesTextArea(){
+
+        String data = XMLHelper.convertObjectToXMLString(getSelectedAtoms().get(0).getAtom());
+        Pair<Integer, String> res = showShapeTextArea(data, "Atom properties");
+        int option = res.getKey();
+        String value = res.getValue();
+        if (StringUtils.isNotEmpty(value)){
+            if (option == 3){
+                return;
+            }
+            Atom atom = XMLHelper.convertXMLStringToAtom(value);
+            if (atom != null){
+                if (option == 0){
+                    shapes.get(0).getAtom().setProperties(atom.getProperties());
+                    shapes.get(0).getAtom().setColor(atom.getColor());
+                }
+                if (option == 1){
+                    shapes.stream()
+                            .filter(shape -> StringUtils.equals(shape.getAtom().getGroupID(), atom.getGroupID()))
+                            .forEach(atomShape -> {
+                                atomShape.getAtom().setProperties(atom.getProperties());
+                                atomShape.getAtom().setColor(atom.getColor());
+                            });
+                }
+                if (option == 2){
+                    shapes.stream()
+                            .forEach(atomShape -> {
+                                atomShape.getAtom().setProperties(atom.getProperties());
+                                atomShape.getAtom().setColor(atom.getColor());
+                            });
+                }
+            }
+        }
+        getPaintSurface().repaint();
+    }
+
+
+
+
+    public static String showTextArea(String text, String title){
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = (int)screenSize.getWidth();
+        int height = (int)screenSize.getHeight();
+        JTextArea tf = new JTextArea(text);
+        tf.setAutoscrolls(true);
+        tf.setFont(new Font("Consolas", Font.PLAIN, 20));
+        //tf.setPreferredSize(new Dimension(width/3,height/4));
+        tf.setLineWrap(true);
+
+        JScrollPane sp = new JScrollPane(tf);
+        sp.setPreferredSize(new Dimension(width/3,height/4));
+        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        int result = JOptionPane.showConfirmDialog(
+                null, sp, title,
+                JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            return tf.getText();
+        }
+        return null;
+    }
+
+    public static Pair<Integer, String> showShapeTextArea(String text, String title){
+        String formattedText = text.substring(text.indexOf("\n") + 1);
+        formattedText = formattedText.replaceAll("<x>.*?</x>\n", "").replaceAll("<y>.*?</y>", "");
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = (int)screenSize.getWidth();
+        int height = (int)screenSize.getHeight();
+        JTextArea tf = new JTextArea(formattedText);
+        tf.setAutoscrolls(true);
+        tf.setFont(new Font("Consolas", Font.PLAIN, 20));
+        tf.setLineWrap(true);
+
+        JScrollPane sp = new JScrollPane(tf);
+        sp.setPreferredSize(new Dimension(width/3,(int)(height/1.5)));
+        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        Object[] options = {"Apply",
+                "Apply to all in group",
+                "Apply to all",
+                "Cancel"};
+        int n = JOptionPane.showOptionDialog(null,sp, //parent container of JOptionPane
+                title,
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[3]);
+
+        return new Pair<>(n, tf.getText());
     }
 }

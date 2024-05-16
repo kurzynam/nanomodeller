@@ -2,6 +2,7 @@ package org.nanomodeller.GUI;
 
 
 import org.nanomodeller.Globals;
+import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import javax.swing.*;
@@ -9,7 +10,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
+import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXMLFile;
 
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
@@ -130,7 +131,7 @@ public class TestForm {
             gp.setYticsStep(yticsStepTextField.getText());
             gp.setZticsStep(zticsStepTextField.getText());
             gp.setSaveTimeFrom(timeSavingStartTextField.getText());
-            convertObjectToXML(gp);
+            convertObjectToXMLFile(gp);
             frame.dispose();
         });
         cancelButton.addActionListener((ActionEvent event) -> {
@@ -147,26 +148,12 @@ public class TestForm {
         numberOfColumnsTextField.setDisabledTextColor(Color.DARK_GRAY);
         colorBoxButton.addActionListener(e -> new PaletteChooserFrame(gp));
         udvButton.addActionListener(e -> new JTableSample(gp));
-        customGPButton.addActionListener(e -> showTextArea());
+        customGPButton.addActionListener(e -> showCustomGnuplotCommandsTextArea());
     }
-    private void showTextArea(){
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int)screenSize.getWidth();
-        int height = (int)screenSize.getHeight();
-        JTextArea tf = new JTextArea(gp.getCustomGnuplotCommands());
-        tf.setAutoscrolls(true);
-        tf.setFont(new Font("Consolas", Font.PLAIN, 20));
-        //tf.setPreferredSize(new Dimension(width/3,height/4));
-        tf.setLineWrap(true);
-
-        JScrollPane sp = new JScrollPane(tf);
-        sp.setPreferredSize(new Dimension(width/3,height/4));
-        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        int result = JOptionPane.showConfirmDialog(
-                null, sp, "Input",
-                JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            gp.setCustomGnuplotCommands(tf.getText());
+    private void showCustomGnuplotCommandsTextArea(){
+        String res = NanoModeler.showTextArea(gp.getCustomGnuplotCommands(), "Custom commands");
+        if (StringUtils.isNotEmpty(res)){
+            gp.setCustomGnuplotCommands(res);
         }
     }
 

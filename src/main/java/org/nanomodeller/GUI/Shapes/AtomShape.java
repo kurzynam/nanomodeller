@@ -14,9 +14,6 @@ public class AtomShape implements Comparable<AtomShape>{
     public AtomShape(Ellipse2D shape, int ID){
         this.setShape(shape);
         atom = new Atom();
-        this.atom.setE("0");
-        this.atom.setN0("0");
-        this.atom.setSpinFlip("0");
         this.atom.setID(ID);
         this.atom.setColor(Globals.BLACK);
     }
@@ -37,37 +34,6 @@ public class AtomShape implements Comparable<AtomShape>{
         this.shape = shape;
     }
 
-    public String getEnergy() {
-        return atom.getE();
-    }
-
-    public void setEnergy(String energy) {
-        this.atom.setE(energy);
-    }
-
-    public String getnZero() {
-        return atom.getN0();
-    }
-
-    public void setnZero(String nZero) {
-        this.atom.setN0(nZero);
-    }
-
-    public String getSpinFlip() {
-        return atom.getSpinFlip();
-    }
-
-    public void setSpinFlip(String spinFlip) {
-        this.atom.setSpinFlip(spinFlip);
-    }
-
-    public String getType() {
-        return atom.getType();
-    }
-
-    public void setType(String type) {
-        this.atom.setType(type);
-    }
 
     public String getColor() {
         return atom.getColor();
@@ -76,32 +42,10 @@ public class AtomShape implements Comparable<AtomShape>{
     public void setColor(String color) {
         this.atom.setColor(color);
     }
-
-    public void setCorrelation(String val){
-        atom.setCorrelation(val);
-    }
-    public String getCorrelation(){
-        return atom.getCorrelation();
-    }
     public Atom getAtom() {
         return atom;
     }
 
-    public boolean isSaveLDOS() {
-        return atom.isSaveLDOS();
-    }
-
-    public void setSaveLDOS(boolean saveLDOS) {
-        this.atom.setSaveLDOS(saveLDOS);
-    }
-
-    public boolean isSaveNormalisation() {
-        return atom.isSaveNormalisation();
-    }
-
-    public void setSaveNormalisation(boolean saveNormalisation) {
-        this.atom.setSaveNormalisation(saveNormalisation);
-    }
 
     public void setAtom(Atom atom) {
         this.atom = atom;
@@ -113,13 +57,6 @@ public class AtomShape implements Comparable<AtomShape>{
 
     public void setID(int ID) {
         this.atom.setID(ID);
-    }
-
-    public String getPerturbation() {
-        return this.atom.getPerturbation();
-    }
-    public void setPerturbation(String perturbation){
-        this.atom.setPerturbation(perturbation);
     }
 
     public static class Comparators {

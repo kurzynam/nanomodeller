@@ -84,9 +84,9 @@
 		clear{ENTER}
 	--
 	Simple Range
-		[[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]] [EOS]
+		[[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]] [EOS]
 	Named Range
-		[[INPUT]Variable name?[EOS]=[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]] [EOS]
+		[[INPUT]Variable name?[EOS]=[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]] [EOS]
 	--
 	Data filename ...
 		'[OPEN]Open[EOS]*.dat[EOS]' [EOS]
@@ -361,11 +361,11 @@ Fu&nctions
 			show parametric{ENTER}
 		--
 		t Range
-			set trange [[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]]{ENTER}
+			set trange [[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]]{ENTER}
 		u Range
-			set urange [[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]]{ENTER}
+			set urange [[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]]{ENTER}
 		v Range
-			set vrange [[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]]{ENTER}
+			set vrange [[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]]{ENTER}
 	[EndMenu]
 	--
 	[Menu]
@@ -391,7 +391,7 @@ Fu&nctions
 	Show Polar
 		show polar{ENTER}
 	Radial Range
-		set rrange [[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]]{ENTER}
+		set rrange [[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]]{ENTER}
 	Angles in Degrees
 		set angles degrees{ENTER}
 	Angles in Radians
@@ -456,11 +456,11 @@ Fu&nctions
 	[EndMenu]
 	--
 	X Range
-		set xrange [[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]]{ENTER}
+		set xrange [[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]]{ENTER}
 	Y Range
-		set yrange [[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]]{ENTER}
+		set yrange [[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]]{ENTER}
 	Z Range
-		set zrange [[INPUT]Lower bound?[EOS]:[INPUT]Upper bound?[EOS]]{ENTER}
+		set zrange [[INPUT]Lower bond?[EOS]:[INPUT]Upper bond?[EOS]]{ENTER}
 	--
 	X Label
 		set xlabel "[INPUT]Label text?[EOS]" offset [INPUT]X offset, Y offset (eg. 2,3) ?{ENTER}

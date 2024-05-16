@@ -103,19 +103,19 @@ public class Matrix {
                 rows[i][j] = "";
                 String electrodesPart = surfaceCoupling(par, ato, atom) + "";
                 if(ato.equals(atom)){
-                    String energy = "E - (" + ato.getE() + ")";
+                    String energy = "E - (" + ato.getString("OnSiteEnergy") + ")";
                     rows[i][j] = energy;
                     ArrayList<Electrode> electrodes = par.getElectrodesByAtomID(i);
                     for(int e_i = 0; e_i <  electrodes.size(); e_i++){
                         if (StringUtils.isNotEmpty(electrodesPart))
                             electrodesPart += "-";
-                        electrodesPart += electrodes.get(e_i).getCoupling();
+                        electrodesPart += electrodes.get(e_i).getString("Coupling");
                     }
                     electrodesPart +=  "+i*" + Globals.ETA;
 
                 }
                 else if(par.areBound(i,j)){
-                    String coupling = par.getBound(i,j).getCoupling();
+                    String coupling = par.getBound(i,j).getString("Coupling");
                     rows[i][j] += "-" + coupling;
                 }else{
                     rows[i][j] = "0";

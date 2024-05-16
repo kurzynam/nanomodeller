@@ -1,4 +1,4 @@
-package org.nanomodeller;
+package org.nanomodeller.Calculation;
 
 
 import static org.nanomodeller.CommonPhysics.DensType.*;
@@ -7,6 +7,7 @@ import static org.nanomodeller.CommonPhysics.sigma;
 import static org.nanomodeller.CommonPhysics.toEnergyStep;
 import static org.nanomodeller.Globals.*;
 
+import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.XMLMappingFiles.Matrix;
 import org.nanomodeller.XMLMappingFiles.Parameters;
@@ -21,7 +22,7 @@ public class StaticProperties {
 
         GlobalProperties gp = GlobalProperties.getInstance();
         Parameters par = Parameters.getInstance();
-        MyFileWriter ldosWriter = new MyFileWriter(par.getPath() + "/" +Globals.STATIC_LDOS_FILE_NAME_PATTERN);
+        MyFileWriter ldosWriter = new MyFileWriter(par.getPath() + "/" + Globals.STATIC_LDOS_FILE_NAME_PATTERN);
         MyFileWriter normalisationWriter = new MyFileWriter(par.getPath() + "/" +Globals.STATIC_NORMALISATION_FILE_NAME_PATTERN);
         Matrix matrix = Matrix.readMatrixFromDataFile(par);
         Complex[] sigma1 = null;
@@ -56,8 +57,7 @@ public class StaticProperties {
         for (int i = 0; i < par.getAtoms().size(); i++){
             normalisations[i] = 0;
         }
-        int num = par.getNumOfSubSteps() == 0 ? 1 : par.getNumOfSubSteps();
-        for (int n = 0; n < num; n++) {
+        for (int n = 0; n < 1; n++) {
             matrix.getParser().addVariable("n",n);
             for (double tempE = Emin; tempE < Emax; tempE += dE) {
                 String results = "";

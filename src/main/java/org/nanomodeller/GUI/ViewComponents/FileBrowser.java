@@ -1,6 +1,6 @@
 package org.nanomodeller.GUI.ViewComponents;
 
-import org.nanomodeller.GUI.NanoModeller;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.GUI.LeftMenuPanel;
 import org.nanomodeller.Tools.DataAccessTools.FileOperationHelper;
 import org.nanomodeller.Tools.StringUtils;
@@ -18,7 +18,7 @@ import java.util.Comparator;
 import javax.swing.*;
 import javax.swing.tree.*;
 
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
+import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXMLFile;
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.readPropertiesFromXMLFile;
 
 
@@ -85,8 +85,8 @@ public class FileBrowser extends JPanel{
                 String path = ((JTree) e.getSource()).getAnchorSelectionPath().getLastPathComponent().toString();
                 if (isNodeChanged(path)){
                     readPropertiesFromXMLFile(getAbsolutePath() + "/parameters.xml");
-                    NanoModeller.getInstance().readDataFromObject( true, NanoModeller.getInstance().getStepRecorder().timeTextField);;
-                    NanoModeller.getInstance().refresh();
+                    NanoModeler.getInstance().readDataFromObject( true, NanoModeler.getInstance().getStepRecorder().timeTextField);;
+                    NanoModeler.getInstance().refresh();
                 }
                 currentNodeName = path;
             }
@@ -95,6 +95,7 @@ public class FileBrowser extends JPanel{
             }
         };
         GlobalProperties gp = GlobalProperties.getInstance();
+        readPropertiesFromXMLFile(gp.getDynamicPATH() + "/parameters.xml");
         FileNode fileRoot = new FileNode(gp.getDynamicPATH());
         root = new DefaultMutableTreeNode(fileRoot);
         nodes = new ArrayList<>();
@@ -195,7 +196,7 @@ public class FileBrowser extends JPanel{
     private void removeDirectory() {
 
         int n = JOptionPane.showConfirmDialog(
-                NanoModeller.getInstance(),
+                NanoModeler.getInstance(),
                 "Are you sure you want to delete this directory?",
                 "Removal Confirmation",
                 JOptionPane.YES_NO_OPTION);
@@ -228,7 +229,7 @@ public class FileBrowser extends JPanel{
         DefaultMutableTreeNode selectedNode =
                 (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
         String newDirName = (String)JOptionPane.showInputDialog(
-                NanoModeller.getInstance(),
+                NanoModeler.getInstance(),
                 "New name:",
                 "Rename Directory",
                 JOptionPane.PLAIN_MESSAGE,
@@ -247,7 +248,7 @@ public class FileBrowser extends JPanel{
             newDir = new FileNode(parent.getPath() + "/" + newDirName);
             GlobalProperties gp = GlobalProperties.getInstance();
             gp.setDynamicPATH(newDir.getAbsolutePath());
-            convertObjectToXML(gp);
+            convertObjectToXMLFile(gp);
         }
         DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(newDir);
         FileNode selectedDir = ((FileNode)selectedNode.getUserObject());
@@ -274,7 +275,7 @@ public class FileBrowser extends JPanel{
 
     private void addNewDir() {
         String newDirName = (String)JOptionPane.showInputDialog(
-                NanoModeller.getInstance(),
+                NanoModeler.getInstance(),
                 "Directory name:",
                 "New Directory",
                 JOptionPane.PLAIN_MESSAGE,

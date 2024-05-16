@@ -6,12 +6,12 @@ import java.awt.*;
 public class MyButton extends JButton{
     public MyButton(String text){
         super(text);
-        initializeButton(text);
+        initializeButton();
     }
     public MyButton(String text, ImageIcon image){
         super(text);
         setImageIcon(image);
-        initializeButton(text);
+        initializeButton();
         addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 setBackground(Color.GRAY);
@@ -32,13 +32,13 @@ public class MyButton extends JButton{
         }
     }
 
-    private void initializeButton(String text) {
+    private void initializeButton() {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setHorizontalAlignment(SwingConstants.LEFT);
         setBackground(Color.DARK_GRAY);
         setForeground(Color.WHITE);
-        setFont(new Font("Consolas", Font.PLAIN, 16));
-        setPreferredSize(new Dimension((int)(screenSize.getWidth()/12),(int)(screenSize.getHeight()/40)));
+        setFont(new Font("Consolas", Font.BOLD, 16));
+        setPreferredSize(new Dimension((int)(screenSize.getWidth()/12),(int)(screenSize.getHeight()/20)));
         setMargin(new Insets(0, 0, 0, 0));
     }
 }

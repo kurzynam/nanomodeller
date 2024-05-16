@@ -7,6 +7,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @XmlRootElement(name="Parameters")
 public class Parameters {
@@ -32,16 +33,30 @@ public class Parameters {
     private String name;
     private String electrodesEmin;
     private String electrodesEmax;
-    private boolean isActive;
     private String surfaceCoupling;
     private String path;
-    private int numOfSubSteps = 1;
-    private ArrayList<Bound> bounds = new ArrayList<Bound>();
+    private ArrayList<Bond> bonds = new ArrayList<Bond>();
     private ArrayList<Atom> atoms = new ArrayList<Atom>();
     private ArrayList<Electrode> electrodes = new ArrayList<Electrode>();
 
-    public void addBound(Bound bound) {
-        this.bounds.add(bound);
+    public void addBound(Bond bond) {
+        int count = -1;
+        for (Bond other : bonds){
+            count++;
+            if (bond.getFirst() > other.getFirst()){}
+            else if (bond.getFirst() == other.getFirst()){
+                if (bond.getSecond() <= other.getSecond()){
+                    this.bonds.add(count, bond);
+                    return;
+                }
+            }
+            else {
+                this.bonds.add(count, bond);
+                return;
+            }
+        }
+        bonds.add(bond);
+
     }
     public void addAtom(Atom atom) {
         this.atoms.add(atom);
@@ -50,22 +65,8 @@ public class Parameters {
         this.electrodes.add(electrode);
     }
 
-    public Electrode getElectrodyByID(int id){
-        for (Electrode e : electrodes){
-            if(id == e.getId()){
-                return e;
-            }
-        }
-        return null;
-    }
-    public double getElectrodeCouplingsByAtomID(int id){
-        for (Electrode e : electrodes){
-            if(id == e.getAtomIndex()){
-                return  e.getParsedCoupling();
-            }
-        }
-        return 0;
-    }
+
+
     public ArrayList<Electrode> getElectrodesByAtomID(int id){
         ArrayList<Electrode> el = new ArrayList<Electrode>();
         for (Electrode e : electrodes){
@@ -75,23 +76,14 @@ public class Parameters {
         }
         return el;
     }
-
-    public int getNumOfSubSteps() {
-        return numOfSubSteps;
-    }
-
-    public void setNumOfSubSteps(int numOfSubSteps) {
-        this.numOfSubSteps = numOfSubSteps;
-    }
-
     @XmlElements(@XmlElement(name="Electrode"))
     public ArrayList<Electrode> getElectrodes() {
         return electrodes;
     }
 
-    @XmlElements(@XmlElement(name="Bound"))
-    public ArrayList<Bound> getBounds() {
-        return bounds;
+    @XmlElements(@XmlElement(name="Bond"))
+    public ArrayList<Bond> getBonds() {
+        return bonds;
     }
 
     @XmlAttribute(name="id")
@@ -104,23 +96,12 @@ public class Parameters {
     public ArrayList<Atom> getAtoms() {
         return atoms;
     }
-
-    public boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
     public String getPath() {
         return path;
     }
-
     public void setPath(String path) {
         this.path = path;
     }
-
     @XmlAttribute(name="time")
     public String getTime() {
         return time;
@@ -128,15 +109,6 @@ public class Parameters {
     public void setTime(String time) {
         this.time = time;
     }
-
-    @XmlAttribute(name="isActive")
-    public boolean getActive() {
-        return isActive;
-    }
-    public void setActive(boolean active) {
-        this.isActive = active;
-    }
-
 
     @XmlAttribute(name="gammaSur")
     public String getSurfaceCoupling() {
@@ -195,7 +167,7 @@ public class Parameters {
     }
 
     public boolean areBound(int a1, int a2){
-        for(Bound b : bounds){
+        for(Bond b : bonds){
             if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst()== a2 && b.getSecond() == a1){
                 return true;
             }
@@ -205,7 +177,7 @@ public class Parameters {
     public boolean areBound(Atom atom1, Atom atom2){
         int a1 = atom1.getID();
         int a2 = atom2.getID();
-        for(Bound b : bounds){
+        for(Bond b : bonds){
             if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst() == a2 && b.getSecond() == a1){
                 return true;
             }
@@ -213,10 +185,10 @@ public class Parameters {
         return false;
     }
 
-    public Bound getBound(Atom atom1, Atom atom2){
+    public Bond getBound(Atom atom1, Atom atom2){
         int a1 = atom1.getID();
         int a2 = atom2.getID();
-        for(Bound b : bounds){
+        for(Bond b : bonds){
             if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst() == a2 && b.getSecond() == a1){
                 return b;
             }
@@ -224,8 +196,8 @@ public class Parameters {
         return null;
     }
 
-    public Bound getBound(int a1, int a2){
-        for(Bound b : bounds){
+    public Bond getBound(int a1, int a2){
+        for(Bond b : bonds){
             if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst() == a2 && b.getSecond() == a1){
                 return b;
             }
@@ -250,13 +222,17 @@ public class Parameters {
         return Double.parseDouble(getSurfaceCoupling());
     }
 
-    public ArrayList<Bound> getBoundsByAtomID(int id) {
-        ArrayList<Bound> bounds = new ArrayList<>();
-        for(Bound b : bounds){
+    public ArrayList<Bond> getBoundsByAtomID(int id) {
+        ArrayList<Bond> bonds = new ArrayList<>();
+        for(Bond b : bonds){
             if(b.getFirst() == id || b.getSecond() == id){
-                bounds.add(b);
+                bonds.add(b);
             }
         }
-        return bounds;
+        return bonds;
+    }
+
+    public ArrayList<Bond> getBondsOfAtom(int i){
+        return (ArrayList<Bond>) getBonds().stream().filter(b -> b.getFirst() == i || b.getSecond() == i).collect(Collectors.toList());
     }
 }

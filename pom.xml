@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.nanomodeller</groupId>
-    <artifactId>NanoModeller</artifactId>
+    <artifactId>NanoModeler</artifactId>
     <version>1.0.0</version>
 
     <properties>
@@ -31,6 +31,14 @@
             <artifactId>batik-svg-dom</artifactId>
             <version>1.6-1</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.4.1</version>
+            <scope>runtime</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>org.apache.commons</groupId>

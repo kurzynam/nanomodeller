@@ -60,119 +60,71 @@
             <value>RED</value>
         </entry>
     </paletteColors>
-    <Parameters isActive="true" grid_size="10">
-        <isActive>true</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\ratunek</path>
     </Parameters>
-    <Parameters isActive="true" grid_size="10">
-        <isActive>true</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\phaseTransition24</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\zigZag</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\phaseTransition22</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\phaseTransition</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\SSH0-mormal</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\SSH1-mormal</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\SSH1-mormal_odd</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\normal-SSH0</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\normal-SSH1</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\test2</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\test</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>1</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\T_geometry</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\9_atoms_with_surface</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\8_atoms_with_surface</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\TwoGaussianSSH1</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\OneGaussianSSH1</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\OneGaussianSSH0</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\OneGaussianSSH0_surface</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\perturbationOneGausian</path>
     </Parameters>
-    <Parameters isActive="false" grid_size="10">
-        <isActive>false</isActive>
-        <numOfSubSteps>2</numOfSubSteps>
+    <Parameters grid_size="10">
         <path>C:\Users\mkurzyna\Desktop\results\differentVx_withLDOS</path>
     </Parameters>
-    <Parameters isActive="true" grid_size="10">
-        <isActive>true</isActive>
-        <numOfSubSteps>1</numOfSubSteps>
-    </Parameters>
-    <Parameters isActive="true" grid_size="10">
-        <isActive>true</isActive>
-        <numOfSubSteps>1</numOfSubSteps>
-    </Parameters>
+    <Parameters grid_size="10"/>
+    <Parameters grid_size="10"/>
     <rowsFirst>Rows first</rowsFirst>
     <saveTimeFrom>900</saveTimeFrom>
     <showGrid>true</showGrid>

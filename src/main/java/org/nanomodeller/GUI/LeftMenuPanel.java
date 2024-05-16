@@ -2,20 +2,13 @@ package org.nanomodeller.GUI;
 
 import org.nanomodeller.GUI.Shapes.ElectrodeShape;
 import org.nanomodeller.GUI.ViewComponents.*;
-import org.nanomodeller.Tools.StringUtils;
-import org.nanomodeller.XMLMappingFiles.Parameters;
-import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 
 import static org.nanomodeller.Globals.*;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXML;
+import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXMLFile;
 
 
 public class LeftMenuPanel extends MyPanel {
@@ -36,12 +29,12 @@ public class LeftMenuPanel extends MyPanel {
     public MyTextField timeTextField;
     FileBrowser fileBrowser;
     boolean enableScrollListener = true;
-    NanoModeller modeller;
+    NanoModeler modeller;
 
 
     public LeftMenuPanel(){
         super("");
-        this.modeller = NanoModeller.getInstance();
+        this.modeller = NanoModeler.getInstance();
         initializeComponents();
         initializeLayout();
         initializeEvents();
@@ -50,7 +43,7 @@ public class LeftMenuPanel extends MyPanel {
 
         ImageIcon icon = new ImageIcon(LOGO_IMAGE_PATH);
         Image img = icon.getImage();
-        Image newimg = img.getScaledInstance(250, 110, Image.SCALE_SMOOTH);
+        Image newimg = img.getScaledInstance(170, 180, Image.SCALE_SMOOTH);
         ImageIcon imIc = new ImageIcon(newimg);
         logo.setIcon(imIc);
         nextButton = new MyButton("NEXT");
@@ -89,9 +82,6 @@ public class LeftMenuPanel extends MyPanel {
     }
     private void initializeLayout(){
         GridBagLayout layout = new GridBagLayout();
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int)screenSize.getWidth();
-        int height = (int)screenSize.getHeight();
         setLayout(layout);
         add(logo);
         GridBagConstraints pointer = new GridBagConstraints();
@@ -103,13 +93,6 @@ public class LeftMenuPanel extends MyPanel {
         pointer.gridy = 0;
         pointer.gridy++;
 
-
-        pointer.gridwidth = 1;
-        add(timeLabel,pointer);
-        pointer.gridx++;
-        add(timeTextField, pointer);
-        pointer.gridx--;
-        pointer.gridy++;
 
         pointer.gridwidth = 2;
         pointer.gridy++;

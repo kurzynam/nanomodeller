@@ -13,39 +13,30 @@ public class ElectrodeShape {
     private Electrode electrode;
     private Line2D line;
 
-    public ElectrodeShape(AtomShape atom, Rectangle2D rectangle, Line2D line, Electrode electrode){
+    public ElectrodeShape(AtomShape atom, Rectangle2D rectangle, Electrode electrode){
         this.electrode = electrode;
         this.setAtom(atom);
         this.setRectangle(rectangle);
-        this.setLine(line);
         this.electrode = electrode;
+        updateLine();
 
     }
 
     public ElectrodeShape(Rectangle2D rectangle, int id){
         this.electrode = new Electrode();
         this.setRectangle(rectangle);
-        this.electrode.setCoupling("1");
-        this.electrode.setdE("0.01");
         this.electrode.setColor(Globals.BLACK);
-        this.electrode.setId(id);
+        this.electrode.setAtomIndex(id);
         this.electrode.setAtomIndex(-1);
     }
 
     public void updateLine() {
-        if (getLine() != null) {
-            getLine().setLine(getAtom().getShape().getCenterX(), getAtom().getShape().getCenterY(), getRectangle().getCenterX(), getRectangle().getCenterY());
-        }
+        line = new Line2D.Double(getAtom().getShape().getCenterX(), getAtom().getShape().getCenterY(), getRectangle().getCenterX(), getRectangle().getCenterY());
     }
 
     public Electrode getElectrode() {
         return electrode;
     }
-
-    public void setElectrode(Electrode electrode) {
-        this.electrode = electrode;
-    }
-
     public AtomShape getAtom() {
         return atom;
     }
@@ -68,29 +59,6 @@ public class ElectrodeShape {
         this.rectangle = rectangle;
     }
 
-    public String getCoupling() {
-        return electrode.getCoupling();
-    }
-
-    public void setCoupling(String coupling) {
-        this.electrode.setCoupling(coupling);
-    }
-
-    public String getType() {
-        return electrode.getType();
-    }
-
-    public void setType(String type) {
-        this.electrode.setType(type);
-    }
-
-    public String getdE() {
-        return electrode.getdE();
-    }
-
-    public void setdE(String dE) {
-        this.electrode.setdE(dE);
-    }
 
     public Line2D getLine() {
         return line;
@@ -109,20 +77,11 @@ public class ElectrodeShape {
     }
 
     public void setID(int id){
-        electrode.setId(id);
+        electrode.setID(id);
     }
 
     public int getID(){
-        return electrode.getId();
+        return electrode.getID();
     }
 
-    public String getPerturbation(){
-        return electrode.getPerturbation();
-    }
-    public void setPerturbation(String per){
-        this.electrode.setPerturbation(per);
-    }
-    public double getParsedPerturbation(){
-        return this.electrode.getParsedPerturbation();
-    }
 }

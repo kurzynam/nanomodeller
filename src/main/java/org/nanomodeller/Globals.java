@@ -1,5 +1,9 @@
 package org.nanomodeller;
 
+import org.nanomodeller.Tools.StringUtils;
+
+import java.util.Arrays;
+
 public class Globals {
 
     //region PATHS
@@ -129,5 +133,11 @@ public class Globals {
     public static final String ars = "R";//  ak''-σ
     public static final String Aws = "s";//  a†k'''-σ
     public static final String aws = "S";//  ak'''-σ
+    public static final String INITIAL_OCCUPATION = "InitialOccupation";
+
+    public static boolean isTrue(String value) {
+        String[] vals = {"yes", "true", "1", "tak", "YES", "TRUE", "y", "t", "Y", "T"};
+        return Arrays.stream(vals).anyMatch(val -> StringUtils.equals(val, value));
+    }
     //endregion
 }
