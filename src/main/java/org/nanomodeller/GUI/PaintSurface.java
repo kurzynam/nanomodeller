@@ -1,5 +1,13 @@
 package org.nanomodeller.GUI;
 
+import org.apache.batik.anim.dom.SVGDOMImplementation;
+import org.apache.batik.transcoder.TranscoderException;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.TranscodingHints;
+import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.apache.batik.util.SVGConstants;
+import org.apache.commons.io.FileUtils;
 import org.nanomodeller.GUI.Shapes.AtomBond;
 import org.nanomodeller.GUI.Shapes.AtomShape;
 import org.nanomodeller.GUI.Shapes.ElectrodeShape;
@@ -9,15 +17,21 @@ import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 class PaintSurface extends Component {
 
     private static final long serialVersionUID = 1L;
 
     private final NanoModeler nanoModeler;
+    private BufferedImage image;
 
     public PaintSurface(NanoModeler nanoModeler) {
         this.nanoModeler = nanoModeler;
+        image = rasterize(new File("img/node.svg"));
     }
 
     public void paint(Graphics g) {
@@ -42,8 +56,12 @@ class PaintSurface extends Component {
                 g2.draw(new Line2D.Float(0, i, screenWidth, i));
         }
         g2.setColor(Color.BLACK);
+
+        drawAtom(g2, 100, 100);
+
+
         g2.setStroke(new BasicStroke(4));
-        for (AtomBond bound : nanoModeler.getAtomBounds()) {
+        for (AtomBond bound : nanoModeler.getAtomBonds()) {
 
             if (bound.getFirstAtom() != null && bound != nanoModeler.getHighlightedBound()) {
                 g2.setColor(nanoModeler.getMenu().colorBox.colors.get(bound.getColor()));
@@ -107,6 +125,7 @@ class PaintSurface extends Component {
             }
             double centerX = s.getShape().getCenterX();
             double centerY = s.getShape().getCenterY();
+            //drawAtom(g2, (int) centerX, (int) centerY);
             double outerRadius = s.getShape().getWidth() / 2.5;
             double innerRadius = 0.55 * s.getShape().getWidth();
             g2.setPaint(new RadialGradientPaint(
@@ -132,11 +151,6 @@ class PaintSurface extends Component {
                     outerRadius / 2, 13, 2));
         }
 
-
-        g2.setColor(Color.ORANGE);
-        for (AtomBond s : nanoModeler.getSelectedBounds())
-            if (nanoModeler.getAtomBounds().contains(s))
-                g2.draw(s.getLine());
         if (nanoModeler.getHighlightedBound() != null) {
             g2.setColor(Color.GREEN);
             g2.draw(nanoModeler.getHighlightedBound().getLine());
@@ -144,6 +158,10 @@ class PaintSurface extends Component {
         g2.setColor(Color.GRAY);
         if (nanoModeler.getSelection() != null)
             g2.draw(nanoModeler.getSelection());
+    }
+
+    private void drawAtom(Graphics2D g2, int x, int y) {
+        g2.drawImage(image.getScaledInstance(NanoModeler.getInstance().getGridSize() * 4,NanoModeler.getInstance().getGridSize() * 4,1), x, y,null);
     }
 
     private Shape createDefaultStar(double radius, double centerX,
@@ -211,5 +229,76 @@ class PaintSurface extends Component {
             return hexagon;
         }
 
+    }
+
+
+
+
+
+
+
+    public static BufferedImage rasterize(File svgFile) {
+
+        final BufferedImage[] imagePointer = new BufferedImage[1];
+
+        // Rendering hints can't be set programatically, so
+        // we override defaults with a temporary stylesheet.
+        // These defaults emphasize quality and precision, and
+        // are more similar to the defaults of other SVG viewers.
+        // SVG documents can still override these defaults.
+        String css = "svg {" +
+                "shape-rendering: geometricPrecision;" +
+                "text-rendering:  geometricPrecision;" +
+                "color-rendering: optimizeQuality;" +
+                "image-rendering: optimizeQuality;" +
+                "}";
+
+        try {
+            File cssFile = File.createTempFile("batik-default-override-", ".css");
+            FileUtils.writeStringToFile(cssFile, css);
+
+            TranscodingHints transcoderHints = new TranscodingHints();
+            transcoderHints.put(ImageTranscoder.KEY_XML_PARSER_VALIDATING, Boolean.FALSE);
+            transcoderHints.put(ImageTranscoder.KEY_DOM_IMPLEMENTATION,
+                    SVGDOMImplementation.getDOMImplementation());
+            transcoderHints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT_NAMESPACE_URI,
+                    SVGConstants.SVG_NAMESPACE_URI);
+            transcoderHints.put(ImageTranscoder.KEY_DOCUMENT_ELEMENT, "svg");
+            transcoderHints.put(ImageTranscoder.KEY_USER_STYLESHEET_URI, cssFile.toURI().toString());
+
+            TranscoderInput input = new TranscoderInput(new FileInputStream(svgFile));
+
+            ImageTranscoder t = new ImageTranscoder() {
+
+                @Override
+                public BufferedImage createImage(int w, int h) {
+                    return new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                }
+
+                @Override
+                public void writeImage(BufferedImage image, TranscoderOutput out)
+                        throws TranscoderException {
+                    imagePointer[0] = image;
+                }
+            };
+            t.setTranscodingHints(transcoderHints);
+            t.transcode(input, null);
+        }
+        catch (Exception ex) {
+            // Requires Java 6
+            ex.printStackTrace();
+        }
+
+        return imagePointer[0];
+    }
+
+
+    public static BufferedImage resizeImage(BufferedImage originalImage, Double factor) {
+        // Calculate the new dimensions
+        int newWidth = (int) (originalImage.getWidth() * factor);
+        int newHeight = (int) (originalImage.getHeight() * factor);
+
+        // Create a new buffered image
+        return new BufferedImage(newWidth, newHeight, originalImage.getType());
     }
 }

@@ -1,6 +1,5 @@
 package org.nanomodeller.GUI;
 
-import org.apache.commons.math3.util.Pair;
 import org.nanomodeller.*;
 import org.nanomodeller.Calculation.StaticProperties;
 import org.nanomodeller.GUI.Shapes.AtomBond;
@@ -66,7 +65,7 @@ public class NanoModeler extends JFrame {
     private JScrollPane scrollPane = new FuturisticScrollPane(getPaintSurface());
     private ArrayList<AtomShape> shapes = new ArrayList<>();
 
-    public ArrayList<AtomBond> getAtomBounds() {
+    public ArrayList<AtomBond> getAtomBonds() {
         return bonds;
     }
 
@@ -460,22 +459,23 @@ public class NanoModeler extends JFrame {
         getPaintSurface().repaint();
     }
     protected void delete() {
-        ArrayList<AtomBond> boundsToDelete = new ArrayList<AtomBond>();
-
-        for (AtomBond bound : bonds) {
-            if (getHighlightedShape() != null) {
-                if (getHighlightedShape().getShape().contains(bound.getLine().getX1(), bound.getLine().getY1())
-                        || getHighlightedShape().getShape().contains(bound.getLine().getX2(), bound.getLine().getY2())) {
-                    boundsToDelete.add(bound);
-                }
-            }
-        }
-        for (AtomBond bound : bonds) {
-            if (getSelectedBounds().contains(bound)) {
-                boundsToDelete.add(bound);
-            }
-        }
-        for (AtomBond s : boundsToDelete) {
+//        ArrayList<AtomBond> boundsToDelete = new ArrayList<AtomBond>();
+//
+//        for (AtomBond bound : bonds) {
+//            if (getHighlightedShape() != null) {
+//                if (getHighlightedShape().getShape().contains(bound.getLine().getX1(), bound.getLine().getY1())
+//                        || getHighlightedShape().getShape().contains(bound.getLine().getX2(), bound.getLine().getY2())) {
+//                    boundsToDelete.add(bound);
+//                }
+//            }
+//        }
+//        for (AtomBond bound : bonds) {
+//            if (getSelectedBounds().contains(bound)) {
+//                boundsToDelete.add(bound);
+//            }
+//        }
+        ArrayList<AtomBond> bondsToDelete = getSelectedBounds();
+        for (AtomBond s : bondsToDelete) {
             bonds.remove(s);
         }
         bonds.remove(getHighlightedBound());
@@ -702,8 +702,11 @@ public class NanoModeler extends JFrame {
             newSelectionXMax = (newX > newSelectionXMax) ? newX : newSelectionXMax ;
             atom.getShape().setFrame(newX , atom.getShape().getY(), atom.getShape().getWidth(), atom.getShape().getHeight());
         }
-        for (AtomBond bound : getSelectedBounds()){
+        for (AtomBond bound : bonds){
             bound.updateLine();
+        }
+        for (ElectrodeShape electrodeShape : electrodes){
+            electrodeShape.updateLine();
         }
         for (ElectrodeShape electrode : getSelectedElectrodes()){
             double newX = 2 * selectionWidth - electrode.getRectangle().getX();
@@ -723,8 +726,11 @@ public class NanoModeler extends JFrame {
             newSelectionYMax = (newY > newSelectionYMax) ? newY : newSelectionYMax ;
             atom.getShape().setFrame(atom.getShape().getX(), newY, atom.getShape().getWidth(), atom.getShape().getHeight());
         }
-        for (AtomBond bound : getSelectedBounds()){
+        for (AtomBond bound : bonds){
             bound.updateLine();
+        }
+        for (ElectrodeShape electrodeShape : electrodes){
+            electrodeShape.updateLine();
         }
         for (ElectrodeShape electrode : getSelectedElectrodes()){
             double newY = 2 * selecionYcenter - electrode.getRectangle().getY();
@@ -976,7 +982,7 @@ public class NanoModeler extends JFrame {
         ArrayList<AtomBond> selectedBounds = new ArrayList<>();
         for (AtomBond bound : bonds){
             int first = bound.getBond().getFirst();
-            int second = bound.getBond().getFirst();
+            int second = bound.getBond().getSecond();
             for (AtomShape atom : selectedAtoms){
                 if (atom.getID() == first || atom.getID() == second){
                     selectedBounds.add(bound);
@@ -1474,12 +1480,6 @@ public class NanoModeler extends JFrame {
                         setSelectionYMin((y < getSelectionYMin() || getSelectionYMin() < 0) ? y : getSelectionYMin());
                     }
                 }
-                for (AtomBond bound : bonds) {
-                    if (bound.getLine().intersects(getSelection())) {
-//                    if (getSelectedAtoms().contains(bound.getFirst()) || getSelectedAtoms().contains(bound.getSecond())){
-                        getSelectedBounds().add(bound);
-                    }
-                }
             }
             setSelection(null);
             if (isSelectionFlag()){
@@ -1510,9 +1510,11 @@ public class NanoModeler extends JFrame {
                 getPaintSurface().repaint();
                 return;
             }
-            else if (getHighlightedShape() == null && getHighlightedBound() == null
-                    && getSelectedAtoms().size() == 0 && getSelectedBounds().size() == 0
-                    && getHighlightedElectrode() == null && getSelectedElectrodes().size() == 0){
+            else if (getHighlightedShape() == null
+                    && getHighlightedBound() == null
+                    && getHighlightedElectrode() == null
+                    && getSelectedAtoms().size() == 0
+                    && getSelectedElectrodes().size() == 0){
                 getScrollPane().getVerticalScrollBar().setValue(getScrollPane().getVerticalScrollBar().getValue() - dy/7);
                 getScrollPane().getHorizontalScrollBar().setValue(getScrollPane().getHorizontalScrollBar().getValue() - dx/7);
                 return;
@@ -1649,39 +1651,10 @@ public class NanoModeler extends JFrame {
     }
 
     private void showAtomPropertiesTextArea(){
+        Atom selectedAtom = getSelectedAtoms().get(0).getAtom();
+        String data = XMLHelper.convertObjectToXMLString(selectedAtom);
+        showShapeTextArea(selectedAtom, data, "Atom properties");
 
-        String data = XMLHelper.convertObjectToXMLString(getSelectedAtoms().get(0).getAtom());
-        Pair<Integer, String> res = showShapeTextArea(data, "Atom properties");
-        int option = res.getKey();
-        String value = res.getValue();
-        if (StringUtils.isNotEmpty(value)){
-            if (option == 3){
-                return;
-            }
-            Atom atom = XMLHelper.convertXMLStringToAtom(value);
-            if (atom != null){
-                if (option == 0){
-                    shapes.get(0).getAtom().setProperties(atom.getProperties());
-                    shapes.get(0).getAtom().setColor(atom.getColor());
-                }
-                if (option == 1){
-                    shapes.stream()
-                            .filter(shape -> StringUtils.equals(shape.getAtom().getGroupID(), atom.getGroupID()))
-                            .forEach(atomShape -> {
-                                atomShape.getAtom().setProperties(atom.getProperties());
-                                atomShape.getAtom().setColor(atom.getColor());
-                            });
-                }
-                if (option == 2){
-                    shapes.stream()
-                            .forEach(atomShape -> {
-                                atomShape.getAtom().setProperties(atom.getProperties());
-                                atomShape.getAtom().setColor(atom.getColor());
-                            });
-                }
-            }
-        }
-        getPaintSurface().repaint();
     }
 
 
@@ -1709,32 +1682,10 @@ public class NanoModeler extends JFrame {
         return null;
     }
 
-    public static Pair<Integer, String> showShapeTextArea(String text, String title){
+    public static void showShapeTextArea(Element element, String text, String title){
         String formattedText = text.substring(text.indexOf("\n") + 1);
         formattedText = formattedText.replaceAll("<x>.*?</x>\n", "").replaceAll("<y>.*?</y>", "");
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int)screenSize.getWidth();
-        int height = (int)screenSize.getHeight();
-        JTextArea tf = new JTextArea(formattedText);
-        tf.setAutoscrolls(true);
-        tf.setFont(new Font("Consolas", Font.PLAIN, 20));
-        tf.setLineWrap(true);
-
-        JScrollPane sp = new JScrollPane(tf);
-        sp.setPreferredSize(new Dimension(width/3,(int)(height/1.5)));
-        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        Object[] options = {"Apply",
-                "Apply to all in group",
-                "Apply to all",
-                "Cancel"};
-        int n = JOptionPane.showOptionDialog(null,sp, //parent container of JOptionPane
-                title,
-                JOptionPane.YES_NO_CANCEL_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[3]);
-
-        return new Pair<>(n, tf.getText());
+        ElementPropertiesDialog elementPropertiesDialog = new ElementPropertiesDialog(element, title, formattedText);
+        elementPropertiesDialog.setVisible(true);
     }
 }

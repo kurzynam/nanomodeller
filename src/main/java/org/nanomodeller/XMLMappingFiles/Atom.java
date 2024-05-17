@@ -38,15 +38,6 @@ public class Atom extends Element implements Comparable<Atom>{
     public int getID() { return ID; }
     public void setID(int id) { this.ID = id; }
 
-
-    @XmlAttribute(name="color")
-    public String getColor() {
-        return color;
-    }
-    public void setColor(String color) {
-        this.color = color;
-    }
-
     @XmlAttribute(name="X")
     public Double getX() {
         return X;

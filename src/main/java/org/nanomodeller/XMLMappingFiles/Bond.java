@@ -1,10 +1,8 @@
 package org.nanomodeller.XMLMappingFiles;
 
-import org.apache.commons.math3.util.Pair;
 import org.nanomodeller.Calculation.CalculationBond;
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.PropertiesMap;
-import org.nanomodeller.UnorderedPair;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -16,8 +14,6 @@ import java.util.Hashtable;
 public class Bond extends Element{
     private int first;
     private int second;
-
-    private String groupID;
 
     public Bond(int first, int second, Bond bond){
         if (first > second){
@@ -42,15 +38,6 @@ public class Bond extends Element{
         this.properties = new PropertiesMap();
         setColor(Globals.BLACK);
     }
-
-    public String getGroupID() {
-        return groupID;
-    }
-    @XmlAttribute(name="GID")
-    public void setGroupID(String groupID) {
-        this.groupID = groupID;
-    }
-
     @XmlAttribute(name="first")
     public int getFirst(){
         return first;

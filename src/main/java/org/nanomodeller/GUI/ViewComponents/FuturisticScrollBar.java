@@ -10,10 +10,10 @@ public class FuturisticScrollBar extends JScrollBar {
         setUI(new FuturisticScrollBarUI());
     }
 
-    class FuturisticScrollBarUI extends BasicScrollBarUI {
+    public class FuturisticScrollBarUI extends BasicScrollBarUI {
         @Override
         protected void configureScrollBarColors() {
-            this.thumbColor = new Color(30, 30, 30);
+            this.thumbColor = new Color(238, 238, 238);
             this.thumbHighlightColor = new Color(60, 60, 60);
             this.thumbDarkShadowColor = new Color(0, 0, 0);
             this.thumbLightShadowColor = new Color(90, 90, 90);

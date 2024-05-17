@@ -27,9 +27,9 @@
         </dependency>
 
         <dependency>
-            <groupId>batik</groupId>
-            <artifactId>batik-svg-dom</artifactId>
-            <version>1.6-1</version>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-all</artifactId>
+            <version>1.17</version>
         </dependency>
 
         <dependency>
