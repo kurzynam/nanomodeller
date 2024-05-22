@@ -13,6 +13,8 @@ public class Element {
     protected PropertiesMap properties;
     protected String color;
     protected String groupID;
+
+    protected String iconSVGcode;
     @XmlElements(@XmlElement(name="Property"))
     public PropertiesMap getProperties() {
         return properties;
@@ -32,6 +34,9 @@ public class Element {
     public Boolean getBool(String key){
         return properties.getBool(key);
     }
+
+
+
     public void setProperty(String key, String value) {
         if (properties.containsKey(key))
             properties.replace(key, value);
@@ -62,5 +67,13 @@ public class Element {
                 item.skip(key.toString());
             }
         }
+    }
+
+    public String getIconSVGcode() {
+        return iconSVGcode;
+    }
+
+    public void setIconSVGcode(String iconSVGcode) {
+        this.iconSVGcode = iconSVGcode;
     }
 }

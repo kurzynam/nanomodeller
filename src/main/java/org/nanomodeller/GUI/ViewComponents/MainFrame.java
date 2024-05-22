@@ -1,6 +1,6 @@
 package org.nanomodeller.GUI.ViewComponents;
 
-import org.nanomodeller.GUI.Menu;
+import org.nanomodeller.GUI.Menus.Menu;
 
 import java.awt.Color;
 import javax.swing.JFrame;

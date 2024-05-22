@@ -44,6 +44,12 @@ public class Globals {
 
     //region image PATHS
 	public static final String ICON_IMAGE_PATH = "img/icon.png";
+
+    public static final String ICON_ATOM_PATH = "img/node.svg";
+
+    public static final String ICON_HATOM_PATH = "img/hNode.svg";
+
+    public static final String ICON_ELECTRODE_PATH = "img/electrode.svg";
     public static final String ADD_BUTTON_IMAGE_PATH = "img/addIcon.png";
     public static final String ALIGN_BUTTON_IMAGE_PATH = "img/alignIcon.png";
     public static final String DELETE_BUTTON_IMAGE_PATH = "img/deleteIcon.png";

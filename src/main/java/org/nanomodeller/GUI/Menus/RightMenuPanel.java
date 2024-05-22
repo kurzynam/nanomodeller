@@ -1,6 +1,7 @@
-package org.nanomodeller.GUI;
+package org.nanomodeller.GUI.Menus;
 
 import org.nanomodeller.Calculation.TimeEvolutionHelper;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.GUI.ViewComponents.*;
 import org.nanomodeller.Globals;
 
@@ -10,11 +11,10 @@ import java.util.Vector;
 
 import static org.nanomodeller.Globals.*;
 
-class RightMenuPanel extends MyPanel {
+public class RightMenuPanel extends MyPanel {
 
     private static final long serialVersionUID = 1L;
-    private final NanoModeler nanoModeler;
-   MyButton countStaticProperties = new MyButton("Count static properties", new ImageIcon(COUNT_LDOS_BUTTON_IMAGE_PATH));
+    MyButton countStaticProperties = new MyButton("Count static properties", new ImageIcon(COUNT_LDOS_BUTTON_IMAGE_PATH));
     MyButton countNormalisation = new MyButton("Static normalisation(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
     MyButton showNormalisation = new MyButton("Charge(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
     MyButton showLDOS = new MyButton("Static LDOS(i)", new ImageIcon(LDOS_BUTTON_IMAGE_PATH));
@@ -27,25 +27,19 @@ class RightMenuPanel extends MyPanel {
     MyButton showFermiLDOSTimeEvolutionButton = new MyButton("<html>LDOS<sub>E</sub>(t)</html>", new ImageIcon(SHOW_NORMALISATION_TIME_EVOLUTION_BUTTON_IMAGE_PATH));
     MyButton showLDOSLastTButton = new MyButton("LDOS(T_max)", new ImageIcon(LDOS_LAST_T_IMAGE_PATH));
     MyButton showNormalisationLastTButton = new MyButton("N(T_max)", new ImageIcon(NORMALISATION_LAST_T_IMAGE_PATH));
-    MyColorBox colorBox = new MyColorBox();
 
 
-    SortedComboBoxModel model;
 
     public RightMenuPanel(NanoModeler nanoModeler) {
         super("");
-        this.nanoModeler = nanoModeler;
         GridBagLayout layout = new GridBagLayout();
         setLayout(layout);
         showLDOS.setToolTipText("L");
         countStaticProperties.setToolTipText("Ctrl + L");
         GridBagConstraints pointer = new GridBagConstraints();
-        pointer.fill = GridBagConstraints.HORIZONTAL;
-        pointer.weightx = 0.5;
-        pointer.weighty = 0.5;
-        model = new SortedComboBoxModel(new Vector());
-        pointer.gridwidth = 1;
-        add(colorBox, 0);
+        pointer.fill = GridBagConstraints.VERTICAL;
+        pointer.weightx = 1;
+        pointer.weighty = 1;
         pointer.gridy++;
         pointer.gridy++;
         add(countStaticProperties, pointer);
@@ -104,19 +98,58 @@ class RightMenuPanel extends MyPanel {
         showChargeTimeEvolutionButton.addActionListener(evt -> nanoModeler.showNormalisationTimeEvolution());
         showFermiLDOSTimeEvolutionButton.addActionListener(evt -> nanoModeler.showFermiLDOSTimeEvolution());
         showNormalisation.addActionListener(evt -> nanoModeler.showChargeTimeEvolution());
-        colorBox.setSelectedItem(Globals.BLACK);
-        colorBox.addItemListener(itemEvent -> {
-            if (nanoModeler.getHighlightedShape() != null) {
-                nanoModeler.getHighlightedShape().setColor(colorBox.getSelectedItem() + "");
-            } else if (nanoModeler.getHighlightedElectrode() != null) {
-                nanoModeler.getHighlightedElectrode().setColor(colorBox.getSelectedItem() + "");
-            } else if (nanoModeler.getHighlightedBound() != null) {
-                nanoModeler.getHighlightedBound().setColor(colorBox.getSelectedItem() + "");
-            } else {
-                nanoModeler.setbColor(colorBox.getSelectedItem() + "");
-            }
-            nanoModeler.getPaintSurface().repaint();
-        });
         countNormalisation.addActionListener(evt -> nanoModeler.showNormalisation());
+    }
+
+    public MyButton getCountStaticProperties() {
+        return countStaticProperties;
+    }
+
+    public MyButton getCountNormalisation() {
+        return countNormalisation;
+    }
+
+    public MyButton getShowNormalisation() {
+        return showNormalisation;
+    }
+
+    public MyButton getShowLDOS() {
+        return showLDOS;
+    }
+
+    public MyButton getTimeEvolutionButton() {
+        return timeEvolutionButton;
+    }
+
+    public MyButton getShowLDOSTimeEvolutionButton() {
+        return showLDOSTimeEvolutionButton;
+    }
+
+    public MyButton getShowCurrentTimeEvolutionButton() {
+        return showCurrentTimeEvolutionButton;
+    }
+
+    public MyButton getShowTDOSTimeEvolutionButton() {
+        return showTDOSTimeEvolutionButton;
+    }
+
+    public MyButton getShowAVGDOSTimeEvolutionButton() {
+        return showAVGDOSTimeEvolutionButton;
+    }
+
+    public MyButton getShowChargeTimeEvolutionButton() {
+        return showChargeTimeEvolutionButton;
+    }
+
+    public MyButton getShowFermiLDOSTimeEvolutionButton() {
+        return showFermiLDOSTimeEvolutionButton;
+    }
+
+    public MyButton getShowLDOSLastTButton() {
+        return showLDOSLastTButton;
+    }
+
+    public MyButton getShowNormalisationLastTButton() {
+        return showNormalisationLastTButton;
     }
 }

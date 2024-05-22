@@ -114,8 +114,8 @@ public class Matrix {
                     electrodesPart +=  "+i*" + Globals.ETA;
 
                 }
-                else if(par.areBound(i,j)){
-                    String coupling = par.getBound(i,j).getString("Coupling");
+                else if(par.areBond(i,j)){
+                    String coupling = par.getBond(i,j).getString("Coupling");
                     rows[i][j] += "-" + coupling;
                 }else{
                     rows[i][j] = "0";

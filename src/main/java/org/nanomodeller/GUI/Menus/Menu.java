@@ -1,5 +1,7 @@
-package org.nanomodeller.GUI;
+package org.nanomodeller.GUI.Menus;
 
+import org.nanomodeller.GUI.NanoModeler;
+import org.nanomodeller.GUI.TestForm;
 import org.nanomodeller.GUI.ViewComponents.MyMenuItem;
 import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 

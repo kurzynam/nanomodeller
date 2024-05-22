@@ -1,11 +1,11 @@
 package org.nanomodeller.XMLMappingFiles;
 
 import org.nanomodeller.Calculation.CalculationElectrode;
-import org.nanomodeller.Tools.StringUtils;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -15,17 +15,37 @@ public class Electrode extends Element {
 
 
     private int ID;
-    private String X;
-    private String Y;
+    private Integer X;
+    private Integer Y;
 
-    public Electrode(int atomIndex, int ID, String x, String y) {
+    public Electrode(int atomIndex, int ID, Integer x, Integer y) {
         this.atomIndex = atomIndex;
         this.ID = ID;
         setX(x);
         setY(y);
     }
-
+    public Boolean contains(Point point, int distance) {
+        return contains(point.x, point.y, distance);
+    }
     public Electrode() {}
+
+    public void setCoordinates(Integer x, Integer y){
+        setX(x);
+        setY(y);
+    }
+
+    public void move(int dx, int dy){
+        setX(this.getX() + dx);
+        setY(this.getY() + dy);
+    }
+    public Boolean contains(int x, int y, int distance){
+        return  (getX() - distance < x && x < getX() + distance) && (getY() - distance < y && y < getY() + distance);
+    }
+
+    public void setCoordinates(double x, double y){
+        setX((int) x);
+        setY((int) y);
+    }
 
 
     @XmlAttribute(name="AtomID")
@@ -37,17 +57,17 @@ public class Electrode extends Element {
     }
 
     @XmlAttribute(name="X")
-    public String getX() {
+    public int getX() {
         return X;
     }
-    public void setX(String x) {
+    public void setX(int x) {
         X = x;
     }
     @XmlAttribute(name="Y")
-    public String getY() {
+    public int getY() {
         return Y;
     }
-    public void setY(String y) {
+    public void setY(int y) {
         Y = y;
     }
     @XmlAttribute(name="ID")

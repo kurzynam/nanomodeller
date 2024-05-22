@@ -1,15 +1,14 @@
-package org.nanomodeller.GUI;
+package org.nanomodeller.GUI.Menus;
 
-import org.nanomodeller.GUI.Shapes.ElectrodeShape;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.GUI.ViewComponents.*;
+import org.nanomodeller.XMLMappingFiles.Electrode;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 import static org.nanomodeller.Globals.*;
-import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXMLFile;
-
 
 public class LeftMenuPanel extends MyPanel {
 
@@ -27,7 +26,7 @@ public class LeftMenuPanel extends MyPanel {
 
     ConsolasFontLabel timeLabel;
     public MyTextField timeTextField;
-    FileBrowser fileBrowser;
+    public FileBrowser fileBrowser;
     boolean enableScrollListener = true;
     NanoModeler modeller;
 
@@ -122,9 +121,8 @@ public class LeftMenuPanel extends MyPanel {
         zoomInButton.addActionListener(evt -> this.modeller.zoom(2));
         zoomOutButton.addActionListener(evt -> this.modeller.zoom(-2));
         addButton.addActionListener(evt -> {
-            int diameter = 2 * this.modeller.getGridSize();
-            Rectangle2D newElectrode = new Rectangle2D.Float(10, 10, diameter, diameter);
-            this.modeller.getElectrodes().add(new ElectrodeShape(newElectrode, this.modeller.electrodeIDSeq()));
+            Electrode el = new Electrode(-1 , this.modeller.electrodeIDSeq(), 10, 10);
+            this.modeller.getElectrodes().put(el.getID(), el);
             this.modeller.repaint();
         });
         saveButton.addActionListener(evt -> {

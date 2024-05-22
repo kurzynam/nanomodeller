@@ -3,10 +3,12 @@ package org.nanomodeller.XMLMappingFiles;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.nanomodeller.Calculation.CalculationAtom;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.PropertiesMap;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Hashtable;
@@ -15,16 +17,48 @@ import java.util.Hashtable;
 public class Atom extends Element implements Comparable<Atom>{
 
     private int ID;
-    private Double X;
-    private Double Y;
+    private Integer X;
+    private Integer Y;
     private PropertiesMap properties;
+
     public Atom(Atom atom, int newID){
         ID = newID;
-        X = atom.X;
-        Y = atom.Y;
         color = atom.color;
         setGroupID(atom.groupID);
         properties = atom.properties;
+    }
+
+    public Atom(Atom atom, Integer x, Integer y, int newID){
+        ID = newID;
+        X = x;
+        Y = y;
+        color = atom.color;
+        setGroupID(atom.groupID);
+        properties = atom.properties;
+    }
+
+    public void move(int dx, int dy){
+        setX(this.getX() + dx);
+        setY(this.getY() + dy);
+    }
+
+    public Boolean contains(int x, int y){
+
+        int distance = NanoModeler.getInstance().getGridSize() * 4;
+        return  (getX() < x && x < getX() + distance) && (getY() < y && y < getY() + distance);
+    }
+
+    public Boolean contains(Point point, int distance) {
+        return contains(point.x, point.y);
+    }
+    public Atom(Integer x, Integer y, int newID){
+        ID = newID;
+        this.X = x;
+        this.Y = y;
+    }
+
+    public static Point middle(Atom first, Atom second){
+        return new Point((first.getX() + second.getX())/2, (first.getY() + second.getY())/2);
     }
     @Override
     public int compareTo(Atom o) {
@@ -38,18 +72,28 @@ public class Atom extends Element implements Comparable<Atom>{
     public int getID() { return ID; }
     public void setID(int id) { this.ID = id; }
 
+    public void setCoordinates(int x, int y){
+        this.setX(x);
+        this.setY(y);
+    }
+
+    public void setCoordinates(double x, double y){
+        this.setX((int) x);
+        this.setY((int) y);
+    }
+
     @XmlAttribute(name="X")
-    public Double getX() {
+    public Integer getX() {
         return X;
     }
-    public void setX(Double x) {
+    public void setX(Integer x) {
         X = x;
     }
     @XmlAttribute(name="Y")
-    public Double getY() {
+    public Integer getY() {
         return Y;
     }
-    public void setY(Double y) {
+    public void setY(Integer y) {
         Y = y;
     }
 

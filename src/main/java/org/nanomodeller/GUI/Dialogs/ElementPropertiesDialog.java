@@ -1,5 +1,7 @@
-package org.nanomodeller.GUI;
+package org.nanomodeller.GUI.Dialogs;
 
+import org.nanomodeller.GUI.Dialogs.ColorDialog;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
 
@@ -22,6 +24,9 @@ public class ElementPropertiesDialog extends JDialog {
     private JEditorPane editorPane;
     private JButton applyToAllButton;
     private JButton applyButton;
+    private JPanel editPanel;
+    private JPanel colorPanel;
+    private JScrollPane scrollPane;
 
     public ElementPropertiesDialog(Element element,String title, String textAreaContent) {
 
@@ -45,15 +50,13 @@ public class ElementPropertiesDialog extends JDialog {
                 el.setProperties(element.getProperties());
                 el.setColor(element.getColor());};
             if (convertedElement instanceof Atom){
-                NanoModeler.getInstance().getShapes().stream().map(shape -> shape.getAtom())
+                NanoModeler.getInstance().getAtoms().values().stream()
                         .filter(filter)
                         .forEach(action);
             }else if(convertedElement instanceof Bond){
-                NanoModeler.getInstance().getAtomBonds().stream().map(shape -> shape.getBond())
-                        .filter(filter)
-                        .forEach(action);
+                NanoModeler.getInstance().getBonds().stream().filter(filter).forEach(action);
             }else if(convertedElement instanceof Electrode){
-                NanoModeler.getInstance().getElectrodes().stream().map(shape -> shape.getElectrode())
+                NanoModeler.getInstance().getElectrodes().values().stream()
                         .filter(filter)
                         .forEach(action);
             }
@@ -93,13 +96,12 @@ public class ElementPropertiesDialog extends JDialog {
                 el.setProperties(element.getProperties());
                 el.setColor(element.getColor());};
             if (convertedElement instanceof Atom){
-                NanoModeler.getInstance().getShapes().stream().map(shape -> shape.getAtom())
+                NanoModeler.getInstance().getAtoms().values().stream()
                         .forEach(action);
-            }else if(convertedElement instanceof Bond){
-                NanoModeler.getInstance().getAtomBonds().stream().map(shape -> shape.getBond())
-                        .forEach(action);
+            }else if(convertedElement instanceof Bond) {
+                NanoModeler.getInstance().getBonds().stream().forEach(action);
             }else if(convertedElement instanceof Electrode){
-                NanoModeler.getInstance().getElectrodes().stream().map(shape -> shape.getElectrode())
+                NanoModeler.getInstance().getElectrodes().values().stream()
                         .forEach(action);
             }
             dispose();
@@ -133,5 +135,24 @@ public class ElementPropertiesDialog extends JDialog {
                 editorPane.setText(text.replace(toReplace, properties));
             }
         });
+        changeColorButton.addActionListener(e -> {
+            String text = editorPane.getText();
+            String color = "0,0,0";
+            if (text.contains("<color>") && text.contains("</color>")){
+                int begin = text.indexOf("<color>");
+                int end = text.indexOf("</color>");
+                String value = text.substring(begin+7, end);
+                if (StringUtils.isNotEmpty(value)){
+                    color = value;
+                }
+            }
+            ColorDialog colorDialog = new ColorDialog(element, this, color);
+            this.setVisible(false);
+            colorDialog.showDialog();
+        });
+    }
+
+    public JEditorPane getEditorPane() {
+        return editorPane;
     }
 }

@@ -1,12 +1,13 @@
 package org.nanomodeller.XMLMappingFiles;
 
 import org.nanomodeller.Calculation.CalculationBond;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Globals;
-import org.nanomodeller.Tools.PropertiesMap;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -27,6 +28,14 @@ public class Bond extends Element{
         this.color = bond.getColor();
     }
 
+
+    public Boolean intersects (int x, int y){
+        Atom first = NanoModeler.getInstance().getAtoms().get(getFirst());
+        Atom second = NanoModeler.getInstance().getAtoms().get(getSecond());
+        return new Line2D.Double(first.getX(), first.getY(), second.getX(), second.getY()).intersects(x, y, 60, 60);
+
+    }
+
     public Bond(int first, int second){
         if (first > second){
             this.second = first;
@@ -35,7 +44,6 @@ public class Bond extends Element{
             this.first = first;
             this.second = second;
         }
-        this.properties = new PropertiesMap();
         setColor(Globals.BLACK);
     }
     @XmlAttribute(name="first")
@@ -59,16 +67,18 @@ public class Bond extends Element{
     }
 
     public static void initializeCalculationBonds(JEP parser, ArrayList<Bond> bonds, Hashtable<Integer, Hashtable<Integer,CalculationBond>> cBonds) {
-        bonds.stream().forEach(bond ->{
-            CalculationBond cb = new CalculationBond(bond.first, bond.second);
-            fillProperties(parser, bond, cb);
-            Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.get(bond.first);
-            if (bondsOfFirstAtom == null){
-                bondsOfFirstAtom = new Hashtable<>();
-                cBonds.put(bond.first, bondsOfFirstAtom);
-            }
-            bondsOfFirstAtom.put(bond.second, cb);
-        });
+        bonds.stream().forEach(
+                bond -> {
+                    CalculationBond cb = new CalculationBond(bond.first, bond.second);
+                    fillProperties(parser, bond, cb);
+                    Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.get(bond.first);
+                    if (bondsOfFirstAtom == null) {
+                        bondsOfFirstAtom = new Hashtable<>();
+                        cBonds.put(bond.first, bondsOfFirstAtom);
+                    }
+                    bondsOfFirstAtom.put(bond.second, cb);
+                }
+         );
     }
 
 }

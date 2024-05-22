@@ -1,7 +1,7 @@
 package org.nanomodeller.GUI.ViewComponents;
 
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.GUI.LeftMenuPanel;
+import org.nanomodeller.GUI.Menus.LeftMenuPanel;
 import org.nanomodeller.Tools.DataAccessTools.FileOperationHelper;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.GlobalProperties;
@@ -85,7 +85,7 @@ public class FileBrowser extends JPanel{
                 String path = ((JTree) e.getSource()).getAnchorSelectionPath().getLastPathComponent().toString();
                 if (isNodeChanged(path)){
                     readPropertiesFromXMLFile(getAbsolutePath() + "/parameters.xml");
-                    NanoModeler.getInstance().readDataFromObject( true, NanoModeler.getInstance().getStepRecorder().timeTextField);;
+                    NanoModeler.getInstance().readDataFromObject(NanoModeler.getInstance().getStepRecorder().timeTextField);
                     NanoModeler.getInstance().refresh();
                 }
                 currentNodeName = path;
@@ -96,6 +96,7 @@ public class FileBrowser extends JPanel{
         };
         GlobalProperties gp = GlobalProperties.getInstance();
         readPropertiesFromXMLFile(gp.getDynamicPATH() + "/parameters.xml");
+
         FileNode fileRoot = new FileNode(gp.getDynamicPATH());
         root = new DefaultMutableTreeNode(fileRoot);
         nodes = new ArrayList<>();

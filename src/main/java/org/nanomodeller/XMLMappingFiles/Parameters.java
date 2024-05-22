@@ -166,7 +166,7 @@ public class Parameters {
         this.electrodesEmax = electrodesEmax;
     }
 
-    public boolean areBound(int a1, int a2){
+    public boolean areBond(int a1, int a2){
         for(Bond b : bonds){
             if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst()== a2 && b.getSecond() == a1){
                 return true;
@@ -174,7 +174,7 @@ public class Parameters {
         }
         return false;
     }
-    public boolean areBound(Atom atom1, Atom atom2){
+    public boolean areBond(Atom atom1, Atom atom2){
         int a1 = atom1.getID();
         int a2 = atom2.getID();
         for(Bond b : bonds){
@@ -185,7 +185,7 @@ public class Parameters {
         return false;
     }
 
-    public Bond getBound(Atom atom1, Atom atom2){
+    public Bond getBond(Atom atom1, Atom atom2){
         int a1 = atom1.getID();
         int a2 = atom2.getID();
         for(Bond b : bonds){
@@ -196,9 +196,11 @@ public class Parameters {
         return null;
     }
 
-    public Bond getBound(int a1, int a2){
+    public Bond getBond(int a1, int a2){
+        int first = a1 < a2 ? a1 : a2;
+        int second = a2 < a1 ? a1 : a2;
         for(Bond b : bonds){
-            if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst() == a2 && b.getSecond() == a1){
+            if(b.getFirst() == first && b.getSecond() == second){
                 return b;
             }
         }

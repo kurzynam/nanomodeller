@@ -60,7 +60,6 @@ public class TestForm {
     private JTextField numberOfRowsTextField;
     private JLabel numberOfRowsLabel;
     private JCheckBox showGridCheckBox;
-    private JButton colorBoxButton;
     private JLabel plotColorsLabel;
     private JPanel gridOptionsPanel;
     private JLabel textLabel;
@@ -146,7 +145,6 @@ public class TestForm {
         setMultiplotFieldsVisibility();
         numberOfRowsTextField.setDisabledTextColor(new Color(0xFFD53A));
         numberOfColumnsTextField.setDisabledTextColor(Color.DARK_GRAY);
-        colorBoxButton.addActionListener(e -> new PaletteChooserFrame(gp));
         udvButton.addActionListener(e -> new JTableSample(gp));
         customGPButton.addActionListener(e -> showCustomGnuplotCommandsTextArea());
     }
@@ -192,5 +190,9 @@ public class TestForm {
         yticsStepTextField.setText(gp.getYticsStep());
         zticsStepTextField.setText(gp.getZticsStep());
         timeSavingStartTextField.setText(gp.getSaveTimeFrom());
+    }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
     }
 }

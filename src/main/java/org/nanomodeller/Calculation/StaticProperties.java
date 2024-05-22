@@ -5,7 +5,6 @@ import static org.nanomodeller.CommonPhysics.DensType.*;
 import static org.nanomodeller.CommonPhysics.density;
 import static org.nanomodeller.CommonPhysics.sigma;
 import static org.nanomodeller.CommonPhysics.toEnergyStep;
-import static org.nanomodeller.Globals.*;
 
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;

@@ -1,7 +1,6 @@
 package org.nanomodeller;
 
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.GUI.XMLEditorForm;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.jscience.mathematics.number.Complex;
 
@@ -100,6 +99,9 @@ public class Main {
 //        ArrayList<ArrayList<Color>> palettes = new ArrayList<>();
 
             NanoModeler.getInstance().initNanoModeller();
+
+
+
 //        XMLEditorForm xmlEditorForm = new XMLEditorForm();
 
 

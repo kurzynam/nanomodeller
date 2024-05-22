@@ -1,7 +1,7 @@
 package org.nanomodeller.Tools;
 
-import org.nanomodeller.GUI.Shapes.AtomShape;
 import org.nanomodeller.Globals;
+import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 import com.panayotis.gnuplot.GNUPlotParameters;
 import com.panayotis.gnuplot.JavaPlot;
@@ -189,13 +189,13 @@ public class JGnuPlot extends JavaPlot {
         appendCommand(result);
     }
 
-    public void addPlotCommand(String path, ArrayList<AtomShape> shapes, ArrayList<String> selectedSteps){
+    public void addPlotCommand(String path, Hashtable<Integer, Atom> shapes, ArrayList<String> selectedSteps){
         addPlotCommand(path, shapes, selectedSteps,"");
     }
-    public void addSplotCommand(String path, ArrayList<AtomShape> shapes, ArrayList<String> selectedSteps){
+    public void addSplotCommand(String path, Hashtable<Integer, Atom> shapes, ArrayList<String> selectedSteps){
         addSplotCommand(path, shapes,selectedSteps,"");
     }
-    public void addSplotCommand(String path, ArrayList<AtomShape> shapes,
+    public void addSplotCommand(String path, Hashtable<Integer, Atom> shapes,
                                 ArrayList<String> selectedSteps, String title){
 
         boolean colsFirst = "Colums first".equals(properties.getRowsFirst());
@@ -203,7 +203,6 @@ public class JGnuPlot extends JavaPlot {
         setZticsFont();
         int cols = properties.getMultiplotCols();
 
-        Collections.sort(selectedSteps);
         int stepsSize = selectedSteps.size();
         int shapesSize = shapes.size();
         int maxGraphInex = shapesSize*stepsSize -1;
@@ -248,7 +247,7 @@ public class JGnuPlot extends JavaPlot {
                 }
 
                 int id = shapes.get(i).getID() + 4;
-                String e_zero = shapes.get(i).getAtom().getString("OnSiteEnergy").toString();
+                String e_zero = shapes.get(i).getString("OnSiteEnergy").toString();
                 String ids = "2:($3-3):" + id;
                 String command = String.format("splot %s i %s u %s every  %s:%s title %s with pm3d",
                         StringUtils.toSingleQuotes(path), step, ids, properties.getEveryT(),
@@ -258,7 +257,7 @@ public class JGnuPlot extends JavaPlot {
         }
     }
 
-    public void addPlotCommand(String path, ArrayList<AtomShape> shapes,ArrayList<String> selectedSteps, String title){
+    public void addPlotCommand(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String title){
 
             String command = "plot ";
             int counter = 0;
@@ -298,7 +297,7 @@ public class JGnuPlot extends JavaPlot {
             appendCommand(command);
     }
 
-    public void add2DSplotCommand(String path, ArrayList<AtomShape> shapes, String title){
+    public void add2DSplotCommand(String path, Hashtable<Integer, Atom> shapes, String title){
 
         String command = "splot ";
         for (int i = 0; i < shapes.size(); i++) {
@@ -312,7 +311,7 @@ public class JGnuPlot extends JavaPlot {
         command += " with pm3d";
         appendCommand(command);
     }
-    public void add2DSplotCommandMultiplot(String path, ArrayList<AtomShape> shapes, String title){
+    public void add2DSplotCommandMultiplot(String path, Hashtable<Integer, Atom> shapes, String title){
 
         boolean colsFirst = "Colums first".equals(properties.getRowsFirst());
         int rows = properties.getMultiplotRows();
@@ -337,7 +336,7 @@ public class JGnuPlot extends JavaPlot {
 
     }
 
-    public void addPlotCommandMultiplot(String path, ArrayList<AtomShape> shapes,ArrayList<String> selectedSteps, String title){
+    public void addPlotCommandMultiplot(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String title){
 
         int counter = 0;
         for (int j = 0; j < selectedSteps.size(); j++){
@@ -441,7 +440,7 @@ public class JGnuPlot extends JavaPlot {
 //        }
 //    }
 
-    public void crossSection(String path, ArrayList<AtomShape> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
+    public void crossSection(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
 
         String command = "plot ";
         for (int j = 0; j < selectedSteps.size(); j++) {
@@ -464,7 +463,7 @@ public class JGnuPlot extends JavaPlot {
         appendCommand(command);
     }
 
-    public void crossSectionMultiplot(String path, ArrayList<AtomShape> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
+    public void crossSectionMultiplot(String path, Hashtable<Integer,Atom> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
 
         for (int j = 0; j < selectedSteps.size(); j++) {
             String step = selectedSteps.get(j);
@@ -480,7 +479,7 @@ public class JGnuPlot extends JavaPlot {
         }
     }
 
-    public void crossSection3D(String path, ArrayList<AtomShape> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
+    public void crossSection3D(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
 
         String command = "splot ";
         for (int i = 0; i < shapes.size(); i++) {
@@ -496,7 +495,7 @@ public class JGnuPlot extends JavaPlot {
         appendCommand(command);
     }
 
-    public void crossSection3DMultiplot(String path, ArrayList<AtomShape> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
+    public void crossSection3DMultiplot(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
 
         for (int i = 0; i < shapes.size(); i++) {
             String command = "splot ";

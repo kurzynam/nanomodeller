@@ -1,4 +1,4 @@
-package org.nanomodeller.GUI.ViewComponents;
+package org.nanomodeller.GUI.Dialogs;
 
 import org.nanomodeller.GUI.NanoModeler;
 

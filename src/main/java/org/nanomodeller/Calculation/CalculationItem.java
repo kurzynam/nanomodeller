@@ -1,10 +1,12 @@
 package org.nanomodeller.Calculation;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+
+import org.nanomodeller.XMLMappingFiles.Bond;
 import org.nanomodeller.XMLMappingFiles.Element;
 import org.nfunk.jep.JEP;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CalculationItem {
