@@ -44,9 +44,11 @@ public class NanoModeler extends JFrame {
     private int x;
     private int y;
     private BufferedImage hAtomImage;
+    private BufferedImage hElectrodeImage;
     private BufferedImage atomImage;
     private Image scalledAtomImage;
     private Image scalledHAtomImage;
+    private Image scalledHElectrodeImage;
     private Image electrodeImage;
     private Image scalledElectrodeImage;
     private Thread dynamicCalculationsThread;
@@ -90,9 +92,19 @@ public class NanoModeler extends JFrame {
     public BufferedImage gethAtomImage() {
         return hAtomImage;
     }
+
+    public BufferedImage gethElectrodeImage() {
+        return hElectrodeImage;
+    }
+
     public Image getScalledHAtomImage() {
         return scalledHAtomImage;
     }
+
+    public Image getScalledHElectrodeImage() {
+        return scalledHElectrodeImage;
+    }
+
     public Image getElectrodeImage() {
         return electrodeImage;
     }
@@ -112,6 +124,7 @@ public class NanoModeler extends JFrame {
         ImageIcon icon = new ImageIcon(ICON_IMAGE_PATH);
         atomImage = imageFromSVGFile(ICON_ATOM_PATH);
         hAtomImage = imageFromSVGFile(ICON_HATOM_PATH);
+        hElectrodeImage = imageFromSVGFile(ICON_HELECTRODE_PATH);
         electrodeImage = imageFromSVGFile(ICON_ELECTRODE_PATH);
         Image img = icon.getImage() ;
         inst.setIconImage(img);
@@ -768,6 +781,7 @@ public class NanoModeler extends JFrame {
         scalledAtomImage = atomImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
         scalledHAtomImage = hAtomImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
         scalledElectrodeImage = electrodeImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
+        scalledHElectrodeImage = hElectrodeImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
     }
     public boolean isSelectionFlag() {
         return selectionFlag;

@@ -7,6 +7,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @XmlRootElement(name="Parameters")
@@ -140,6 +141,10 @@ public class Parameters {
     }
     public void setGridSize(int gridSize) {
         GridSize = gridSize;
+    }
+
+    public Optional<Electrode> getElectrodeByAtomIndex(int id){
+        return electrodes.stream().filter(electrode -> electrode.getAtomIndex() == id).findFirst();
     }
 
     @XmlAttribute(name="name")

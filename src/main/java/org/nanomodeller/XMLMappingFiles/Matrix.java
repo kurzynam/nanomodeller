@@ -105,12 +105,10 @@ public class Matrix {
                 if(ato.equals(atom)){
                     String energy = "E - (" + ato.getString("OnSiteEnergy") + ")";
                     rows[i][j] = energy;
-                    ArrayList<Electrode> electrodes = par.getElectrodesByAtomID(i);
-                    for(int e_i = 0; e_i <  electrodes.size(); e_i++){
-                        if (StringUtils.isNotEmpty(electrodesPart))
-                            electrodesPart += "-";
-                        electrodesPart += electrodes.get(e_i).getString("Coupling");
-                    }
+                    if (StringUtils.isNotEmpty(electrodesPart))
+                        electrodesPart += "+i*";
+                    if (Parameters.getInstance().getElectrodeByAtomIndex(j).isPresent())
+                        electrodesPart += Parameters.getInstance().getElectrodeByAtomIndex(j).get().getString("Coupling");
                     electrodesPart +=  "+i*" + Globals.ETA;
 
                 }

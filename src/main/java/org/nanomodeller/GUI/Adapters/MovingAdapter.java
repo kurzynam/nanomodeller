@@ -66,11 +66,11 @@ public class MovingAdapter extends MouseAdapter {
         if (nanoModeler.isCtrlPressed()) {
             int size = nanoModeler.getSelectedAtoms().size();
             if (size == 1) {
+                Atom first = (Atom) nanoModeler.getSelectedAtoms().values().toArray()[0];
                 if (clickedAtom.isPresent()) {
-                    Atom first = (Atom) nanoModeler.getSelectedAtoms().values().toArray()[0];
-                    int centerX = (first.getX() + clickedAtom.get().getX())/2;
-                    int centerY = (first.getY() + clickedAtom.get().getY())/2;
                     nanoModeler.getBonds().add(new Bond(first.getID(), clickedAtom.get().getID()/*, centerX, centerY*/));
+                } else if (clickedElectrode.isPresent()) {
+                    clickedElectrode.get().setAtomIndex(first.getID());
                 }
             }
             nanoModeler.getSelectedAtoms().clear();

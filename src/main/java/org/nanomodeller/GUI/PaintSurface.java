@@ -86,24 +86,24 @@ class PaintSurface extends Component {
             g2.setStroke(basicStroke);
             g2.setColor(highlightedColor);
             g2.fillOval((x1 + x2 - d/3)/2, (y1 + y2 - d/3)/2 , d/3, d/3);
-//            bond.setX((x1 + x2)/2);
-//            bond.setY((y1 + y2)/2);
         }
-        for (Electrode e : nanoModeler.getElectrodes().values()) {
-
+        for (Electrode electrode : nanoModeler.getElectrodes().values()) {
+            if (electrode.getAtomIndex() >= 0){
+                g2.setStroke(thindashed);
+                Atom connectedAtom = nanoModeler.getAtoms().get(electrode.getAtomIndex());
+                g2.drawLine(electrode.getX(), electrode.getY(), connectedAtom.getX(), connectedAtom.getY());
+            }
+            if (!nanoModeler.getSelectedElectrodes().contains(electrode)) {
+                drawElectrode(g2, electrode.getX(), electrode.getY());
+            }else{
+                drawHElectrode(g2, electrode.getX(), electrode.getY());
+            }
         }
         for (Atom s : nanoModeler.getAtoms().values()) {
             if (!nanoModeler.getSelectedAtoms().contains(s)) {
                 drawAtom(g2, s.getX(), s.getY());
             }else{
                 drawHighlightedAtom(g2, s.getX(), s.getY());
-            }
-        }
-        for (Electrode s : nanoModeler.getElectrodes().values()) {
-            if (!nanoModeler.getSelectedElectrodes().contains(s)) {
-                drawElectrode(g2, s.getX(), s.getY());
-            }else{
-                drawElectrode(g2, s.getX(), s.getY());
             }
         }
         g2.setColor(new Color(125,125, 125, 125));
@@ -113,6 +113,10 @@ class PaintSurface extends Component {
 
     private void drawElectrode(Graphics2D g2, int x, int y) {
         g2.drawImage(NanoModeler.getInstance().getScalledElectrodeImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
+    }
+
+    private void drawHElectrode(Graphics2D g2, int x, int y) {
+        g2.drawImage(NanoModeler.getInstance().getScalledHElectrodeImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
     }
     private void drawAtom(Graphics2D g2, int x, int y) {
         g2.drawImage(NanoModeler.getInstance().getScalledAtomImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);

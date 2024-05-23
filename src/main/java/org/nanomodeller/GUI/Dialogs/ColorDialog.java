@@ -33,12 +33,6 @@ public class ColorDialog extends JDialog {
         this.element = element;
         initialize(rgb);
     }
-    public ColorDialog(String rgb){
-        initialize(rgb);
-
-
-    }
-
     private void initialize(String rgb) {
         if (StringUtils.isEmpty(rgb)){
             originalColor = Color.WHITE;
