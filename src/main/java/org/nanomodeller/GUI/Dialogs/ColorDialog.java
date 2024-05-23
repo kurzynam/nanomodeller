@@ -41,7 +41,7 @@ public class ColorDialog extends JDialog {
 
     private void initialize(String rgb) {
         if (StringUtils.isEmpty(rgb)){
-            originalColor = Color.BLACK;
+            originalColor = Color.WHITE;
         }
         setTitle("Color chooser");
         setContentPane(contentPane);

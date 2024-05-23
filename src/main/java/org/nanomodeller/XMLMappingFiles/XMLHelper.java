@@ -101,7 +101,7 @@ public class XMLHelper {
                 return (Atom) unmarshaller.unmarshal(reader);
             } else if (elementType.equals(Bond.class)) {
                 return (Bond) unmarshaller.unmarshal(reader);
-            } else if (elementType.equals(Element.class)) {
+            } else if (elementType.equals(Electrode.class)) {
                 return (Electrode) unmarshaller.unmarshal(reader);
             }
         } catch (Exception e) {

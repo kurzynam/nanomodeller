@@ -2,7 +2,6 @@ package org.nanomodeller.XMLMappingFiles;
 
 import org.nanomodeller.Calculation.CalculationBond;
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.Globals;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;

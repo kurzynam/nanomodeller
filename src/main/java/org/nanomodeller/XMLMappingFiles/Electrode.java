@@ -5,8 +5,7 @@ import org.nanomodeller.GUI.NanoModeler;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.awt.*;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
