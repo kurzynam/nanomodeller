@@ -11,7 +11,6 @@ public class PopUpMenu extends JPopupMenu {
     JMenuItem pasteItem;
     JMenuItem flipVerticalItem;
     JMenuItem flipHorizontalItem;
-
     JMenuItem propertiesItem;
 
     public PopUpMenu() {
@@ -42,7 +41,7 @@ public class PopUpMenu extends JPopupMenu {
         flipHorizontalItem.addActionListener(evt -> NanoModeler.getInstance().flipHorizontally());
         flipVerticalItem.addActionListener(evt -> NanoModeler.getInstance().flipVertically());
         pasteItem.addActionListener(evt -> NanoModeler.getInstance().paste());
-        propertiesItem.addActionListener(evt -> NanoModeler.getInstance().showAtomPropertiesTextArea());
+        propertiesItem.addActionListener(evt -> NanoModeler.getInstance().showPropertiesTextArea());
     }
 
 }

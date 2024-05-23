@@ -1,6 +1,5 @@
 package org.nanomodeller.GUI.Dialogs;
 
-import org.nanomodeller.GUI.Dialogs.ColorDialog;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
@@ -28,19 +27,19 @@ public class ElementPropertiesDialog extends JDialog {
     private JPanel colorPanel;
     private JScrollPane scrollPane;
 
-    public ElementPropertiesDialog(Element element,String title, String textAreaContent) {
+    public ElementPropertiesDialog(Element element, String textAreaContent) {
 
         this.element = element;
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(cancelButton);
         editorPane.setText(textAreaContent);
-        setTitle(title);
+        setTitle("Properties");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setMinimumSize(new Dimension((int)screenSize.getWidth()/2, (int)(screenSize.getHeight()/1.3)));
         cancelButton.addActionListener(e -> dispose());
         applyToGroupButton.addActionListener(e -> {
-            Element convertedElement = XMLHelper.convertXMLStringToAtom(editorPane.getText());
+            Element convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), element.getClass());
             String GID = convertedElement.getGroupID();
             element.setGroupID(GID);
             element.setProperties(convertedElement.getProperties());
@@ -60,6 +59,7 @@ public class ElementPropertiesDialog extends JDialog {
                         .filter(filter)
                         .forEach(action);
             }
+            ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
             dispose();
         });
 
@@ -84,14 +84,16 @@ public class ElementPropertiesDialog extends JDialog {
             }
         });
         applyButton.addActionListener(e -> {
-            Element convertedElement = XMLHelper.convertXMLStringToAtom(editorPane.getText());
+            Element convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), element.getClass());
             element.setProperties(convertedElement.getProperties());
             element.setColor(convertedElement.getColor());
             element.setGroupID(convertedElement.getGroupID());
+            element.setTag(convertedElement.getTag());
+            ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
             dispose();
         });
         applyToAllButton.addActionListener(e -> {
-            Element convertedElement = XMLHelper.convertXMLStringToAtom(editorPane.getText());
+            Element convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), element.getClass());
             Consumer<Element> action = el -> {
                 el.setProperties(element.getProperties());
                 el.setColor(element.getColor());};
@@ -104,6 +106,7 @@ public class ElementPropertiesDialog extends JDialog {
                 NanoModeler.getInstance().getElectrodes().values().stream()
                         .forEach(action);
             }
+            ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
             dispose();
         });
         addPropertyButton.addActionListener(e -> {

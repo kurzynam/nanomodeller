@@ -12,8 +12,6 @@ import java.util.Hashtable;
 @XmlRootElement(name="Electrode")
 public class Electrode extends Element {
     private int atomIndex;
-
-
     private int ID;
     private Integer X;
     private Integer Y;
@@ -21,6 +19,7 @@ public class Electrode extends Element {
     public Electrode(int atomIndex, int ID, Integer x, Integer y) {
         this.atomIndex = atomIndex;
         this.ID = ID;
+        tag = ID + "";
         setX(x);
         setY(y);
     }
@@ -56,20 +55,6 @@ public class Electrode extends Element {
         this.atomIndex = atomIndex;
     }
 
-    @XmlAttribute(name="X")
-    public int getX() {
-        return X;
-    }
-    public void setX(int x) {
-        X = x;
-    }
-    @XmlAttribute(name="Y")
-    public int getY() {
-        return Y;
-    }
-    public void setY(int y) {
-        Y = y;
-    }
     @XmlAttribute(name="ID")
     public int getID() {
         return ID;
@@ -83,5 +68,23 @@ public class Electrode extends Element {
             fillProperties(parser, electrode, el);
             cElectrodes.put(el.getID(), el);
         });
+    }
+
+    @XmlAttribute(name="X")
+    public int getX() {
+        return X;
+    }
+
+    public void setX(int x) {
+        X = x;
+    }
+
+    @XmlAttribute(name="Y")
+    public int getY() {
+        return Y;
+    }
+
+    public void setY(int y) {
+        Y = y;
     }
 }

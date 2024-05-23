@@ -32,68 +32,33 @@ import static org.nanomodeller.Tools.StringUtils.nvl;
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.*;
 
 public class NanoModeler extends JFrame {
-
     private static NanoModeler instance;
-
-
     public static NanoModeler getInstance(){
         if (instance == null){
             instance = new NanoModeler();
         }
         return instance;
     }
-
-    public String getCurrentPath(){
-        return leftMenuPanel.fileBrowser.getNodes().get(leftMenuPanel.fileBrowser.getSelectedFiles()[0]).getPath()[0].toString();
-    }
-
     @Serial
     private static final long serialVersionUID = 1L;
     private int x;
     private int y;
-    private double selectionXMax = -1;
-    private double selectionXMin = -1;
-    private double selectionYMax = -1;
-    private double selectionYMin = -1;
-
     private BufferedImage hAtomImage;
     private BufferedImage atomImage;
     private Image scalledAtomImage;
-
     private Image scalledHAtomImage;
-
     private Image electrodeImage;
-
     private Image scalledElectrodeImage;
-
-
-
     private Thread dynamicCalculationsThread;
-//    private String surfaceCoupling;
-//    private String kFa;
-//    private String dE;
-//    private String bColor;
-//    private String dt;
-//    private String energyRange;
     private double screenWidth;
     private double screenHeight;
     private PaintSurface paintSurface = new PaintSurface(this);
     private JScrollPane scrollPane = new FuturisticScrollPane(getPaintSurface());
     private Hashtable<Integer,Atom> atoms = new Hashtable<>();
-
-
     private Hashtable<Integer,Electrode> electrodes = new Hashtable<>();
-
     public ArrayList<Bond> getBonds() {
         return Parameters.getInstance().getBonds();
     }
-
-
-    @Override
-    public boolean isActive() {
-        return isActive;
-    }
-
     private ArrayList<Bond> selectedBonds = new ArrayList<>();
     private Hashtable<Integer, Atom>  selectedAtoms = new Hashtable<Integer, Atom>();
     private Hashtable<Integer, Electrode> selectedElectrodes = new Hashtable<Integer, Electrode>();
@@ -113,38 +78,27 @@ public class NanoModeler extends JFrame {
     private boolean ctrlPressed = false;
     private String currentDataPath;
     private String time = "0.0";
-    private boolean isActive = true;
-
-    private String stepCount = "0";
-
     public Atom getAtomByID(int id){
         return atoms.get(id);
     }
-
     public BufferedImage getAtomImage() {
         return atomImage;
     }
-
     public Image getScalledAtomImage() {
         return scalledAtomImage;
     }
-
     public BufferedImage gethAtomImage() {
         return hAtomImage;
     }
-
     public Image getScalledHAtomImage() {
         return scalledHAtomImage;
     }
-
     public Image getElectrodeImage() {
         return electrodeImage;
     }
-
     public Image getScalledElectrodeImage() {
         return scalledElectrodeImage;
     }
-
     public  void initNanoModeller() {
         try {
             UIManager.setLookAndFeel("com.formdev.flatlaf.FlatDarkLaf");
@@ -166,7 +120,6 @@ public class NanoModeler extends JFrame {
         inst.readDataFromObject(null);
         inst.getStepRecorder().setPreferredSize(new Dimension((int)inst.screenWidth/2, (int)inst.screenHeight/2));
         inst.setTitle(APP_NAME);
-
         resizeImages(Parameters.getInstance().getGridSize());
         inst.getPaintSurface().setPreferredSize(new Dimension((int)(inst.getGridSize() * inst.getScreenWidth()),(int)(inst.getGridSize() * inst.getScreenHeight())));
         inst.setSize((int)inst.screenWidth * 3, (int)inst.screenHeight * 3);
@@ -189,8 +142,6 @@ public class NanoModeler extends JFrame {
         inst.setJMenuBar(new Menu(inst));
         inst.setVisible(true);
     }
-
-
     public void readDataFromObject(MyTextField time){
         Parameters p = Parameters.getInstance();
         GlobalProperties gp = GlobalProperties.getInstance();
@@ -214,7 +165,6 @@ public class NanoModeler extends JFrame {
             clearAll();
         }
     }
-
     public void countStaticProperties() {
         saveData();
         StaticProperties.countStaticProperties(getCurrentDataPath());
@@ -452,7 +402,8 @@ public class NanoModeler extends JFrame {
         }
         ArrayList<Bond> clone = (ArrayList<Bond>) getBonds().clone();
         for (Bond s : clone) {
-            if (atoms.get(s.getFirst()) == null || atoms.get(s.getSecond()) == null){
+            if (getSelectedBonds().contains(s) ||
+                    (atoms.get(s.getFirst()) == null || atoms.get(s.getSecond()) == null)){
                 getBonds().remove(s);
             }
         }
@@ -613,8 +564,8 @@ public class NanoModeler extends JFrame {
     }
     public void align(){
         for (Atom atom : getAtoms().values()){
-            int xMultiplier = (int)Math.round(atom.getX()/ getGridSize());
-            int yMultiplier = (int)Math.round(atom.getY()/ getGridSize());
+            int xMultiplier = Math.round(atom.getX()/ getGridSize());
+            int yMultiplier = Math.round(atom.getY()/ getGridSize());
             double newX = xMultiplier * getGridSize();
             double newY = yMultiplier * getGridSize();
             atom.setCoordinates(newX, newY);
@@ -685,7 +636,14 @@ public class NanoModeler extends JFrame {
             for (Atom second : copy.keySet()){
                 Bond bond = Parameters.getInstance().getBond(first.getID(), second.getID());
                 if(bond != null){
-                    Bond newBond = new Bond(copy.get(first).getID(), copy.get(second).getID(), bond);
+                    Atom firstAtom = copy.get(first);
+                    Atom secondAtom = copy.get(second);
+                    if (Parameters.getInstance().areBond(firstAtom, secondAtom)){
+                        continue;
+                    }
+                    int centerX = (firstAtom.getX() + secondAtom.getX())/2;
+                    int centerY = (firstAtom.getY() + secondAtom.getY())/2;
+                    Bond newBond = new Bond(firstAtom.getID(), secondAtom.getID(),/* centerX, centerY,*/ bond);
                     getBonds().add(newBond);
                 }
             }
@@ -697,10 +655,6 @@ public class NanoModeler extends JFrame {
             }
             Electrode el = new Electrode(as.getID(), electrodeIDSeq(),electrode.getX() , electrode.getY() );
             getElectrodes().put(el.getID(), el);
-            setSelectionXMax((el.getX() > getSelectionXMax()) ? el.getX() : getSelectionXMax());
-            setSelectionXMin((el.getX() < getSelectionXMin() ||  getSelectionXMin() < 0) ? el.getX() : getSelectionXMin());
-            setSelectionYMax((el.getY() > getSelectionYMax()) ? el.getY() : getSelectionYMax());
-            setSelectionYMin((el.getY() < getSelectionYMin() || getSelectionYMin() < 0) ? el.getY() : getSelectionYMin());
             newElectrodeSelection.add(el);
         }
         getSelectedElectrodes().clear();
@@ -720,348 +674,212 @@ public class NanoModeler extends JFrame {
         }
         setCopiedBonds(resultBounds);
     }
-
     private void setCopiedAtoms(Hashtable<Integer, Atom> toCopy) {
         copiedAtoms = toCopy;
     }
-
     @Override
     public int getX() {
         return x;
     }
-
     public void setX(int x) {
         this.x = x;
     }
-
     @Override
     public int getY() {
         return y;
     }
-
     public void setY(int y) {
         this.y = y;
     }
-
-    public double getSelectionXMax() {
-        return selectionXMax;
-    }
-
-    public void setSelectionXMax(double selectionXMax) {
-        this.selectionXMax = selectionXMax;
-    }
-
-    public double getSelectionXMin() {
-        return selectionXMin;
-    }
-
-    public void setSelectionXMin(double selectionXMin) {
-        this.selectionXMin = selectionXMin;
-    }
-
-    public double getSelectionYMax() {
-        return selectionYMax;
-    }
-
-    public void setSelectionYMax(double selectionYMax) {
-        this.selectionYMax = selectionYMax;
-    }
-
-    public double getSelectionYMin() {
-        return selectionYMin;
-    }
-
-    public void setSelectionYMin(double selectionYMin) {
-        this.selectionYMin = selectionYMin;
-    }
-
     public Thread getDynamicCalculationsThread() {
         return dynamicCalculationsThread;
     }
-
     public void setDynamicCalculationsThread(Thread dynamicCalculationsThread) {
         this.dynamicCalculationsThread = dynamicCalculationsThread;
     }
-
     public String getSurfaceCoupling() {
         return Parameters.getInstance().getSurfaceCoupling();
     }
-
     public void setSurfaceCoupling(String surfaceCoupling) {
         Parameters.getInstance().setSurfaceCoupling(surfaceCoupling);
     }
-
     public String getkFa() {
         return Parameters.getInstance().getkFa();
     }
-
     public void setkFa(String kFa) {
         Parameters.getInstance().setkFa(kFa);
     }
-
-
-
     public String getbColor() {
         return  GlobalProperties.getInstance().getColor();
     }
-
     public void setbColor(String bColor) {
         GlobalProperties.getInstance().setColor(bColor);
     }
-
     public String getDt() {
         return GlobalProperties.getInstance().getDt() + "";
     }
-
     public void setDt(String dt) {
         if (StringUtils.isNotEmpty(dt))
             GlobalProperties.getInstance().setDt(Double.parseDouble(dt));
     }
-
     public String getEnergyRange() {
         return GlobalProperties.getInstance().getEnergyRange();
     }
-
     public void setEnergyRange(String energyRange) {
         if (StringUtils.isNotEmpty(energyRange))
             GlobalProperties.getInstance().setEnergyRange(energyRange);
     }
-
     public double getScreenWidth() {
         return screenWidth;
     }
-
     public void setScreenWidth(double screenWidth) {
         this.screenWidth = screenWidth;
     }
-
     public double getScreenHeight() {
         return screenHeight;
     }
-
     public void setScreenHeight(double screenHeight) {
         this.screenHeight = screenHeight;
     }
-
     public PaintSurface getPaintSurface() {
         return paintSurface;
     }
     public JScrollPane getScrollPane() {
         return scrollPane;
     }
-
     public Hashtable<Integer, Atom> getAtoms() {
         return atoms;
     }
-
     public Hashtable<Integer, Electrode> getElectrodes() {
         return electrodes;
     }
-
     public void setElectrodes(Hashtable<Integer,Electrode> electrodes) {
         this.electrodes = electrodes;
     }
-
     public Hashtable<Integer,Atom> getSelectedAtoms() {
         return selectedAtoms;
     }
-
-    public void setSelectedAtoms(Hashtable<Integer,Atom> selectedAtoms) {
-        this.selectedAtoms = selectedAtoms;
-    }
-
     public Hashtable<Integer,Electrode> getSelectedElectrodes() {
         return selectedElectrodes;
     }
-
-    public void setSelectedElectrodes(Hashtable<Integer,Electrode> selectedElectrodes) {
-        this.selectedElectrodes = selectedElectrodes;
-    }
-
     public Hashtable<Integer,Electrode> getCopiedElectrodes() {
         return copiedElectrodes;
     }
-
     public void setCopiedElectrodes(Hashtable<Integer,Electrode> copiedElectrodes) {
         this.copiedElectrodes = copiedElectrodes;
     }
-
     public ArrayList<Bond> getSelectedBonds() {
-//        ArrayList<Bond> selectedBonds = new ArrayList<>();
-//        for (Bond bond : getBonds()){
-//            int first = bond.getFirst();
-//            if (getSelectedAtoms().get(first) != null){
-//                selectedBonds.add(bond);
-//            }
-//        }
         return selectedBonds;
     }
-
-//    public void setSelectedBounds(ArrayList<Bond> selectedBounds) {
-//        this.selectedBounds = ge;
-//    }
-
     public Hashtable<Integer,Atom> getCopiedAtoms() {
         return copiedAtoms;
     }
-
-
     public ArrayList<Bond> getCopiedBonds() {
         return copiedBonds;
     }
-
     public void setCopiedBonds(ArrayList<Bond> copiedBonds) {
         this.copiedBonds = copiedBonds;
     }
-
     public int getGridSize() {
         return Parameters.getInstance().getGridSize() > 0 ? Parameters.getInstance().getGridSize() : 20;
     }
-
     public void setGridSize(int gridSize) {
         Parameters.getInstance().setGridSize(gridSize);
         resizeImages(gridSize);
     }
-
     private void resizeImages(int gridSize) {
         scalledAtomImage = atomImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
         scalledHAtomImage = hAtomImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
         scalledElectrodeImage = electrodeImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
     }
-
     public boolean isSelectionFlag() {
         return selectionFlag;
     }
-
     public void setSelectionFlag(boolean selectionFlag) {
         this.selectionFlag = selectionFlag;
     }
-
     public boolean isShowGrid() {
         return showGrid;
     }
-
     public void setShowGrid(boolean showGrid) {
         this.showGrid = showGrid;
     }
-
     public Flag getIsInterupted() {
         return isInterupted;
     }
-
     public void setIsInterupted(Flag isInterupted) {
         this.isInterupted = isInterupted;
     }
-
     public Flag getIsCanceled() {
         return isCanceled;
     }
-
     public void setIsCanceled(Flag isCanceled) {
         this.isCanceled = isCanceled;
     }
-
     public Rectangle getSelection() {
         return selection;
     }
-
     public void setSelection(Rectangle selection) {
         this.selection = selection;
     }
-
     public Point getAnchor() {
         return anchor;
     }
-
     public void setAnchor(Point anchor) {
         this.anchor = anchor;
     }
-
     public Atom getCurrentAtom() {
         return currentAtom;
     }
-
     public void setCurrentAtom(Atom currentAtom) {
         this.currentAtom = currentAtom;
     }
-
     public RightMenuPanel getMenu() {
         return rightMenuPanel;
     }
-
     public void setMenu(RightMenuPanel rightMenuPanel) {
         this.rightMenuPanel = rightMenuPanel;
     }
-
     public LeftMenuPanel getStepRecorder() {
         return leftMenuPanel;
     }
-
     public void setStepRecorder(LeftMenuPanel leftMenuPanel) {
         this.leftMenuPanel = leftMenuPanel;
     }
-
     public int getMaxFileNum() {
         return maxFileNum;
     }
-
     public void setMaxFileNum(int maxFileNum) {
         this.maxFileNum = maxFileNum;
     }
-
     public boolean isCtrlPressed() {
         return ctrlPressed;
     }
-
     public void setCtrlPressed(boolean ctrlPressed) {
         this.ctrlPressed = ctrlPressed;
     }
-
     public String getCurrentDataPath() {
         return currentDataPath;
     }
-
     public void setCurrentDataPath(String currentDataPath) {
         this.currentDataPath = currentDataPath;
     }
-
     public String getTime() {
         return time;
     }
-
     public void setTime(String time) {
         this.time = time;
-    }
-
-    public boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
-
-
-    public String getStepCount() {
-        return stepCount;
-    }
-
-    public void setStepCount(String stepCount) {
-        this.stepCount = stepCount;
     }
     public MyButton getTimeEvolutionButton() {
         return rightMenuPanel.getTimeEvolutionButton();
     }
     public void showAVGDOSTimeEvolution() {
-
         int n = JOptionPane.showConfirmDialog(
                 this,
                 "Do you want to recalculate?",
                 "Recalculation",
                 JOptionPane.YES_NO_OPTION);
         if (n == JOptionPane.YES_OPTION) {
-
             TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
             File[] files = new File[getSelectedAtoms().size()];
             int i = 0;
@@ -1115,10 +933,30 @@ public class NanoModeler extends JFrame {
     public void repaint(){
         getPaintSurface().repaint();
     }
-    public void showAtomPropertiesTextArea(){
-        Atom selectedAtom = getSelectedAtoms().values().stream().findFirst().get();
-        String data = XMLHelper.convertObjectToXMLString(selectedAtom);
-        showShapeTextArea(selectedAtom, data, "Atom properties");
+    public void showPropertiesTextArea(){
+        Element element = null;
+        Optional<Atom> selectedAtom = getSelectedAtoms().values().stream().findFirst();
+        if (selectedAtom.isPresent()){
+            element = selectedAtom.get();
+        }
+        if (element == null){
+            Optional<Electrode> electrode = getSelectedElectrodes().values().stream().findFirst();
+            if (electrode.isPresent()){
+                element = electrode.get();
+            }
+        }
+        if (element == null){
+            Optional<Bond> bond = getSelectedBonds().stream().findFirst();
+            if (bond.isPresent()){
+                element = bond.get();
+            }
+        }
+        if (element == null){
+
+        }else {
+            String data = XMLHelper.convertObjectToXMLString(element);
+            showElementPropertiesTextArea(element, data);
+        }
 
     }
     public static String showTextArea(String text, String title){
@@ -1128,9 +966,7 @@ public class NanoModeler extends JFrame {
         JTextArea tf = new JTextArea(text);
         tf.setAutoscrolls(true);
         tf.setFont(new Font("Consolas", Font.PLAIN, 20));
-        //tf.setPreferredSize(new Dimension(width/3,height/4));
         tf.setLineWrap(true);
-
         JScrollPane sp = new JScrollPane(tf);
         sp.setPreferredSize(new Dimension(width/3,height/4));
         sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -1142,11 +978,10 @@ public class NanoModeler extends JFrame {
         }
         return null;
     }
-
-    public static void showShapeTextArea(Element element, String text, String title){
+    public static void showElementPropertiesTextArea(Element element, String text){
         String formattedText = text.substring(text.indexOf("\n") + 1);
         formattedText = formattedText.replaceAll("<x>.*?</x>\n", "").replaceAll("<y>.*?</y>", "");
-        ElementPropertiesDialog elementPropertiesDialog = new ElementPropertiesDialog(element, title, formattedText);
+        ElementPropertiesDialog elementPropertiesDialog = new ElementPropertiesDialog(element, formattedText);
         elementPropertiesDialog.setVisible(true);
     }
 }

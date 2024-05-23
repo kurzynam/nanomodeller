@@ -32,16 +32,22 @@ public class MovingAdapter extends MouseAdapter {
                         contains(e.getX(), e.getY(), 50)).findFirst();
         Optional<Bond> clickedBond = nanoModeler.getBonds()
                 .stream().filter(bond -> {
+                    int d = NanoModeler.getInstance().getGridSize() * 2;
                     int first = bond.getFirst();
                     int second = bond.getSecond();
                     Atom firstAtom = nanoModeler.getAtomByID(first);
                     Atom secondAtom = nanoModeler.getAtomByID(second);
-                    Point center = new Point((firstAtom.getX() + secondAtom.getX())/2,
-                            (firstAtom.getY() + secondAtom.getY())/2);
-                    int d = NanoModeler.getInstance().getGridSize();
-                    return center.distance(e.getPoint()) < d;
+                    Point center = new Point((firstAtom.getX() + secondAtom.getX() + 2*d)/2,
+                            (firstAtom.getY() + secondAtom.getY() + 2*d)/2);
+                    return center.distance(e.getPoint()) < d/2;
                 }
         ).findFirst();
+        if(!clickedAtom.isPresent() && !clickedElectrode.isPresent()
+                && clickedBond.isPresent()) {
+            nanoModeler.getSelectedBonds().clear();
+            nanoModeler.getSelectedBonds().add(clickedBond.get());
+        }
+
         if(!clickedAtom.isPresent() && !clickedElectrode.isPresent()
                 && !clickedBond.isPresent()){
             if (e.getClickCount() == 2){
@@ -56,11 +62,15 @@ public class MovingAdapter extends MouseAdapter {
                 return;
             }
         }
+
         if (nanoModeler.isCtrlPressed()) {
             int size = nanoModeler.getSelectedAtoms().size();
             if (size == 1) {
                 if (clickedAtom.isPresent()) {
-                    nanoModeler.getBonds().add(new Bond(((Atom) nanoModeler.getSelectedAtoms().values().toArray()[0]).getID(), clickedAtom.get().getID()));
+                    Atom first = (Atom) nanoModeler.getSelectedAtoms().values().toArray()[0];
+                    int centerX = (first.getX() + clickedAtom.get().getX())/2;
+                    int centerY = (first.getY() + clickedAtom.get().getY())/2;
+                    nanoModeler.getBonds().add(new Bond(first.getID(), clickedAtom.get().getID()/*, centerX, centerY*/));
                 }
             }
             nanoModeler.getSelectedAtoms().clear();

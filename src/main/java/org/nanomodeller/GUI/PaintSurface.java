@@ -2,12 +2,15 @@ package org.nanomodeller.GUI;
 
 
 import org.nanomodeller.Globals;
+import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.Bond;
 import org.nanomodeller.XMLMappingFiles.Electrode;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
+
+import static org.nanomodeller.GUI.Dialogs.ColorDialog.convertStringToColor;
 
 class PaintSurface extends Component {
 
@@ -31,7 +34,14 @@ class PaintSurface extends Component {
         Graphics2D g2 = (Graphics2D) g;
         int screenHeight = getSize().height;
         int screenWidth = getSize().width;
-        g2.setColor(Color.WHITE);
+        Color surfaceColor = Color.WHITE;
+        Color basicElementColor = Color.BLACK;
+        Color basicHiglightedElementColor = new Color(0,100,0);
+        if (surfaceColor.getGreen() < 128 && surfaceColor.getBlue() < 128 && surfaceColor.getRed() < 128){
+            basicElementColor = Color.WHITE;
+            basicHiglightedElementColor = Color.red;
+        }
+        g2.setColor(surfaceColor);
         g2.fillRect(0, 0, screenWidth, screenHeight);
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -47,11 +57,16 @@ class PaintSurface extends Component {
             for (int i = 0; i < screenHeight; i += d)
                 g2.draw(new Line2D.Float(0, i, screenWidth, i));
         }
-        g2.setColor(Color.BLACK);
         g2.setStroke(new BasicStroke(4));
-        g2.setColor(Color.BLACK);
+        g2.setColor(basicElementColor);
         for (Bond bond : nanoModeler.getBonds()) {
-
+            Color highlightedColor;
+            if(StringUtils.isNotEmpty(bond.getColor())) {
+                highlightedColor = convertStringToColor(bond.getColor());
+            }else{
+                highlightedColor = basicHiglightedElementColor;
+            }
+            boolean isSelected = NanoModeler.getInstance().getSelectedBonds().contains(bond);
             Atom first = NanoModeler.getInstance().getAtoms().get(bond.getFirst());
             Atom second = NanoModeler.getInstance().getAtoms().get(bond.getSecond());
             int d = NanoModeler.getInstance().getGridSize()*2;
@@ -62,12 +77,17 @@ class PaintSurface extends Component {
             int y1 = first.getY() + d;
             int x2 = second.getX() + d;
             int y2 = second.getY() + d;
+            if (isSelected){
+                g2.setColor(highlightedColor);
+            }else {
+                g2.setColor(basicElementColor);
+            }
             g2.drawLine(x1, y1, x2, y2);
             g2.setStroke(basicStroke);
-            if (NanoModeler.getInstance().getSelectedBonds().contains(bond)){
-                g2.setPaint(Color.red);
-            }
+            g2.setColor(highlightedColor);
             g2.fillOval((x1 + x2 - d/3)/2, (y1 + y2 - d/3)/2 , d/3, d/3);
+//            bond.setX((x1 + x2)/2);
+//            bond.setY((y1 + y2)/2);
         }
         for (Electrode e : nanoModeler.getElectrodes().values()) {
 

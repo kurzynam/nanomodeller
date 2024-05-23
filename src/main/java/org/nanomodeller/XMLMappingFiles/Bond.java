@@ -6,7 +6,7 @@ import org.nanomodeller.Globals;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -16,7 +16,7 @@ public class Bond extends Element{
     private int first;
     private int second;
 
-    public Bond(int first, int second, Bond bond){
+    public Bond(int first, int second,/* int centerX, int centerY,*/ Bond bond){
         if (first > second){
             this.second = first;
             this.first = second;
@@ -24,8 +24,11 @@ public class Bond extends Element{
             this.first = first;
             this.second = second;
         }
+//        this.setX(centerX);
+//        this.setY(centerY);
         this.properties = bond.properties;
         this.color = bond.getColor();
+        this.groupID = bond.groupID;
     }
 
 
@@ -36,7 +39,7 @@ public class Bond extends Element{
 
     }
 
-    public Bond(int first, int second){
+    public Bond(int first, int second/*, int centerX, int centerY*/){
         if (first > second){
             this.second = first;
             this.first = second;
@@ -44,7 +47,8 @@ public class Bond extends Element{
             this.first = first;
             this.second = second;
         }
-        setColor(Globals.BLACK);
+//        setY(centerY);
+//        setX(centerX);
     }
     @XmlAttribute(name="first")
     public int getFirst(){
@@ -80,5 +84,6 @@ public class Bond extends Element{
                 }
          );
     }
+
 
 }

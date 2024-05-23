@@ -13,8 +13,16 @@ public class Element {
     protected PropertiesMap properties;
     protected String color;
     protected String groupID;
-
+    protected String tag;
     protected String iconSVGcode;
+
+    @XmlElements(@XmlElement(name="tag"))
+    public String getTag() {
+        return tag;
+    }
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
     @XmlElements(@XmlElement(name="Property"))
     public PropertiesMap getProperties() {
         return properties;
@@ -68,12 +76,11 @@ public class Element {
             }
         }
     }
-
     public String getIconSVGcode() {
         return iconSVGcode;
     }
-
     public void setIconSVGcode(String iconSVGcode) {
         this.iconSVGcode = iconSVGcode;
     }
+
 }

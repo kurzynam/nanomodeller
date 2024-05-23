@@ -30,6 +30,7 @@ public class ColorDialog extends JDialog {
 
     public ColorDialog (Element element, ElementPropertiesDialog parent, String rgb){
         this.parent = parent;
+        this.element = element;
         initialize(rgb);
     }
     public ColorDialog(String rgb){
@@ -51,7 +52,7 @@ public class ColorDialog extends JDialog {
         butonPanel.setLayout(new FlowLayout());
         contentPane.add(butonPanel);
         setMinimumSize(new Dimension(colorPane.getPreferredSize().width,colorPane.getPreferredSize().height + 3* okButton.getPreferredSize().height));
-        convertStringToColor(rgb);
+        originalColor = convertStringToColor(rgb);
         ((ColorPicker) colorPane).setColor(originalColor);
 
         okButton.addActionListener(
@@ -74,6 +75,7 @@ public class ColorDialog extends JDialog {
                         }
                         String repl = text.replace(toReplace, String.format("%s\n" +
                                 "    <color>%s</color>", toReplace, selectedColor));
+                        parent.getEditorPane().setText(repl);
                     }
 
                     dispose();
@@ -94,12 +96,12 @@ public class ColorDialog extends JDialog {
         return String.format("%d,%d,%d", color.getRed(), color.getGreen(), color.getBlue());
     }
 
-    public void convertStringToColor(String rgbString) {
+    public static Color convertStringToColor(String rgbString) {
         String[] rgbValues = rgbString.replaceAll("\\s", "").split(",");
         int red = Integer.parseInt(rgbValues[0].trim());
         int green = Integer.parseInt(rgbValues[1].trim());
         int blue = Integer.parseInt(rgbValues[2].trim());
-        originalColor = new Color(red, green, blue);
+        return new Color(red, green, blue);
     }
 
     public void showDialog() {

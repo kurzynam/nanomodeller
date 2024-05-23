@@ -17,21 +17,24 @@ import java.util.Hashtable;
 public class Atom extends Element implements Comparable<Atom>{
 
     private int ID;
+
+    private PropertiesMap properties;
     private Integer X;
     private Integer Y;
-    private PropertiesMap properties;
 
     public Atom(Atom atom, int newID){
         ID = newID;
         color = atom.color;
+        tag = newID + "";
         setGroupID(atom.groupID);
         properties = atom.properties;
     }
 
     public Atom(Atom atom, Integer x, Integer y, int newID){
         ID = newID;
-        X = x;
-        Y = y;
+        setX(x);
+        setY(y);
+        tag = newID + "";
         color = atom.color;
         setGroupID(atom.groupID);
         properties = atom.properties;
@@ -43,7 +46,6 @@ public class Atom extends Element implements Comparable<Atom>{
     }
 
     public Boolean contains(int x, int y){
-
         int distance = NanoModeler.getInstance().getGridSize() * 4;
         return  (getX() < x && x < getX() + distance) && (getY() < y && y < getY() + distance);
     }
@@ -53,8 +55,9 @@ public class Atom extends Element implements Comparable<Atom>{
     }
     public Atom(Integer x, Integer y, int newID){
         ID = newID;
-        this.X = x;
-        this.Y = y;
+        tag = newID + "";
+        this.setX(x);
+        this.setY(y);
     }
 
     public static Point middle(Atom first, Atom second){
@@ -63,6 +66,24 @@ public class Atom extends Element implements Comparable<Atom>{
     @Override
     public int compareTo(Atom o) {
         return Atom.Comparators.ID.compare(this, o);
+    }
+
+    @XmlAttribute(name="X")
+    public int getX() {
+        return X;
+    }
+
+    public void setX(int x) {
+        X = x;
+    }
+
+    @XmlAttribute(name="Y")
+    public int getY() {
+        return Y;
+    }
+
+    public void setY(int y) {
+        Y = y;
     }
 
     public static class Comparators {
@@ -80,21 +101,6 @@ public class Atom extends Element implements Comparable<Atom>{
     public void setCoordinates(double x, double y){
         this.setX((int) x);
         this.setY((int) y);
-    }
-
-    @XmlAttribute(name="X")
-    public Integer getX() {
-        return X;
-    }
-    public void setX(Integer x) {
-        X = x;
-    }
-    @XmlAttribute(name="Y")
-    public Integer getY() {
-        return Y;
-    }
-    public void setY(Integer y) {
-        Y = y;
     }
 
     public static void initializeCalculationAtoms(JEP parser, ArrayList<Atom> atoms, Hashtable<Integer, CalculationAtom> cAtoms) {

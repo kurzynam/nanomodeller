@@ -92,12 +92,18 @@ public class XMLHelper {
         return null;
     }
 
-    public static Atom convertXMLStringToAtom(String xml){
+    public static Element convertXMLStringToElement(String xml, Class elementType){
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(Atom.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(elementType);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            return (Atom) unmarshaller.unmarshal(reader);
+            if (elementType.equals(Atom.class)) {
+                return (Atom) unmarshaller.unmarshal(reader);
+            } else if (elementType.equals(Bond.class)) {
+                return (Bond) unmarshaller.unmarshal(reader);
+            } else if (elementType.equals(Element.class)) {
+                return (Electrode) unmarshaller.unmarshal(reader);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -79,7 +79,6 @@ public class RightMenuPanel extends MyPanel {
                 nanoModeler.setDynamicCalculationsThread(null);
                 timeEvolutionButton.setImageIcon(new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
                 timeEvolutionButton.setText("Count time evolution");
-                nanoModeler.setStepCount("0");
             } else {
                 nanoModeler.getIsCanceled().setValue(false);
                 timeEvolutionButton.setImageIcon(new ImageIcon(DELETE_BUTTON_IMAGE_PATH));
