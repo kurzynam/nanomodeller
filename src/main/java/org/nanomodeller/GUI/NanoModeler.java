@@ -112,7 +112,7 @@ public class NanoModeler extends JFrame {
         ImageIcon icon = new ImageIcon(ICON_IMAGE_PATH);
         atomImage = imageFromSVGFile(ICON_ATOM_PATH);
         hAtomImage = imageFromSVGFile(ICON_HATOM_PATH);
-        electrodeImage = imageFromSVGFile(ICON_ATOM_PATH);
+        electrodeImage = imageFromSVGFile(ICON_ELECTRODE_PATH);
         Image img = icon.getImage() ;
         inst.setIconImage(img);
         inst.setMenu(new RightMenuPanel(this));
@@ -294,19 +294,19 @@ public class NanoModeler extends JFrame {
                     jgp.addSplotCommand(paths, getSelectedAtoms(), selectedSteps);
                 }
                 else {
-                    if (isHidden || !hasSteps){
-                        if (isMultiplot)
-                            jgp.addPlotCommandMultiplot(paths, getSelectedAtoms(), selectedSteps, "");
-                        else
-                            jgp.addPlotCommand(paths, getSelectedAtoms(), selectedSteps);
-                    }
-                    else{
-                        if (isMultiplot)
-                            jgp.add2DSplotCommandMultiplot(paths, getSelectedAtoms(), "");
-                        else
-                            jgp.add2DSplotCommand(paths, getSelectedAtoms(), "");
-
-                    }
+//                    if (isHidden || !hasSteps){
+//                        if (isMultiplot)
+//                            jgp.addPlotCommandMultiplot(paths, getSelectedAtoms(), selectedSteps, "");
+//                        else
+                            jgp.addPlotCommandForSelectedAtoms(paths, getSelectedAtoms(), "E", "LDOS");
+//                    }
+//                    else{
+//                        if (isMultiplot)
+//                            jgp.add2DSplotCommandMultiplot(paths, getSelectedAtoms(), "");
+//                        else
+//                            jgp.add2DSplotCommand(paths, getSelectedAtoms(), "");
+//
+//                    }
                 }
 //            }
             jgp.pause(1000);
@@ -445,34 +445,10 @@ public class NanoModeler extends JFrame {
         p.setTime(time);
         p.setSurfaceCoupling(getSurfaceCoupling());
         p.setkFa(getkFa());
-        p.setNumber("" + getAtoms().size());
-        //p.setGridSize(getGridSize() + "");
         p.getAtoms().clear();
         p.getElectrodes().clear();
-        //Collections.sort(getAtoms());
-        for (Atom s : getAtoms().values()) {
-//            s.setX((int) (s.getX()/(1.0 * getGridSize())));
-//            s.setY((int) (s.getY()/(1.0 * getGridSize())));
-            p.addAtom(s);
-        }
-//        for (Bond bond : bonds){
-//            p.addBound(bond.getBond());
-//        }
-//        ListIterator iter = getElectrodes().listIterator();
-//        while (iter.hasNext()){
-//            Electrode electrode = (Electrode)iter.next();
-//            Electrode electrodeToSave = electrode.getElectrode();
-//            electrodeToSave.setX("" + electrode.getX()/(getGridSize() * 1.0));
-//            electrodeToSave.setY("" + electrode.getRectangle().getBounds().y/(getGridSize() * 1.0));
-//            if (electrode.getLine() != null){
-//                electrodeToSave.setAtomIndex(electrode.getAtom().getID());
-//            }
-//            else{
-//                electrodeToSave.setAtomIndex(-1);
-//            }
-//            electrodeToSave.setID(iter.nextIndex() - 1);
-//            p.addElectode(electrodeToSave);
-//        }
+        getAtoms().values().stream().forEach(atom -> p.addAtom(atom));
+        getElectrodes().values().stream().forEach(electrode -> p.addElectrode(electrode));
         return p;
     }
     public GlobalProperties mapGlobalPropertiesObject(String time, String path, boolean active){
@@ -563,18 +539,19 @@ public class NanoModeler extends JFrame {
         }
     }
     public void align(){
+        double gridSize = getGridSize() + 0.0;
         for (Atom atom : getAtoms().values()){
-            int xMultiplier = Math.round(atom.getX()/ getGridSize());
-            int yMultiplier = Math.round(atom.getY()/ getGridSize());
-            double newX = xMultiplier * getGridSize();
-            double newY = yMultiplier * getGridSize();
+            int xMultiplier = (int) Math.round(atom.getX()/ gridSize);
+            int yMultiplier = (int) Math.round(atom.getY()/ gridSize);
+            double newX = xMultiplier * gridSize;
+            double newY = yMultiplier * gridSize;
             atom.setCoordinates(newX, newY);
         }
         for (Electrode electrode : getElectrodes().values()) {
-            int xMultiplier = Math.round(electrode.getX() / getGridSize());
-            int yMultiplier = Math.round(electrode.getY() / getGridSize());
-            int newX = xMultiplier * getGridSize();
-            int newY = yMultiplier * getGridSize();
+            int xMultiplier = (int) Math.round(electrode.getX() / gridSize);
+            int yMultiplier = (int) Math.round(electrode.getY() / gridSize);
+            int newX = (int) (xMultiplier * gridSize);
+            int newY = (int) (yMultiplier * gridSize);
             electrode.setCoordinates(newX, newY);
         }
         getPaintSurface().repaint();

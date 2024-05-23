@@ -18,7 +18,7 @@ public class Atom extends Element implements Comparable<Atom>{
 
     private int ID;
 
-    private PropertiesMap properties;
+    private Hashtable<String, String> properties;
     private Integer X;
     private Integer Y;
 
@@ -39,20 +39,15 @@ public class Atom extends Element implements Comparable<Atom>{
         setGroupID(atom.groupID);
         properties = atom.properties;
     }
-
     public void move(int dx, int dy){
         setX(this.getX() + dx);
         setY(this.getY() + dy);
     }
-
     public Boolean contains(int x, int y){
-        int distance = NanoModeler.getInstance().getGridSize() * 4;
-        return  (getX() < x && x < getX() + distance) && (getY() < y && y < getY() + distance);
+        int distance = NanoModeler.getInstance().getGridSize() * 2;
+        return  (getX() - distance < x && x < getX() + distance) && (getY() - distance < y && y < getY() + distance);
     }
 
-    public Boolean contains(Point point, int distance) {
-        return contains(point.x, point.y);
-    }
     public Atom(Integer x, Integer y, int newID){
         ID = newID;
         tag = newID + "";

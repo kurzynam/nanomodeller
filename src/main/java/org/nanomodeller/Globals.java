@@ -49,7 +49,8 @@ public class Globals {
 
     public static final String ICON_HATOM_PATH = "img/hNode.svg";
 
-    public static final String ICON_ELECTRODE_PATH = "img/electrode.svg";
+    public static final String ICON_ELECTRODE_PATH = "img/el.svg";
+    public static final String ICON_HELECTRODE_PATH = "img/hel.svg";
     public static final String ADD_BUTTON_IMAGE_PATH = "img/addIcon.png";
     public static final String ALIGN_BUTTON_IMAGE_PATH = "img/alignIcon.png";
     public static final String DELETE_BUTTON_IMAGE_PATH = "img/deleteIcon.png";

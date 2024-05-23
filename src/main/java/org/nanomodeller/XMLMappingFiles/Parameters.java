@@ -61,7 +61,7 @@ public class Parameters {
     public void addAtom(Atom atom) {
         this.atoms.add(atom);
     }
-    public void addElectode(Electrode electrode){
+    public void addElectrode(Electrode electrode){
         this.electrodes.add(electrode);
     }
 

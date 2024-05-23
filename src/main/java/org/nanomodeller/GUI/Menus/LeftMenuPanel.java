@@ -121,7 +121,7 @@ public class LeftMenuPanel extends MyPanel {
         zoomInButton.addActionListener(evt -> this.modeller.zoom(2));
         zoomOutButton.addActionListener(evt -> this.modeller.zoom(-2));
         addButton.addActionListener(evt -> {
-            Electrode el = new Electrode(-1 , this.modeller.electrodeIDSeq(), 10, 10);
+            Electrode el = new Electrode(-1 , this.modeller.electrodeIDSeq(), 30, 30);
             this.modeller.getElectrodes().put(el.getID(), el);
             this.modeller.repaint();
         });

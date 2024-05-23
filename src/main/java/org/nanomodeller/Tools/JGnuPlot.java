@@ -257,6 +257,25 @@ public class JGnuPlot extends JavaPlot {
         }
     }
 
+
+
+    public void addPlotCommandForSelectedAtoms(String path, Hashtable<Integer, Atom> atoms, String argColumn,String title){
+
+        String command = "plot ";
+
+        for (Atom atom : atoms.values()){
+            command += String.format("\'%s\' using \'%s\':\'%s\' title \'%s\' with lines lw 2 ,",
+                    path, argColumn, atom.getTag(), atom.getTag());
+        }
+        appendCommand(command);
+    }
+
+
+
+
+
+
+
     public void addPlotCommand(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String title){
 
             String command = "plot ";
@@ -280,17 +299,17 @@ public class JGnuPlot extends JavaPlot {
                     }
                 }
             }else{
-                for (int i = 0; i < shapes.size(); i++) {
-                    int num = shapes.get(i).getID()  + 1;
+                for (Atom shape : shapes.values()) {
+                    int num = shape.getID()  + 1;
                     title = num + "";
-                    int id = shapes.get(i).getID() + 3;
+                    int id = num + 3;
                     double incr = counter++ * getProperties().getOffsetStep();
                     String ids = "2:" + String.format("($%d + %f)", id, incr);
                     command += String.format("%s u %s title %s with lines lw 2 smooth csplines",
                             StringUtils.toSingleQuotes(path), ids, StringUtils.toSingleQuotes(title));
-                    if (i != shapes.size() - 1) {
-                        command += ", ";
-                    }
+//                    if (i != shapes.size() - 1) {
+//                        command += ", ";
+//                    }
                 }
             }
             //command += " with lines lw 2 smooth csplines";

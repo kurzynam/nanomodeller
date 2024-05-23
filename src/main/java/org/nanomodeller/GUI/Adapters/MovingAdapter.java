@@ -37,8 +37,8 @@ public class MovingAdapter extends MouseAdapter {
                     int second = bond.getSecond();
                     Atom firstAtom = nanoModeler.getAtomByID(first);
                     Atom secondAtom = nanoModeler.getAtomByID(second);
-                    Point center = new Point((firstAtom.getX() + secondAtom.getX() + 2*d)/2,
-                            (firstAtom.getY() + secondAtom.getY() + 2*d)/2);
+                    Point center = new Point((firstAtom.getX() + secondAtom.getX())/2,
+                            (firstAtom.getY() + secondAtom.getY())/2);
                     return center.distance(e.getPoint()) < d/2;
                 }
         ).findFirst();

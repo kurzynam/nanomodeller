@@ -8,6 +8,7 @@ import static org.nanomodeller.CommonPhysics.toEnergyStep;
 
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
+import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.Matrix;
 import org.nanomodeller.XMLMappingFiles.Parameters;
 import org.nanomodeller.XMLMappingFiles.GlobalProperties;
@@ -56,12 +57,17 @@ public class StaticProperties {
         for (int i = 0; i < par.getAtoms().size(); i++){
             normalisations[i] = 0;
         }
+        String header = "n, E";
+        for (Atom a : par.getAtoms()){
+            header += ", " + a.getTag();
+        }
+        ldosWriter.println(header);
         for (int n = 0; n < 1; n++) {
-            matrix.getParser().addVariable("n",n);
+            matrix.getParser().addVariable("n", n);
             for (double tempE = Emin; tempE < Emax; tempE += dE) {
                 String results = "";
                 String normalisation = "";
-                matrix.getParser().addVariable("E",tempE);
+                matrix.getParser().addVariable("E", tempE);
                 if (sigma1 != null) {
                     Complex comp = sigma1[toEnergyStep(tempE, dE, gp)];
                     matrix.getParser().addComplexVariable("O", comp.getReal(), comp.getImaginary());

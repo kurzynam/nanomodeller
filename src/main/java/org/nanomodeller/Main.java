@@ -6,6 +6,7 @@ import org.jscience.mathematics.number.Complex;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class Main {
 
@@ -97,7 +98,7 @@ public class Main {
 //
 //
 //        ArrayList<ArrayList<Color>> palettes = new ArrayList<>();
-
+        Locale.setDefault(Locale.US);
             NanoModeler.getInstance().initNanoModeller();
 
 

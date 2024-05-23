@@ -3,14 +3,16 @@ package org.nanomodeller.XMLMappingFiles;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElements;
 import org.nanomodeller.Calculation.CalculationItem;
+import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.PropertiesMap;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import java.util.Hashtable;
 
 public class Element {
 
-    protected PropertiesMap properties;
+    protected Hashtable<String, String> properties;
     protected String color;
     protected String groupID;
     protected String tag;
@@ -24,23 +26,23 @@ public class Element {
         this.tag = tag;
     }
     @XmlElements(@XmlElement(name="Property"))
-    public PropertiesMap getProperties() {
+    public Hashtable<String, String> getProperties() {
         return properties;
     }
-    public void setProperties(PropertiesMap properties) {
+    public void setProperties(Hashtable<String, String> properties) {
         this.properties = properties;
     }
     public Double getDouble(String key){
-        return properties.getDouble(key);
+        return Double.parseDouble(properties.get(key));
     }
     public String getString(String key){
-        return properties.getString(key);
+        return  properties.get(key);
     }
     public Integer getInt(String key){
-        return properties.getInt(key);
+        return Integer.parseInt(properties.get(key));
     }
     public Boolean getBool(String key){
-        return properties.getBool(key);
+        return Globals.isTrue(properties.get(key));
     }
 
 

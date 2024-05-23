@@ -62,11 +62,7 @@ public class ElementPropertiesDialog extends JDialog {
             ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
             dispose();
         });
-
-        // call onCancel() when cross is clicked
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-        // call onCancel() on ESCAPE
         contentPane.registerKeyboardAction(e -> dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         addGroupIDButton.addActionListener(e -> {
             String text = editorPane.getText();
@@ -95,8 +91,8 @@ public class ElementPropertiesDialog extends JDialog {
         applyToAllButton.addActionListener(e -> {
             Element convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), element.getClass());
             Consumer<Element> action = el -> {
-                el.setProperties(element.getProperties());
-                el.setColor(element.getColor());};
+                el.setProperties(convertedElement.getProperties());
+                el.setColor(convertedElement.getColor());};
             if (convertedElement instanceof Atom){
                 NanoModeler.getInstance().getAtoms().values().stream()
                         .forEach(action);

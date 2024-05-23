@@ -73,10 +73,10 @@ class PaintSurface extends Component {
             thindashed = new BasicStroke(d/11, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                     1.0f, new float[]{8.0f, 3.0f, 2.0f, 3.0f}, 0.0f);
             g2.setStroke(this.thindashed);
-            int x1 = first.getX() + d;
-            int y1 = first.getY() + d;
-            int x2 = second.getX() + d;
-            int y2 = second.getY() + d;
+            int x1 = first.getX();
+            int y1 = first.getY();
+            int x2 = second.getX();
+            int y2 = second.getY();
             if (isSelected){
                 g2.setColor(highlightedColor);
             }else {
@@ -99,14 +99,25 @@ class PaintSurface extends Component {
                 drawHighlightedAtom(g2, s.getX(), s.getY());
             }
         }
+        for (Electrode s : nanoModeler.getElectrodes().values()) {
+            if (!nanoModeler.getSelectedElectrodes().contains(s)) {
+                drawElectrode(g2, s.getX(), s.getY());
+            }else{
+                drawElectrode(g2, s.getX(), s.getY());
+            }
+        }
         g2.setColor(new Color(125,125, 125, 125));
         if (nanoModeler.getSelection() != null)
             g2.fill(nanoModeler.getSelection());
     }
+
+    private void drawElectrode(Graphics2D g2, int x, int y) {
+        g2.drawImage(NanoModeler.getInstance().getScalledElectrodeImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
+    }
     private void drawAtom(Graphics2D g2, int x, int y) {
-        g2.drawImage(NanoModeler.getInstance().getScalledAtomImage(), x, y,null);
+        g2.drawImage(NanoModeler.getInstance().getScalledAtomImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
     }
     private void drawHighlightedAtom(Graphics2D g2, int x, int y) {
-        g2.drawImage(NanoModeler.getInstance().getScalledHAtomImage(), x, y,null);
+        g2.drawImage(NanoModeler.getInstance().getScalledHAtomImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
     }
 }

@@ -1,6 +1,7 @@
 package org.nanomodeller.XMLMappingFiles;
 
 import org.nanomodeller.Calculation.CalculationElectrode;
+import org.nanomodeller.GUI.NanoModeler;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -23,8 +24,9 @@ public class Electrode extends Element {
         setX(x);
         setY(y);
     }
-    public Boolean contains(Point point, int distance) {
-        return contains(point.x, point.y, distance);
+    public Boolean contains(int x, int y){
+        int distance = NanoModeler.getInstance().getGridSize() * 2;
+        return  (getX() - distance < x && x < getX() + distance) && (getY() - distance < y && y < getY() + distance);
     }
     public Electrode() {}
 
