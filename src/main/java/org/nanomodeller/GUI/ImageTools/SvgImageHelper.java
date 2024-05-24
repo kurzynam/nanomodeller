@@ -51,8 +51,7 @@ public class SvgImageHelper {
                 }
 
                 @Override
-                public void writeImage(BufferedImage image, TranscoderOutput out)
-                        throws TranscoderException {
+                public void writeImage(BufferedImage image, TranscoderOutput out) {
                     imagePointer[0] = image;
                 }
             };
@@ -60,20 +59,9 @@ public class SvgImageHelper {
             t.transcode(input, null);
         }
         catch (Exception ex) {
-
+            ex.printStackTrace();
         }
-
         return imagePointer[0];
     }
-
-    public static BufferedImage resizeImage(BufferedImage originalImage, Double factor) {
-        // Calculate the new dimensions
-        int newWidth = (int) (originalImage.getWidth() * factor);
-        int newHeight = (int) (originalImage.getHeight() * factor);
-
-        // Create a new buffered image
-        return new BufferedImage(newWidth, newHeight, originalImage.getType());
-    }
-
 
 }

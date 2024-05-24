@@ -136,7 +136,7 @@ public class ElementPropertiesDialog extends JDialog {
         });
         changeColorButton.addActionListener(e -> {
             String text = editorPane.getText();
-            String color = "0,0,0";
+            String color = "255,255,255";
             if (text.contains("<color>") && text.contains("</color>")){
                 int begin = text.indexOf("<color>");
                 int end = text.indexOf("</color>");

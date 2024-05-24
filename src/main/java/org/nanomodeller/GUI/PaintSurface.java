@@ -1,49 +1,36 @@
 package org.nanomodeller.GUI;
 
-
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.Bond;
 import org.nanomodeller.XMLMappingFiles.Electrode;
-
 import java.awt.*;
 import java.awt.geom.Line2D;
-
 import static org.nanomodeller.GUI.Dialogs.ColorDialog.convertStringToColor;
-
 class PaintSurface extends Component {
 
     private static final long serialVersionUID = 1L;
-
     private final NanoModeler nanoModeler;
-
     private Stroke thindashed = new BasicStroke(4.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
             1.0f, new float[]{8.0f, 3.0f, 2.0f, 3.0f}, 0.0f);
-
     private Stroke basicStroke = new BasicStroke();
-
     public PaintSurface(NanoModeler nanoModeler) {
-
         this.nanoModeler = nanoModeler;
-
     }
-
-
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         int screenHeight = getSize().height;
         int screenWidth = getSize().width;
         Color surfaceColor = Color.WHITE;
         Color basicElementColor = Color.BLACK;
-        Color basicHiglightedElementColor = new Color(0,100,0);
+        Color basicHiglightedElementColor = new Color(32, 255, 32);
         if (surfaceColor.getGreen() < 128 && surfaceColor.getBlue() < 128 && surfaceColor.getRed() < 128){
             basicElementColor = Color.WHITE;
             basicHiglightedElementColor = Color.red;
         }
         g2.setColor(surfaceColor);
         g2.fillRect(0, 0, screenWidth, screenHeight);
-
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (Globals.DARK_GRAY.equals(nanoModeler.getbColor())) {
             g2.setPaint(Color.LIGHT_GRAY);

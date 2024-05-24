@@ -68,18 +68,18 @@ public class StaticProperties {
                 String results = "";
                 String normalisation = "";
                 matrix.getParser().addVariable("E", tempE);
-                if (sigma1 != null) {
-                    Complex comp = sigma1[toEnergyStep(tempE, dE, gp)];
-                    matrix.getParser().addComplexVariable("O", comp.getReal(), comp.getImaginary());
-                }
-                if (sigma2 != null) {
-                    Complex comp = sigma2[toEnergyStep(tempE, dE, gp)];
-                    matrix.getParser().addComplexVariable("T", comp.getReal(), comp.getImaginary());
-                }
-                if (sigma3 != null) {
-                    Complex comp = sigma3[toEnergyStep(tempE, dE, gp)];
-                    matrix.getParser().addComplexVariable("F", comp.getReal(), comp.getImaginary());
-                }
+//                if (sigma1 != null) {
+//                    Complex comp = sigma1[toEnergyStep(tempE, dE, gp)];
+//                    matrix.getParser().addComplexVariable("O", comp.getReal(), comp.getImaginary());
+//                }
+//                if (sigma2 != null) {
+//                    Complex comp = sigma2[toEnergyStep(tempE, dE, gp)];
+//                    matrix.getParser().addComplexVariable("T", comp.getReal(), comp.getImaginary());
+//                }
+//                if (sigma3 != null) {
+//                    Complex comp = sigma3[toEnergyStep(tempE, dE, gp)];
+//                    matrix.getParser().addComplexVariable("F", comp.getReal(), comp.getImaginary());
+//                }
                 ComplexMatrix M = matrix.convertToComplexMatrix();
                 ComplexMatrix TempMatrix = M.inverse();
                 for (int i = 0; i < par.getAtoms().size(); i++) {
@@ -89,11 +89,11 @@ public class StaticProperties {
                     normalisation += normalisations[i] + ",";
                 }
                 ldosWriter.println(n +"," + tempE + "," + results);
-                normalisationWriter.println(n +"," + tempE + "," + normalisation);
             }
             ldosWriter.println();
             normalisationWriter.println();
         }
+
         ldosWriter.close();
         normalisationWriter.close();
     }

@@ -47,6 +47,8 @@ public class Globals {
 
     public static final String ICON_ATOM_PATH = "img/node.svg";
 
+    public static final String USER_ICON_ATOM_PATH = "img/userNode.svg";
+
     public static final String ICON_HATOM_PATH = "img/hNode.svg";
 
     public static final String ICON_ELECTRODE_PATH = "img/el.svg";

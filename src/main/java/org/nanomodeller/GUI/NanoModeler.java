@@ -20,6 +20,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -409,6 +411,30 @@ public class NanoModeler extends JFrame {
         getElectrodes().clear();
         getPaintSurface().repaint();
     }
+
+    public void recalculateIDS(){
+        int count = 0;
+        for (Integer i: getSortedKeys(atoms)){
+            Atom atom = atoms.get(i);
+            int oldID = atom.getID();
+            atom.setID(count);
+            int newID = count;
+            getBonds().stream().filter(bond -> bond.getFirst() == oldID).forEach(bond -> bond.setFirst(-newID - 1));
+            getBonds().stream().filter(bond -> bond.getSecond() == oldID).forEach(bond -> bond.setSecond(-newID - 1));
+            getElectrodes().values().stream().filter(electrode -> electrode.getAtomIndex() == oldID).
+                    forEach(electrode -> electrode.setAtomIndex(newID));
+            atoms.remove(oldID);
+            atoms.put(newID, atom);
+            count++;
+        }
+        count = 0;
+        for (Integer i: getSortedKeys(electrodes)){
+            electrodes.get(i).setID(count);
+        }
+        getBonds().stream().filter(bond -> bond.getFirst() < 0).forEach(bond -> bond.setFirst(-bond.getFirst() - 1));
+        getBonds().stream().filter(bond -> bond.getSecond() < 0).forEach(bond -> bond.setSecond(-bond.getSecond() - 1));
+
+    }
     public void delete() {
         for (Atom s : getSelectedAtoms().values()) {
             removeAtom(s);
@@ -423,6 +449,7 @@ public class NanoModeler extends JFrame {
         for (Electrode electrode : getSelectedElectrodes().values()) {
             getElectrodes().remove(electrode);
         }
+        recalculateIDS();
         getPaintSurface().repaint();
     }
 
@@ -530,6 +557,7 @@ public class NanoModeler extends JFrame {
 
     public void saveData() {
         try {
+            recalculateIDS();
             convertObjectToXMLFile(GlobalProperties.getInstance());
             Parameters.getInstance().setPath(leftMenuPanel.fileBrowser.getAbsolutePath());
             String path = "parameters.xml";
@@ -609,6 +637,9 @@ public class NanoModeler extends JFrame {
         selectedElectrodes.values().stream().forEach(e -> e.setY(2 * middleY - e.getY()));
         paintSurface.repaint();
     }
+    public List<Integer> getSortedKeys(Hashtable<Integer, ?> table){
+       return table.keySet().stream().sorted().collect(Collectors.toList());
+    }
     public void paste() {
 
         ArrayList<Electrode> newElectrodeSelection = new ArrayList<Electrode>();
@@ -616,7 +647,8 @@ public class NanoModeler extends JFrame {
         int leftMostX = copiedAtoms.values().stream().map(atom -> atom.getX()).min(Integer::compareTo).get();
         int upperMostY = copiedAtoms.values().stream().map(atom -> atom.getY()).min(Integer::compareTo).get();
         selectedAtoms.clear();
-        for (Atom s: getCopiedAtoms().values()){
+        for (Integer i: getSortedKeys(copiedAtoms)){
+            Atom s = copiedAtoms.get(i);
             Atom as = new Atom(s, getX() + (s.getX() - leftMostX), getY() + (s.getY() - upperMostY), atomIDSeq());
             atoms.put(as.getID(), as);
             selectedAtoms.put(as.getID(), as);
@@ -631,19 +663,18 @@ public class NanoModeler extends JFrame {
                     if (Parameters.getInstance().areBond(firstAtom, secondAtom)){
                         continue;
                     }
-                    int centerX = (firstAtom.getX() + secondAtom.getX())/2;
-                    int centerY = (firstAtom.getY() + secondAtom.getY())/2;
-                    Bond newBond = new Bond(firstAtom.getID(), secondAtom.getID(),/* centerX, centerY,*/ bond);
+                    Bond newBond = new Bond(firstAtom.getID(), secondAtom.getID(), bond);
                     getBonds().add(newBond);
                 }
             }
         }
-        for (Electrode electrode: getCopiedElectrodes().values()){
+        for (Integer e : getSortedKeys(copiedElectrodes)){
+            Electrode electrode = copiedElectrodes.get(e);
             Atom as = null;
             if (electrode.getAtomIndex() >= 0){
                 as = copy.get(electrode.getAtomIndex());
             }
-            Electrode el = new Electrode(as.getID(), electrodeIDSeq(),electrode.getX() , electrode.getY() );
+            Electrode el = new Electrode(as.getID(), electrodeIDSeq(), electrode.getX(), electrode.getY() );
             getElectrodes().put(el.getID(), el);
             newElectrodeSelection.add(el);
         }
@@ -971,7 +1002,9 @@ public class NanoModeler extends JFrame {
     }
     public static void showElementPropertiesTextArea(Element element, String text){
         String formattedText = text.substring(text.indexOf("\n") + 1);
-        formattedText = formattedText.replaceAll("<x>.*?</x>\n", "").replaceAll("<y>.*?</y>", "");
+        formattedText = formattedText.replaceAll("<x>.*?</x>\n", "").replaceAll("<y>.*?</y>\n", "");
+        formattedText = formattedText.replaceAll("        </Atom>", "</Atom>");
+        formattedText = formattedText.replaceAll("        </Electrode>", "</Electrode>");
         ElementPropertiesDialog elementPropertiesDialog = new ElementPropertiesDialog(element, formattedText);
         elementPropertiesDialog.setVisible(true);
     }
