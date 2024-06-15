@@ -99,16 +99,16 @@ class PaintSurface extends Component {
     }
 
     private void drawElectrode(Graphics2D g2, int x, int y) {
-        g2.drawImage(NanoModeler.getInstance().getScalledElectrodeImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
+        g2.drawImage(NanoModeler.getInstance().getScalledElectrodeImage(), x - nanoModeler.getGridSize(), y - nanoModeler.getGridSize(),null);
     }
 
     private void drawHElectrode(Graphics2D g2, int x, int y) {
-        g2.drawImage(NanoModeler.getInstance().getScalledHElectrodeImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
+        g2.drawImage(NanoModeler.getInstance().getScalledHElectrodeImage(), x - nanoModeler.getGridSize(), y -  nanoModeler.getGridSize(),null);
     }
     private void drawAtom(Graphics2D g2, int x, int y) {
-        g2.drawImage(NanoModeler.getInstance().getScalledAtomImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
+        g2.drawImage(NanoModeler.getInstance().getScalledAtomImage(), x - nanoModeler.getGridSize(), y - nanoModeler.getGridSize(),null);
     }
     private void drawHighlightedAtom(Graphics2D g2, int x, int y) {
-        g2.drawImage(NanoModeler.getInstance().getScalledHAtomImage(), x - 2 * nanoModeler.getGridSize(), y - 2 * nanoModeler.getGridSize(),null);
+        g2.drawImage(NanoModeler.getInstance().getScalledHAtomImage(), x - nanoModeler.getGridSize(), y -  nanoModeler.getGridSize(),null);
     }
 }

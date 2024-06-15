@@ -809,10 +809,11 @@ public class NanoModeler extends JFrame {
         resizeImages(gridSize);
     }
     private void resizeImages(int gridSize) {
-        scalledAtomImage = atomImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
-        scalledHAtomImage = hAtomImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
-        scalledElectrodeImage = electrodeImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
-        scalledHElectrodeImage = hElectrodeImage.getScaledInstance(gridSize * 4, gridSize * 4, 1);
+        int width = gridSize * 2;
+        scalledAtomImage = atomImage.getScaledInstance(width, width, 1);
+        scalledHAtomImage = hAtomImage.getScaledInstance(width, width, 1);
+        scalledElectrodeImage = electrodeImage.getScaledInstance(width, width, 1);
+        scalledHElectrodeImage = hElectrodeImage.getScaledInstance(width, width, 1);
     }
     public boolean isSelectionFlag() {
         return selectionFlag;

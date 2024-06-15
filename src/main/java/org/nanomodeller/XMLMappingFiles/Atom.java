@@ -44,7 +44,7 @@ public class Atom extends Element implements Comparable<Atom>{
         setY(this.getY() + dy);
     }
     public Boolean contains(int x, int y){
-        int distance = NanoModeler.getInstance().getGridSize() * 2;
+        int distance = NanoModeler.getInstance().getGridSize();
         return  (getX() - distance < x && x < getX() + distance) && (getY() - distance < y && y < getY() + distance);
     }
 
