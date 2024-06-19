@@ -59,35 +59,16 @@ public class LeftMenuPanel extends MyPanel {
 
     }
 
-
-    public class ActiveString {
-        public String text;
-        public boolean isActive;
-
-        public void swapActive(){
-            this.isActive = !this.isActive;
-        }
-        public  ActiveString(String text, boolean isActive){
-            this.text = text;
-            this.isActive = isActive;
-        }
-        public  ActiveString(ActiveString aString){
-            this.text = aString.text;
-            this.isActive = aString.isActive;
-        }
-        public String toString(){
-            return text;
-        }
-    }
     private void initializeLayout(){
         GridBagLayout layout = new GridBagLayout();
+
         setLayout(layout);
         add(logo);
         GridBagConstraints pointer = new GridBagConstraints();
-        pointer.fill = GridBagConstraints.HORIZONTAL;
+        pointer.fill = GridBagConstraints.BOTH;
 
-        pointer.weightx = 0.5;
-        pointer.weighty = 0.5;
+        pointer.weightx = 1;
+        pointer.weighty = 1;
         pointer.gridx = 0;
         pointer.gridy = 0;
         pointer.gridy++;

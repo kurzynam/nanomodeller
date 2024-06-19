@@ -4,7 +4,6 @@ package org.nanomodeller.XMLMappingFiles;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.nanomodeller.Calculation.CalculationAtom;
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.Tools.PropertiesMap;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
