@@ -5,6 +5,8 @@ import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.Bond;
 import org.nanomodeller.XMLMappingFiles.Electrode;
+import org.nanomodeller.XMLMappingFiles.Parameters;
+
 import java.awt.*;
 import java.awt.geom.Line2D;
 import static org.nanomodeller.GUI.Dialogs.ColorDialog.convertStringToColor;
@@ -22,7 +24,13 @@ class PaintSurface extends Component {
         Graphics2D g2 = (Graphics2D) g;
         int screenHeight = getSize().height;
         int screenWidth = getSize().width;
-        Color surfaceColor = Color.WHITE;
+        Color surfaceColor;
+        String surfColor = Parameters.getInstance().getSurface().getColor();
+        if (StringUtils.isNotEmpty(surfColor)){
+            surfaceColor = convertStringToColor(surfColor);
+        }else {
+            surfaceColor = Color.WHITE;
+        }
         Color basicElementColor = Color.BLACK;
         Color basicHiglightedElementColor = new Color(32, 255, 32);
         if (surfaceColor.getGreen() < 128 && surfaceColor.getBlue() < 128 && surfaceColor.getRed() < 128){

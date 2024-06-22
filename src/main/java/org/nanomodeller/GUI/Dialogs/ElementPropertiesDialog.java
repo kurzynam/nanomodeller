@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 public class ElementPropertiesDialog extends JDialog {
     private JPanel contentPane;
 
-    private Element element;
+    private XMLTemplate template;
     private JButton cancelButton;
     private JButton applyToGroupButton;
     private JButton addGroupIDButton;
@@ -27,9 +27,9 @@ public class ElementPropertiesDialog extends JDialog {
     private JPanel colorPanel;
     private JScrollPane scrollPane;
 
-    public ElementPropertiesDialog(Element element, String textAreaContent) {
+    public ElementPropertiesDialog(XMLTemplate temp, String textAreaContent) {
 
-        this.element = element;
+        this.template = temp;
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(cancelButton);
@@ -37,71 +37,82 @@ public class ElementPropertiesDialog extends JDialog {
         setTitle("Properties");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setMinimumSize(new Dimension((int)screenSize.getWidth()/2, (int)(screenSize.getHeight()/1.3)));
+        boolean isStructureElement = template instanceof StructureElement;
         cancelButton.addActionListener(e -> dispose());
-        applyToGroupButton.addActionListener(e -> {
-            Element convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), element.getClass());
-            String GID = convertedElement.getGroupID();
-            element.setGroupID(GID);
-            element.setProperties(convertedElement.getProperties());
-            element.setColor(convertedElement.getColor());
-            Predicate<Element> filter = el -> StringUtils.equals(el.getGroupID(), GID);
-            Consumer<Element> action = el -> {
-                el.setProperties(element.getProperties());
-                el.setColor(element.getColor());};
-            if (convertedElement instanceof Atom){
-                NanoModeler.getInstance().getAtoms().values().stream()
-                        .filter(filter)
-                        .forEach(action);
-            }else if(convertedElement instanceof Bond){
-                NanoModeler.getInstance().getBonds().stream().filter(filter).forEach(action);
-            }else if(convertedElement instanceof Electrode){
-                NanoModeler.getInstance().getElectrodes().values().stream()
-                        .filter(filter)
-                        .forEach(action);
-            }
-            ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
-            dispose();
-        });
+        if (isStructureElement){
+            applyToGroupButton.addActionListener(e -> {
+                XMLTemplate convertedStructureElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), template.getClass());
+                String GID = ((StructureElement)convertedStructureElement).getGroupID();
+                ((StructureElement)template).setGroupID(GID);
+                template.setProperties(convertedStructureElement.getProperties());
+                template.setColor(convertedStructureElement.getColor());
+                Predicate<StructureElement> filter = el -> StringUtils.equals(el.getGroupID(), GID);
+                Consumer<StructureElement> action = el -> {
+                    el.setProperties(template.getProperties());
+                    el.setColor(template.getColor());};
+                if (convertedStructureElement instanceof Atom){
+                    NanoModeler.getInstance().getAtoms().values().stream()
+                            .filter(filter)
+                            .forEach(action);
+                }else if(convertedStructureElement instanceof Bond){
+                    NanoModeler.getInstance().getBonds().stream().filter(filter).forEach(action);
+                }else if(convertedStructureElement instanceof Electrode){
+                    NanoModeler.getInstance().getElectrodes().values().stream()
+                            .filter(filter)
+                            .forEach(action);
+                }
+                ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
+                dispose();
+            });
+            addGroupIDButton.addActionListener(e -> {
+                String text = editorPane.getText();
+                if (!text.contains("<GID>")){
+                    String toReplace;
+                    if (template instanceof Atom){
+                        toReplace = "<Atom>";
+                    }else if (template instanceof Bond){
+                        toReplace = "<Bond>";
+                    }
+                    else {
+                        toReplace = "<Electrode>";
+                    }
+                    editorPane.setText(text.replace(toReplace, toReplace  + "\n    <GID></GID>"));
+                }
+            });
+            applyToAllButton.addActionListener(e -> {
+                XMLTemplate convertedStructureElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), template.getClass());
+                Consumer<StructureElement> action = el -> {
+                    el.setProperties(convertedStructureElement.getProperties());
+                    el.setColor(convertedStructureElement.getColor());};
+                if (convertedStructureElement instanceof Atom){
+                    NanoModeler.getInstance().getAtoms().values().stream()
+                            .forEach(action);
+                }else if(convertedStructureElement instanceof Bond) {
+                    NanoModeler.getInstance().getBonds().stream().forEach(action);
+                }else if(convertedStructureElement instanceof Electrode){
+                    NanoModeler.getInstance().getElectrodes().values().stream()
+                            .forEach(action);
+                }
+                ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
+                dispose();
+            });
+        }
+
+        applyToGroupButton.setVisible(isStructureElement);
+        addGroupIDButton.setVisible(isStructureElement);
+        applyToAllButton.setVisible(isStructureElement);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         contentPane.registerKeyboardAction(e -> dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        addGroupIDButton.addActionListener(e -> {
-            String text = editorPane.getText();
-            if (!text.contains("<GID>")){
-                String toReplace;
-                if (element instanceof Atom){
-                    toReplace = "<Atom>";
-                }else if (element instanceof Bond){
-                    toReplace = "<Bond>";
-                }
-                else {
-                    toReplace = "<Electrode>";
-                }
-                editorPane.setText(text.replace(toReplace, toReplace  + "\n    <GID></GID>"));
-            }
-        });
+
         applyButton.addActionListener(e -> {
-            Element convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), element.getClass());
-            element.setProperties(convertedElement.getProperties());
-            element.setColor(convertedElement.getColor());
-            element.setGroupID(convertedElement.getGroupID());
-            element.setTag(convertedElement.getTag());
-            ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
-            dispose();
-        });
-        applyToAllButton.addActionListener(e -> {
-            Element convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), element.getClass());
-            Consumer<Element> action = el -> {
-                el.setProperties(convertedElement.getProperties());
-                el.setColor(convertedElement.getColor());};
-            if (convertedElement instanceof Atom){
-                NanoModeler.getInstance().getAtoms().values().stream()
-                        .forEach(action);
-            }else if(convertedElement instanceof Bond) {
-                NanoModeler.getInstance().getBonds().stream().forEach(action);
-            }else if(convertedElement instanceof Electrode){
-                NanoModeler.getInstance().getElectrodes().values().stream()
-                        .forEach(action);
+            XMLTemplate convertedStructureElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), template.getClass());
+            template.setProperties(convertedStructureElement.getProperties());
+            if (template instanceof StructureElement){
+                ((StructureElement)template).setGroupID(((StructureElement)convertedStructureElement).getGroupID());
+                ((StructureElement)template).setTag(((StructureElement)convertedStructureElement).getTag());
             }
+            template.setColor(convertedStructureElement.getColor());
+
             ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
             dispose();
         });
@@ -115,14 +126,17 @@ public class ElementPropertiesDialog extends JDialog {
                         "        </entry>";
                 editorPane.setText(text.replace("<properties>", newProperty));
             }else {
-                String toReplace;
-                if (element instanceof Atom){
+                String toReplace = "";
+                if (template instanceof Atom){
                     toReplace = "<Atom>";
-                }else if (element instanceof Bond){
+                }else if (template instanceof Bond){
                     toReplace = "<Bond>";
                 }
-                else {
+                else if (template instanceof Electrode){
                     toReplace = "<Electrode>";
+                }
+                else if (template instanceof Surface){
+                    toReplace = "<Surface>";
                 }
                 String properties = toReplace + "\n" +
                         "    <properties>\n" +
@@ -145,7 +159,7 @@ public class ElementPropertiesDialog extends JDialog {
                     color = value;
                 }
             }
-            ColorDialog colorDialog = new ColorDialog(element, this, color);
+            ColorDialog colorDialog = new ColorDialog(template, this, color);
             this.setVisible(false);
             colorDialog.showDialog();
         });

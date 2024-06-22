@@ -12,8 +12,9 @@ import java.util.Vector;
 import static org.nanomodeller.Globals.*;
 
 public class RightMenuPanel extends MyPanel {
-
-    private static final long serialVersionUID = 1L;
+    JProgressBar firstPB = new JProgressBar();
+    JProgressBar secondPB = new JProgressBar();
+    JProgressBar thirdPB = new JProgressBar();
     MyButton countStaticProperties = new MyButton("Count static properties", new ImageIcon(COUNT_LDOS_BUTTON_IMAGE_PATH));
     MyButton countNormalisation = new MyButton("Static normalisation(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
     MyButton showNormalisation = new MyButton("Charge(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
@@ -28,8 +29,6 @@ public class RightMenuPanel extends MyPanel {
     MyButton showLDOSLastTButton = new MyButton("LDOS(T_max)", new ImageIcon(LDOS_LAST_T_IMAGE_PATH));
     MyButton showNormalisationLastTButton = new MyButton("N(T_max)", new ImageIcon(NORMALISATION_LAST_T_IMAGE_PATH));
 
-
-
     public RightMenuPanel(NanoModeler nanoModeler) {
         super("");
         GridBagLayout layout = new GridBagLayout();
@@ -37,35 +36,35 @@ public class RightMenuPanel extends MyPanel {
         showLDOS.setToolTipText("L");
         countStaticProperties.setToolTipText("Ctrl + L");
         GridBagConstraints pointer = new GridBagConstraints();
-        pointer.fill = GridBagConstraints.VERTICAL;
+        pointer.fill = GridBagConstraints.BOTH;
         pointer.weightx = 1;
         pointer.weighty = 1;
         pointer.gridy++;
         pointer.gridy++;
-        add(countStaticProperties, pointer);
-        pointer.gridy++;
-        add(showLDOS, pointer);
-        pointer.gridy++;
-        add(countNormalisation, pointer);
-        pointer.gridy++;
-        add(timeEvolutionButton, pointer);
-        pointer.gridy++;
-        add(showLDOSTimeEvolutionButton, pointer);
-        pointer.gridy++;
-        add(showCurrentTimeEvolutionButton, pointer);
-        pointer.gridy++;
-        add(showAVGDOSTimeEvolutionButton, pointer);
-        pointer.gridy++;
-        add(showTDOSTimeEvolutionButton, pointer);
-        pointer.gridy++;
-        add(showChargeTimeEvolutionButton, pointer);
-        pointer.gridy++;
-        add(showFermiLDOSTimeEvolutionButton, pointer);
-        pointer.gridy++;
-        add(showNormalisation, pointer);
-        pointer.gridy++;
-        add(showLDOSLastTButton, pointer);
-        pointer.gridy++;
+        put(firstPB, pointer);
+        firstPB.setStringPainted(true);
+        secondPB.setStringPainted(true);
+        firstPB.setForeground(new Color(0x109613));
+        secondPB.setForeground(Color.BLUE);
+        thirdPB.setForeground(new Color(0x0000A4));
+        firstPB.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        secondPB.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        thirdPB.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        thirdPB.setStringPainted(true);
+        put(secondPB, pointer);
+        put(thirdPB, pointer);
+        put(countStaticProperties, pointer);
+        put(showLDOS, pointer);
+        put(countNormalisation, pointer);
+        put(timeEvolutionButton, pointer);
+        put(showLDOSTimeEvolutionButton, pointer);
+        put(showCurrentTimeEvolutionButton, pointer);
+        put(showAVGDOSTimeEvolutionButton, pointer);
+        put(showTDOSTimeEvolutionButton, pointer);
+        put(showChargeTimeEvolutionButton, pointer);
+        put(showFermiLDOSTimeEvolutionButton, pointer);
+        put(showNormalisation, pointer);
+        put(showLDOSLastTButton, pointer);
         add(showNormalisationLastTButton, pointer);
 
         showLDOSLastTButton.addActionListener(e -> nanoModeler.showLastT(LDOS_FILE_NAME_PATTERN));
@@ -99,56 +98,23 @@ public class RightMenuPanel extends MyPanel {
         showNormalisation.addActionListener(evt -> nanoModeler.showChargeTimeEvolution());
         countNormalisation.addActionListener(evt -> nanoModeler.showNormalisation());
     }
-
-    public MyButton getCountStaticProperties() {
-        return countStaticProperties;
+    public void put(JComponent c, GridBagConstraints pointer){
+        add(c, pointer);
+        pointer.gridy++;
     }
-
-    public MyButton getCountNormalisation() {
-        return countNormalisation;
-    }
-
-    public MyButton getShowNormalisation() {
-        return showNormalisation;
-    }
-
-    public MyButton getShowLDOS() {
-        return showLDOS;
-    }
-
     public MyButton getTimeEvolutionButton() {
         return timeEvolutionButton;
     }
 
-    public MyButton getShowLDOSTimeEvolutionButton() {
-        return showLDOSTimeEvolutionButton;
+    public JProgressBar getFirstPB() {
+        return firstPB;
     }
 
-    public MyButton getShowCurrentTimeEvolutionButton() {
-        return showCurrentTimeEvolutionButton;
+    public JProgressBar getSecondPB() {
+        return secondPB;
     }
 
-    public MyButton getShowTDOSTimeEvolutionButton() {
-        return showTDOSTimeEvolutionButton;
-    }
-
-    public MyButton getShowAVGDOSTimeEvolutionButton() {
-        return showAVGDOSTimeEvolutionButton;
-    }
-
-    public MyButton getShowChargeTimeEvolutionButton() {
-        return showChargeTimeEvolutionButton;
-    }
-
-    public MyButton getShowFermiLDOSTimeEvolutionButton() {
-        return showFermiLDOSTimeEvolutionButton;
-    }
-
-    public MyButton getShowLDOSLastTButton() {
-        return showLDOSLastTButton;
-    }
-
-    public MyButton getShowNormalisationLastTButton() {
-        return showNormalisationLastTButton;
+    public JProgressBar getThirdPB() {
+        return thirdPB;
     }
 }

@@ -168,8 +168,6 @@ public class NanoModeler extends JFrame {
             if (time != null){
                 time.setText(p.getTime());
             }
-            this.setSurfaceCoupling(p.getSurfaceCoupling());
-            this.setkFa(p.getkFa());
             for (Atom atom : p.getAtoms()){
                 atoms.put(atom.getID(),atom);
             }
@@ -182,9 +180,11 @@ public class NanoModeler extends JFrame {
     }
     public void countStaticProperties() {
         saveData();
-        StaticProperties.countStaticProperties(getCurrentDataPath());
-        ToastMessage toastMessage = new ToastMessage("LDOS counting finished ", TOAST_MESSAGE_DURATION, this);
-        toastMessage.setVisible(true);
+        new Thread(() -> {
+            StaticProperties.countStaticProperties();
+            ToastMessage toastMessage = new ToastMessage("LDOS counting finished ", TOAST_MESSAGE_DURATION, this);
+            toastMessage.setVisible(true);
+        }).start();
     }
     public void showNormalisation() {
         runGnuplotThread(SNORM_FILE_NAME_PATTERN, false, true);
@@ -483,8 +483,6 @@ public class NanoModeler extends JFrame {
     public Parameters mapParameters(){
         Parameters p = Parameters.getInstance();
         p.setTime(time);
-        p.setSurfaceCoupling(getSurfaceCoupling());
-        p.setkFa(getkFa());
         p.getAtoms().clear();
         p.getElectrodes().clear();
         getAtoms().values().stream().forEach(atom -> p.addAtom(atom));
@@ -718,18 +716,6 @@ public class NanoModeler extends JFrame {
     public void setDynamicCalculationsThread(Thread dynamicCalculationsThread) {
         this.dynamicCalculationsThread = dynamicCalculationsThread;
     }
-    public String getSurfaceCoupling() {
-        return Parameters.getInstance().getSurfaceCoupling();
-    }
-    public void setSurfaceCoupling(String surfaceCoupling) {
-        Parameters.getInstance().setSurfaceCoupling(surfaceCoupling);
-    }
-    public String getkFa() {
-        return Parameters.getInstance().getkFa();
-    }
-    public void setkFa(String kFa) {
-        Parameters.getInstance().setkFa(kFa);
-    }
     public String getbColor() {
         return  GlobalProperties.getInstance().getColor();
     }
@@ -957,28 +943,31 @@ public class NanoModeler extends JFrame {
         getPaintSurface().repaint();
     }
     public void showPropertiesTextArea(){
-        Element element = null;
+        XMLTemplate structureElement = null;
         Optional<Atom> selectedAtom = getSelectedAtoms().values().stream().findFirst();
         if (selectedAtom.isPresent()){
-            element = selectedAtom.get();
+            structureElement = selectedAtom.get();
         }
-        if (element == null){
+        if (structureElement == null){
             Optional<Electrode> electrode = getSelectedElectrodes().values().stream().findFirst();
             if (electrode.isPresent()){
-                element = electrode.get();
+                structureElement = electrode.get();
             }
         }
-        if (element == null){
+        if (structureElement == null){
             Optional<Bond> bond = getSelectedBonds().stream().findFirst();
             if (bond.isPresent()){
-                element = bond.get();
+                structureElement = bond.get();
             }
         }
-        if (element == null){
+        if (structureElement == null){
+            XMLTemplate surface = Parameters.getInstance().getSurface();
+            String data = XMLHelper.convertObjectToXMLString(surface);
+            showElementPropertiesTextArea(surface, data);
 
         }else {
-            String data = XMLHelper.convertObjectToXMLString(element);
-            showElementPropertiesTextArea(element, data);
+            String data = XMLHelper.convertObjectToXMLString(structureElement);
+            showElementPropertiesTextArea((StructureElement) structureElement, data);
         }
 
     }
@@ -1001,12 +990,18 @@ public class NanoModeler extends JFrame {
         }
         return null;
     }
-    public static void showElementPropertiesTextArea(Element element, String text){
+    public static void showElementPropertiesTextArea(StructureElement structureElement, String text){
         String formattedText = text.substring(text.indexOf("\n") + 1);
         formattedText = formattedText.replaceAll("<x>.*?</x>\n", "").replaceAll("<y>.*?</y>\n", "");
         formattedText = formattedText.replaceAll("        </Atom>", "</Atom>");
         formattedText = formattedText.replaceAll("        </Electrode>", "</Electrode>");
-        ElementPropertiesDialog elementPropertiesDialog = new ElementPropertiesDialog(element, formattedText);
+        ElementPropertiesDialog elementPropertiesDialog = new ElementPropertiesDialog(structureElement, formattedText);
+        elementPropertiesDialog.setVisible(true);
+    }
+
+    public static void showElementPropertiesTextArea(XMLTemplate template, String text){
+        String formattedText = text.substring(text.indexOf("\n") + 1);
+        ElementPropertiesDialog elementPropertiesDialog = new ElementPropertiesDialog(template, formattedText);
         elementPropertiesDialog.setVisible(true);
     }
 }

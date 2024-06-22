@@ -15,7 +15,7 @@ public class Row {
     public int getI() {return i;}
     public void setI(int i) {this.i = i;}
 
-    @XmlElements(@XmlElement(name="Element"))
+    @XmlElements(@XmlElement(name="StructureElement"))
     public ArrayList<RowElement> getElements() {return elements;}
     public void setElements(ArrayList<RowElement> elements){
         this.elements = elements;

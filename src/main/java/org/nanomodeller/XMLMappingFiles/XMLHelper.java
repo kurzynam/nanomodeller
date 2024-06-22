@@ -35,9 +35,7 @@ public class XMLHelper {
         Parameters properties = null;
         if (file.exists()) {
             try {
-                JAXBContext jaxbContext =
-
-                        JAXBContext.newInstance(Parameters.class);
+                JAXBContext jaxbContext = JAXBContext.newInstance(Parameters.class);
                 Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
                 properties = (Parameters) jaxbUnmarshaller.unmarshal(file);
             } catch (Exception ex) {
@@ -92,7 +90,7 @@ public class XMLHelper {
         return null;
     }
 
-    public static Element convertXMLStringToElement(String xml, Class elementType){
+    public static XMLTemplate convertXMLStringToElement(String xml, Class elementType){
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(elementType);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -103,6 +101,8 @@ public class XMLHelper {
                 return (Bond) unmarshaller.unmarshal(reader);
             } else if (elementType.equals(Electrode.class)) {
                 return (Electrode) unmarshaller.unmarshal(reader);
+            } else if (elementType.equals(Surface.class)) {
+                return (Surface) unmarshaller.unmarshal(reader);
             }
         } catch (Exception e) {
             e.printStackTrace();

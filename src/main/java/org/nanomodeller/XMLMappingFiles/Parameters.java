@@ -1,14 +1,12 @@
 package org.nanomodeller.XMLMappingFiles;
 
 import jakarta.xml.bind.annotation.XmlAttribute;
-import org.nanomodeller.Tools.StringUtils;
 
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @XmlRootElement(name="Parameters")
 public class Parameters {
@@ -28,37 +26,15 @@ public class Parameters {
 
     private String id;
     private String time;
-    private String kFa;
-    private String Number;
     private int GridSize;
     private String name;
-    private String electrodesEmin;
-    private String electrodesEmax;
-    private String surfaceCoupling;
     private String path;
     private ArrayList<Bond> bonds = new ArrayList<Bond>();
     private ArrayList<Atom> atoms = new ArrayList<Atom>();
     private ArrayList<Electrode> electrodes = new ArrayList<Electrode>();
 
-    public void addBound(Bond bond) {
-        int count = -1;
-        for (Bond other : bonds){
-            count++;
-            if (bond.getFirst() > other.getFirst()){}
-            else if (bond.getFirst() == other.getFirst()){
-                if (bond.getSecond() <= other.getSecond()){
-                    this.bonds.add(count, bond);
-                    return;
-                }
-            }
-            else {
-                this.bonds.add(count, bond);
-                return;
-            }
-        }
-        bonds.add(bond);
+    private Surface surface;
 
-    }
     public void addAtom(Atom atom) {
         this.atoms.add(atom);
     }
@@ -103,36 +79,25 @@ public class Parameters {
     public void setPath(String path) {
         this.path = path;
     }
+
+    @XmlElement(name="Surface")
+    public Surface getSurface() {
+        if (surface == null){
+            surface = new Surface();
+        }
+        return surface;
+    }
+
+    public void setSurface(Surface surface) {
+        this.surface = surface;
+    }
+
     @XmlAttribute(name="time")
     public String getTime() {
         return time;
     }
     public void setTime(String time) {
         this.time = time;
-    }
-
-    @XmlAttribute(name="gammaSur")
-    public String getSurfaceCoupling() {
-        return surfaceCoupling;
-    }
-    public void setSurfaceCoupling(String surfaceCoupling) {
-        this.surfaceCoupling = surfaceCoupling;
-    }
-
-    @XmlAttribute(name="kFa")
-    public String getkFa() {
-        return kFa;
-    }
-    public void setkFa(String kFa) {
-        this.kFa = kFa;
-    }
-
-    @XmlAttribute(name="number")
-    public String getNumber() {
-        return Number;
-    }
-    public void setNumber(String number) {
-        Number = number;
     }
 
     @XmlAttribute(name="grid_size")
@@ -155,22 +120,6 @@ public class Parameters {
         this.name = name;
     }
 
-    @XmlAttribute(name="electrode_emin")
-    public String getElectrodesEmin() {
-        return electrodesEmin;
-    }
-    public void setElectrodesEmin(String electrodesEmin) {
-        this.electrodesEmin = electrodesEmin;
-    }
-
-    @XmlAttribute(name="electrode_emax")
-    public String getElectrodesEmax() {
-        return electrodesEmax;
-    }
-    public void setElectrodesEmax(String electrodesEmax) {
-        this.electrodesEmax = electrodesEmax;
-    }
-
     public boolean areBond(int a1, int a2){
         for(Bond b : bonds){
             if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst()== a2 && b.getSecond() == a1){
@@ -189,18 +138,6 @@ public class Parameters {
         }
         return false;
     }
-
-    public Bond getBond(Atom atom1, Atom atom2){
-        int a1 = atom1.getID();
-        int a2 = atom2.getID();
-        for(Bond b : bonds){
-            if(b.getFirst() == a1 && b.getSecond() == a2 || b.getFirst() == a2 && b.getSecond() == a1){
-                return b;
-            }
-        }
-        return null;
-    }
-
     public Bond getBond(int a1, int a2){
         int first = a1 < a2 ? a1 : a2;
         int second = a2 < a1 ? a1 : a2;
@@ -213,33 +150,7 @@ public class Parameters {
     }
 
     public boolean isSurfacePresent(){
-        return StringUtils.isNotEmpty(surfaceCoupling) && getDoubleSurfaceCoupling() > 0
-                && StringUtils.isNotEmpty(kFa) && getDoubleKFa() > 0;
-    }
-    public int getIntNum(){
-        return Integer.parseInt(getNumber());
-    }
-    public double getDoubleTime(){
-        return Double.parseDouble(getTime());
-    }
-    public double getDoubleKFa(){
-        return Double.parseDouble(getkFa());
-    }
-    public double getDoubleSurfaceCoupling(){
-        return Double.parseDouble(getSurfaceCoupling());
+        return surface != null && surface.properties != null && !surface.properties.isEmpty();
     }
 
-    public ArrayList<Bond> getBoundsByAtomID(int id) {
-        ArrayList<Bond> bonds = new ArrayList<>();
-        for(Bond b : bonds){
-            if(b.getFirst() == id || b.getSecond() == id){
-                bonds.add(b);
-            }
-        }
-        return bonds;
-    }
-
-    public ArrayList<Bond> getBondsOfAtom(int i){
-        return (ArrayList<Bond>) getBonds().stream().filter(b -> b.getFirst() == i || b.getSecond() == i).collect(Collectors.toList());
-    }
 }

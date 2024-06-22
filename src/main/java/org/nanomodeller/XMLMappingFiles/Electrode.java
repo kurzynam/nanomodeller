@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 @XmlRootElement(name="Electrode")
-public class Electrode extends Element {
+public class Electrode extends StructureElement {
     private int atomIndex;
     private int ID;
     private Integer X;

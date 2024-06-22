@@ -3,8 +3,7 @@ package org.nanomodeller.Calculation;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import org.nanomodeller.XMLMappingFiles.Bond;
-import org.nanomodeller.XMLMappingFiles.Element;
+import org.nanomodeller.XMLMappingFiles.StructureElement;
 import org.nfunk.jep.JEP;
 
 import java.util.HashMap;
@@ -36,12 +35,12 @@ public class CalculationItem {
 
     public static void applyTimeForItemsCalculation(JEP parser, ArrayList<?> elements, Hashtable items) {
         for (int i = 0; i < elements.size(); i++){
-            Element element = (Element)elements.get(i);
-            for (Object key : element.getProperties().keySet()){
+            StructureElement structureElement = (StructureElement)elements.get(i);
+            for (Object key : structureElement.getProperties().keySet()){
                 if (((CalculationItem)items.get(i)).isSkip(key.toString())){
                     continue;
                 }
-                parser.parseExpression(element.getString(key.toString()));
+                parser.parseExpression(structureElement.getString(key.toString()));
                 double val = parser.getValue();
                 ((CalculationItem)items.get(i)).setProperty(key.toString(), val);
             }

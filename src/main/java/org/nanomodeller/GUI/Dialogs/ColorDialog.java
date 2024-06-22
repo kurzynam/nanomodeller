@@ -5,7 +5,8 @@ import org.nanomodeller.GUI.ViewComponents.MyButton;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.Bond;
-import org.nanomodeller.XMLMappingFiles.Element;
+import org.nanomodeller.XMLMappingFiles.StructureElement;
+import org.nanomodeller.XMLMappingFiles.XMLTemplate;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +18,7 @@ public class ColorDialog extends JDialog {
 
     Color originalColor;
 
-    Element element;
+    XMLTemplate structureElement;
     JPanel contentPane = new JPanel();
     JPanel colorPane = new ColorPicker();
 
@@ -28,9 +29,9 @@ public class ColorDialog extends JDialog {
     JButton okButton = new MyButton("OK");
     JButton cancelButton = new MyButton("Cancel");
 
-    public ColorDialog (Element element, ElementPropertiesDialog parent, String rgb){
+    public ColorDialog (XMLTemplate structureElement, ElementPropertiesDialog parent, String rgb){
         this.parent = parent;
-        this.element = element;
+        this.structureElement = structureElement;
         initialize(rgb);
     }
     private void initialize(String rgb) {
@@ -59,9 +60,9 @@ public class ColorDialog extends JDialog {
                         parent.getEditorPane().setText(repl);
                     }else{
                         String toReplace;
-                        if (element instanceof Atom){
+                        if (structureElement instanceof Atom){
                             toReplace = "<Atom>";
-                        }else if (element instanceof Bond){
+                        }else if (structureElement instanceof Bond){
                             toReplace = "<Bond>";
                         }
                         else {
@@ -86,7 +87,7 @@ public class ColorDialog extends JDialog {
         restoreButton.addActionListener(e -> ((ColorPicker) colorPane).setColor(originalColor));
     }
 
-    private static String convertColorToString(Color color) {
+    public static String convertColorToString(Color color) {
         return String.format("%d,%d,%d", color.getRed(), color.getGreen(), color.getBlue());
     }
 

@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 @XmlRootElement(name="Bond")
-public class Bond extends Element{
+public class Bond extends StructureElement {
     private int first;
     private int second;
 

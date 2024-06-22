@@ -14,21 +14,17 @@ import static org.nanomodeller.Globals.XML_FILE_PATH;
 
 
 public class MyFileWriter {
-    BufferedWriter pw = null;
+    PrintWriter pw = null;
     public MyFileWriter(String filePath){
         try {
             createFileIfNotExists(filePath);
-            pw = new BufferedWriter(new FileWriter(filePath));
+            pw = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
         }catch (Exception e){
             e.printStackTrace();
         }
     }
     public void printf(String format, Object... args){
-        try {
-            pw.write(String.format(format, args));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        pw.write(String.format(format, args));
     }
     public void printcsv(String... args){
         String res = "";
@@ -40,21 +36,13 @@ public class MyFileWriter {
         printf(res);
     }
     public void println(String text){
-        try {
-            pw.write(text + "\n");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        pw.write(text + "\n");
     }
     public void println(){
         println("");
     }
     public void close(){
-        try {
-            pw.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        pw.close();
     }
 
     public static void createFileIfNotExists(String path){

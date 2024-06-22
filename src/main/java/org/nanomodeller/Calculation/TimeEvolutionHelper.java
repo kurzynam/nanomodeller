@@ -240,11 +240,6 @@ public class TimeEvolutionHelper {
             ldosEList.println();
             ldosList.println();
         }
-        modeler.getTimeEvolutionButton().setImageIcon(new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
-        modeler.getTimeEvolutionButton().setText("Count time evolution");
-        Instant ends = Instant.now();
-        System.out.println("########");
-        System.out.println("Execution time: " + Duration.between(starts, ends));
         ldosList.close();
         chargeList.close();
         currentList.close();
@@ -290,7 +285,7 @@ public class TimeEvolutionHelper {
     public void readData(String paramID, boolean initializeMatrices){
         this.par = Parameters.getInstance();
         this.numOfElectrodes = par.getElectrodes().size();
-        this.numOfAtoms = Integer.parseInt(par.getNumber());
+        this.numOfAtoms = par.getAtoms().size();
         this.timeDigits = (gp.getDt() + "").length() - (gp.getDt() + "").indexOf('.') - 1;
         this.numOfTimeSteps = (int)(Double.parseDouble(par.getTime())/gp.getDt());
         this.Emin = gp.getDoubleEmin();

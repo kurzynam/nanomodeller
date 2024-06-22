@@ -6,6 +6,7 @@ import static org.nanomodeller.CommonPhysics.density;
 import static org.nanomodeller.CommonPhysics.sigma;
 import static org.nanomodeller.CommonPhysics.toEnergyStep;
 
+import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.XMLMappingFiles.Atom;
@@ -18,13 +19,14 @@ import org.jscience.mathematics.vector.ComplexMatrix;
 public class StaticProperties {
 
 
-    public static void countStaticProperties(String stepName){
+    public static void countStaticProperties(){
 
         GlobalProperties gp = GlobalProperties.getInstance();
         Parameters par = Parameters.getInstance();
         MyFileWriter ldosWriter = new MyFileWriter(par.getPath() + "/" + Globals.STATIC_LDOS_FILE_NAME_PATTERN);
         MyFileWriter normalisationWriter = new MyFileWriter(par.getPath() + "/" +Globals.STATIC_NORMALISATION_FILE_NAME_PATTERN);
         Matrix matrix = Matrix.readMatrixFromDataFile(par);
+        NanoModeler nm = NanoModeler.getInstance();
         Complex[] sigma1 = null;
         Complex[] sigma2 = null;
         Complex[] sigma3 = null;
@@ -65,6 +67,12 @@ public class StaticProperties {
         for (int n = 0; n < 1; n++) {
             matrix.getParser().addVariable("n", n);
             for (double tempE = Emin; tempE < Emax; tempE += dE) {
+                int percentage = (int) (100 * (tempE - Emin)/(Emax - Emin));
+                if (percentage % 5 == 0){
+                    nm.getMenu().getFirstPB().setValue(percentage);
+                    nm.getMenu().getFirstPB().setString("E: " + percentage + "%");
+                }
+
                 String results = "";
                 String normalisation = "";
                 matrix.getParser().addVariable("E", tempE);
@@ -90,6 +98,8 @@ public class StaticProperties {
                 }
                 ldosWriter.println(n +"," + tempE + "," + results);
             }
+            nm.getMenu().getFirstPB().setString("0%");
+            nm.getMenu().getFirstPB().setValue(0);
             ldosWriter.println();
             normalisationWriter.println();
         }

@@ -3,7 +3,7 @@ package org.nanomodeller.XMLMappingFiles;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="Element")
+@XmlRootElement(name="StructureElement")
 public class RowElement{
     private int j;
     private String realValue;

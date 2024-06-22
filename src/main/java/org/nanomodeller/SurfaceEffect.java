@@ -13,11 +13,11 @@ public class SurfaceEffect {
         double distance = Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2));
         double result = 0;
         if (par.isSurfacePresent() ){
-            result = (par.getDoubleSurfaceCoupling() *
-                    Math.sin(par.getDoubleKFa() * distance))/
-                    (par.getDoubleKFa() * distance);
+            result = (par.getSurface().getDouble("Coupling") *
+                    Math.sin(par.getSurface().getDouble("kFa") * distance))/
+                    (par.getSurface().getDouble("kFa") * distance);
             if (Double.isNaN(result)){
-                return par.getDoubleSurfaceCoupling();
+                return par.getSurface().getDouble("Coupling");
             }
         }
         return result;

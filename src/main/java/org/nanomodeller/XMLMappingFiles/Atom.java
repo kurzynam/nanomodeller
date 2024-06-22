@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.Hashtable;
 
 @XmlRootElement(name="Atom")
-public class Atom extends Element implements Comparable<Atom>{
+public class Atom extends StructureElement implements Comparable<Atom>{
 
     private int ID;
 
