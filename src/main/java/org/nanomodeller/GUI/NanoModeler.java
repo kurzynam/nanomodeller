@@ -132,7 +132,7 @@ public class NanoModeler extends JFrame {
         inst.setIconImage(img);
         inst.setMenu(new RightMenuPanel(this));
         inst.setStepRecorder(new LeftMenuPanel());
-        inst.readDataFromObject(null);
+        inst.readDataFromObject();
         inst.getStepRecorder().setPreferredSize(new Dimension((int)inst.screenWidth/2, (int)inst.screenHeight/2));
         inst.setTitle(APP_NAME);
         resizeImages(Parameters.getInstance().getGridSize());
@@ -157,17 +157,10 @@ public class NanoModeler extends JFrame {
         inst.setJMenuBar(new Menu(inst));
         inst.setVisible(true);
     }
-    public void readDataFromObject(MyTextField time){
+    public void readDataFromObject(){
         Parameters p = Parameters.getInstance();
-        GlobalProperties gp = GlobalProperties.getInstance();
-        setbColor(gp.getColor());
-        this.setDt(gp.getDt() + "");
-        this.setEnergyRange(gp.getEnergyRange());
         if (StringUtils.isNotEmpty(p.getPath())) {
             setGridSize(p.getGridSize());
-            if (time != null){
-                time.setText(p.getTime());
-            }
             for (Atom atom : p.getAtoms()){
                 atoms.put(atom.getID(),atom);
             }
@@ -186,8 +179,8 @@ public class NanoModeler extends JFrame {
             toastMessage.setVisible(true);
         }).start();
     }
-    public void showNormalisation() {
-        runGnuplotThread(SNORM_FILE_NAME_PATTERN, false, true);
+    public void showCharge() {
+        runGnuplotThread(SNORM_FILE_NAME_PATTERN);
     }
 
 //    private void showCharge() {
@@ -209,22 +202,10 @@ public class NanoModeler extends JFrame {
 //
 //        }
 //    }
-
-    private void runGnuplotThread(String filePattern, boolean is3D){
-        runGnuplotThread(filePattern, is3D, false);
-    }
-    private void runGnuplotThread(String filePattern, boolean is3D, boolean isStatic){
-        GlobalProperties gp;
-        gp = GlobalProperties.getInstance();
-        boolean isMultiplot = Globals.MULTIPLOT.equals(gp.getMultiplotStyle());
-        if (false/*is3D && !isMultiplot*/) {
-            runGnuplotThreads(filePattern,is3D, isStatic);
-        }
-        else{
-            Runnable myRunnable = () -> showPlot(filePattern, is3D, isMultiplot);
-            Thread t = new Thread(myRunnable);
-            t.start();
-        }
+    private void runGnuplotThread(String filePattern){
+        Runnable myRunnable = () -> showPlot(filePattern);
+        Thread t = new Thread(myRunnable);
+        t.start();
     }
 
     private void runGnuplotThreads(String filePattern, boolean is3D, boolean isStatic){
@@ -277,57 +258,71 @@ public class NanoModeler extends JFrame {
         plot.plot();
     }
 
-    private void showPlot(String filePattern, boolean is3D, boolean isMultiplot){
+    private void showPlot(String filePattern){
+        PlotOptions opt = GlobalProperties.getInstance().getPlotOptions();
+        JGnuPlot jgp = new JGnuPlot(opt.isIs3D());
+        String filePath = String.format("%s\\%s.csv", Parameters.getInstance().getPath(), filePattern);
+        jgp.addPlotCommand(filePath, getSelectedAtoms());
 
-        if (getSelectedAtoms() != null && !getSelectedAtoms().isEmpty()) {
-            TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
-            ArrayList<String> selectedSteps = new ArrayList<>();
-            DefaultMutableTreeNode lastPathComponent = (DefaultMutableTreeNode) selectedFilesPATHS[0].getLastPathComponent();
-            FileBrowser.FileNode fn = (FileBrowser.FileNode)(lastPathComponent.getUserObject());
-            String paths;
-            boolean isHidden = fn.isHidden();
-            boolean hasSteps = (new File(fn.getAbsolutePath()).listFiles(File::isDirectory)).length > 0;
 
-            if (isHidden) {
-                for (TreePath path : selectedFilesPATHS) {
-                    selectedSteps.add(path.getLastPathComponent().toString());
-                }
-                paths = fn.getParent();
-            }
-            else {
-                paths = fn.getPath();
-            }
-            paths += String.format("%s.csv", "/" + filePattern);
-            JGnuPlot jgp = new JGnuPlot(is3D);
-            jgp.setSamples(1000);
-            jgp.readXMLGraphProperties();
-//            if(isCSLDOS){
-//                createCrossSectionPlot(selectedSteps, paths, jgp, isMultiplot, isHidden);
-//            }else {
-                if (is3D) {
-                    jgp.setMultiplotStyle();
-                    jgp.addSplotCommand(paths, getSelectedAtoms(), selectedSteps);
-                }
-                else {
-//                    if (isHidden || !hasSteps){
-//                        if (isMultiplot)
-//                            jgp.addPlotCommandMultiplot(paths, getSelectedAtoms(), selectedSteps, "");
-//                        else
-                            jgp.addPlotCommandForSelectedAtoms(paths, getSelectedAtoms(), "E", "LDOS");
-//                    }
-//                    else{
-//                        if (isMultiplot)
-//                            jgp.add2DSplotCommandMultiplot(paths, getSelectedAtoms(), "");
-//                        else
-//                            jgp.add2DSplotCommand(paths, getSelectedAtoms(), "");
+//        if (getSelectedAtoms() != null && !getSelectedAtoms().isEmpty()) {
+//            TreePath[] selectedFilesPATHS = leftMenuPanel.fileBrowser.getTree().getSelectionPaths();
+//            ArrayList<String> selectedSteps = new ArrayList<>();
+//            DefaultMutableTreeNode lastPathComponent = (DefaultMutableTreeNode) selectedFilesPATHS[0].getLastPathComponent();
+//            FileBrowser.FileNode fn = (FileBrowser.FileNode)(lastPathComponent.getUserObject());
+//            String paths;
+//            boolean isHidden = fn.isHidden();
+//            boolean hasSteps = (new File(fn.getAbsolutePath()).listFiles(File::isDirectory)).length > 0;
 //
-//                    }
-                }
+//            if (isHidden) {
+//                for (TreePath path : selectedFilesPATHS) {
+//                    selectedSteps.add(path.getLastPathComponent().toString());
+//                }
+//                paths = fn.getParent();
 //            }
-            jgp.pause(1000);
-            jgp.plot();
-        }
+//            else {
+//                paths = fn.getPath();
+//            }
+//            paths += String.format("%s.csv", "/" + filePattern);
+//            JGnuPlot jgp = new JGnuPlot(is3D);
+//            jgp.setSamples(1000);
+//            jgp.readXMLGraphProperties();
+////            if(isCSLDOS){
+////                createCrossSectionPlot(selectedSteps, paths, jgp, isMultiplot, isHidden);
+////            }else {
+//                if (is3D) {
+//                    jgp.setMultiplotStyle();
+//                    jgp.addSplotCommand(paths, getSelectedAtoms(), selectedSteps);
+//                }
+//                else {
+////                    if (isHidden || !hasSteps){
+////                        if (isMultiplot)
+////                            jgp.addPlotCommandMultiplot(paths, getSelectedAtoms(), selectedSteps, "");
+////                        else
+//                            jgp.addPlotCommandForSelectedAtoms(paths, getSelectedAtoms(), "E", "LDOS");
+////                    }
+////                    else{
+////                        if (isMultiplot)
+////                            jgp.add2DSplotCommandMultiplot(paths, getSelectedAtoms(), "");
+////                        else
+////                            jgp.add2DSplotCommand(paths, getSelectedAtoms(), "");
+////
+////                    }
+//                }
+////            }
+        jgp.pause(1000);
+        jgp.plot();
     }
+
+    private void showSplot(String filePattern){
+        PlotOptions opt = GlobalProperties.getInstance().getPlotOptions();
+        JGnuPlot jgp = new JGnuPlot(opt.isIs3D());
+        String filePath = String.format("%s\\%s.csv", Parameters.getInstance().getPath(), filePattern);
+        jgp.addSplotCommand(filePath, getSelectedAtoms());
+        jgp.pause(1000);
+        jgp.plot();
+    }
+
 
     private void createCrossSectionPlot(ArrayList<String> selectedSteps, String paths, JGnuPlot jgp, boolean isMultiplot, boolean isHidden) {
         File myObj = new File(paths);
@@ -338,7 +333,7 @@ public class NanoModeler extends JFrame {
             e.printStackTrace();
         }
         int counter = 0;
-        double limit = Double.parseDouble(jgp.getProperties().getCrossSectionEnergy());
+        double limit = jgp.getProperties().getDouble("crossectionEnergy");
         double prevDiff = 9999;
         myReader.nextLine();
 //        int linesToSkip = 0;
@@ -379,19 +374,19 @@ public class NanoModeler extends JFrame {
     }
 
     public void showLDOSTimeEvolution() {
-        runGnuplotThread(LDOS_FILE_NAME_PATTERN, true);
+        runGnuplotThread(LDOS_FILE_NAME_PATTERN);
     }
     public void showNormalisationTimeEvolution() {
-        runGnuplotThread(NORMALISATION_FILE_NAME_PATTERN, true);
+        runGnuplotThread(NORMALISATION_FILE_NAME_PATTERN);
     }
     public void showChargeTimeEvolution() {
-        runGnuplotThread(CHARGE_FILE_NAME_PATTERN, false);
+        runGnuplotThread(CHARGE_FILE_NAME_PATTERN);
     }
     public void showCurrentTimeEvolution() {
-        runGnuplotThread(CURRENT_FILE_NAME_PATTERN, false);
+        runGnuplotThread(CURRENT_FILE_NAME_PATTERN);
     }
     public void showFermiLDOSTimeEvolution() {
-        runGnuplotThread(LDOS_E_FILE_NAME_PATTERN, false);
+        runGnuplotThread(LDOS_E_FILE_NAME_PATTERN);
     }
 
     public void showLastT(String filePattern) {
@@ -403,7 +398,7 @@ public class NanoModeler extends JFrame {
     }
 
     public void showLDOS() {
-        runGnuplotThread(SLDOS_FILE_NAME_PATTERN, false, true);
+        runGnuplotThread(SLDOS_FILE_NAME_PATTERN);
     }
     public void clearAll() {
         getAtoms().clear();
@@ -433,7 +428,6 @@ public class NanoModeler extends JFrame {
         }
         getBonds().stream().filter(bond -> bond.getFirst() < 0).forEach(bond -> bond.setFirst(-bond.getFirst() - 1));
         getBonds().stream().filter(bond -> bond.getSecond() < 0).forEach(bond -> bond.setSecond(-bond.getSecond() - 1));
-
     }
     public void delete() {
         for (Atom s : getSelectedAtoms().values()) {
@@ -447,24 +441,28 @@ public class NanoModeler extends JFrame {
             }
         }
         for (Electrode electrode : getSelectedElectrodes().values()) {
-            getElectrodes().remove(electrode);
+            removeElectrode(electrode);
         }
         recalculateIDS();
         getPaintSurface().repaint();
     }
-
     private void removeAtom(Atom s) {
         if (s != null) {
             int id = s.getID();
             atoms.remove(id);
         }
     }
-
+    private void removeElectrode(Electrode s) {
+        if (s != null) {
+            int id = s.getID();
+            electrodes.remove(id);
+        }
+    }
 
     public void refresh() {
         clearAll();
         readPropertiesFromXMLFile(Parameters.getInstance().getPath() + "/parameters.xml");
-        readDataFromObject(NanoModeler.getInstance().getStepRecorder().timeTextField);
+        readDataFromObject();
         getPaintSurface().repaint();
     }
 
@@ -482,75 +480,11 @@ public class NanoModeler extends JFrame {
     }
     public Parameters mapParameters(){
         Parameters p = Parameters.getInstance();
-        p.setTime(time);
         p.getAtoms().clear();
         p.getElectrodes().clear();
         getAtoms().values().stream().forEach(atom -> p.addAtom(atom));
         getElectrodes().values().stream().forEach(electrode -> p.addElectrode(electrode));
         return p;
-    }
-    public GlobalProperties mapGlobalPropertiesObject(String time, String path, boolean active){
-        GlobalProperties gp;
-        gp = GlobalProperties.getInstance();
-      //  readPropertiesFromXMLFile(getCurrentPath());
-
-
-//        Parameters p = gp.getParamByName(path);
-//        if (p == null){
-//            p = new Parameters();
-//            p.setName(path);
-//            gp.addParameters(p);
-//        }
-//        p.setId("0");
-//        p.setTime(time);
-//        p.setActive(active);
-        gp.setEnergyRange(getEnergyRange());
-        gp.setDt(Double.parseDouble(getDt()));
-        gp.setColor(getbColor());
-//        p.setSurfaceCoupling(getSurfaceCoupling());
-//        p.setkFa(getkFa());
-//        p.setNumber("" + getShapes().size());
-//        p.setGridSize(getGridSize() + "");
-//        p.getAtoms().clear();
-//        int ii = 0;
-//        Collections.sort(getShapes());
-//        for (Atom s : getShapes()) {
-//            s.getAtom().setX(s.getBounds().x/(1.0 * getGridSize())+"");
-//            s.getAtom().setY(s.getBounds().y/(1.0 * getGridSize())+ "");
-//            p.addAtom(s.getAtom());
-//            s.setID(ii++);
-//        }
-//        p.getElectrodes().clear();
-//        ListIterator iter = getElectrodes().listIterator();
-//        while (iter.hasNext()){
-//            Electrode electrode = (Electrode)iter.next();
-//            Electrode electrodeToSave = electrode.getElectrode();
-//            electrodeToSave.setX("" + electrode.getRectangle().getBounds().x/(getGridSize() * 1.0));
-//            electrodeToSave.setY("" + electrode.getRectangle().getBounds().y/(getGridSize() * 1.0));
-//            if (electrode.getLine() != null){
-//                electrodeToSave.setAtomIndex(electrode.getAtom().getID());
-//            }
-//            else{
-//                electrodeToSave.setAtomIndex(-1);
-//            }
-//            electrodeToSave.setId(iter.nextIndex() - 1);
-//            p.addElectode(electrodeToSave);
-//        }
-//        p.getBounds().clear();
-//        for (Bond bound : bounds) {
-//            bound.updateAtoms();
-//            p.addBound(bound.getBound());
-//        }
-//        if (getList() != null){
-//           // ArrayList<Parameters> paramsCopy = new ArrayList<Parameters>();
-////            for(int i = 0; i< getListModel().getSize(); i++){
-////                Parameters param = gp.getParamByName(getList().getModel().getElementAt(i).toString());
-////                param.setId((i+1) + "");
-////                paramsCopy.add(param);
-////            }
-//           // gp.setParameters();
-//        }
-        return gp;
     }
 
     public void saveData() {
@@ -717,24 +651,10 @@ public class NanoModeler extends JFrame {
         this.dynamicCalculationsThread = dynamicCalculationsThread;
     }
     public String getbColor() {
-        return  GlobalProperties.getInstance().getColor();
+        return  CommonProperties.getInstance().getColor();
     }
     public void setbColor(String bColor) {
-        GlobalProperties.getInstance().setColor(bColor);
-    }
-    public String getDt() {
-        return GlobalProperties.getInstance().getDt() + "";
-    }
-    public void setDt(String dt) {
-        if (StringUtils.isNotEmpty(dt))
-            GlobalProperties.getInstance().setDt(Double.parseDouble(dt));
-    }
-    public String getEnergyRange() {
-        return GlobalProperties.getInstance().getEnergyRange();
-    }
-    public void setEnergyRange(String energyRange) {
-        if (StringUtils.isNotEmpty(energyRange))
-            GlobalProperties.getInstance().setEnergyRange(energyRange);
+        CommonProperties.getInstance().setColor(bColor);
     }
     public double getScreenWidth() {
         return screenWidth;

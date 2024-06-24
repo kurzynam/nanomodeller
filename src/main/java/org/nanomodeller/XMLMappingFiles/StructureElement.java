@@ -1,7 +1,6 @@
 package org.nanomodeller.XMLMappingFiles;
 
 import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlElements;
 import org.nanomodeller.Calculation.CalculationItem;
 import org.nanomodeller.Globals;
 import org.nfunk.jep.JEP;
@@ -12,7 +11,7 @@ public class StructureElement extends XMLTemplate{
     protected String tag;
     protected String iconSVGcode;
 
-    @XmlElements(@XmlElement(name="tag"))
+    @XmlElement(name="tag")
     public String getTag() {
         return tag;
     }

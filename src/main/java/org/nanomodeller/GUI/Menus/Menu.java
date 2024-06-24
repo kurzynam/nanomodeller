@@ -1,9 +1,8 @@
 package org.nanomodeller.GUI.Menus;
 
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.GUI.TestForm;
 import org.nanomodeller.GUI.ViewComponents.MyMenuItem;
-import org.nanomodeller.XMLMappingFiles.GlobalProperties;
+import org.nanomodeller.XMLMappingFiles.*;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -13,6 +12,7 @@ import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
+import static org.nanomodeller.GUI.NanoModeler.showElementPropertiesTextArea;
 import static org.nanomodeller.Tools.DataAccessTools.FileOperationHelper.runFile;
 import static org.nanomodeller.Tools.DataAccessTools.MyFileWriter.saveBlockGivenT;
 import static org.nanomodeller.XMLMappingFiles.XMLHelper.convertObjectToXMLFile;
@@ -35,7 +35,7 @@ public class Menu extends JMenuBar {
         MyMenuItem plotOptions = new MyMenuItem("Plot options");
         MyMenuItem dynamicDataDir= new MyMenuItem("Select root directory");
         MyMenuItem showGrid = new MyMenuItem("Show/hide grid");
-        MyMenuItem calculateT = new MyMenuItem("Create crossection at given t");
+        MyMenuItem commonProp = new MyMenuItem("Common properties");
         MyMenuItem menuItemExit = new MyMenuItem("Exit");
         menuItemExit.setMnemonic(KeyEvent.VK_E);
         menuItemExit.setToolTipText("Exit application");
@@ -43,23 +43,25 @@ public class Menu extends JMenuBar {
             sm.setShowGrid(!sm.isShowGrid());
             sm.repaint();
         });
-        calculateT.addActionListener((ActionEvent event) -> {
-            String newValue = (String) JOptionPane.showInputDialog(
-                    this.sm,
-                    "Insert t:",
-                    "Crossection",
-                    JOptionPane.PLAIN_MESSAGE,
-                    null,
-                    null,
-                    "");
-            saveBlockGivenT(newValue, sm.getCurrentDataPath());
+        commonProp.addActionListener((ActionEvent event) -> {
+            XMLTemplate properties = GlobalProperties.getInstance().getCommonProperties();
+            if (properties == null){
+                properties = new CommonProperties();
+                GlobalProperties.getInstance().setCommonProperties((CommonProperties) properties);
+            }
 
+            showOptionsDialog(properties);
         });
         menuItemExit.addActionListener((ActionEvent event) -> {
             System.exit(0);
         });
         plotOptions.addActionListener((ActionEvent event) -> {
-            new TestForm();
+            XMLTemplate options = GlobalProperties.getInstance().getPlotOptions();
+            if (options == null){
+                options = new CommonProperties();
+                GlobalProperties.getInstance().setPlotOptions((PlotOptions) options);
+            }
+            showOptionsDialog(options);
         });
         dynamicDataDir.addActionListener((ActionEvent event) -> {
 
@@ -102,13 +104,18 @@ public class Menu extends JMenuBar {
 
             }
         });
+        menu.add(commonProp);
         menu.add(plotOptions);
         menu.add(dynamicDataDir);
         menu.add(showGrid);
-        menu.add(calculateT);
         menu.add(menuItemExit);
         add(menu);
         add(about);
         add(help);
+    }
+
+    private static void showOptionsDialog(XMLTemplate properties) {
+        String data = XMLHelper.convertObjectToXMLString(properties);
+        showElementPropertiesTextArea(properties, data);
     }
 }

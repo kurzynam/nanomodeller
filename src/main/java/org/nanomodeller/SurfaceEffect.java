@@ -16,9 +16,15 @@ public class SurfaceEffect {
             result = (par.getSurface().getDouble("Coupling") *
                     Math.sin(par.getSurface().getDouble("kFa") * distance))/
                     (par.getSurface().getDouble("kFa") * distance);
-            if (Double.isNaN(result)){
-                return par.getSurface().getDouble("Coupling");
+
+            if (first.getID() == second.getID()) {
+                if(Double.isNaN(result) || result != 0){
+                    return par.getSurface().getDouble("Coupling");
+                }
             }
+        }
+        if (Double.isNaN(result)){
+            result = 0;
         }
         return result;
     }

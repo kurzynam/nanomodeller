@@ -40,11 +40,7 @@ class PaintSurface extends Component {
         g2.setColor(surfaceColor);
         g2.fillRect(0, 0, screenWidth, screenHeight);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        if (Globals.DARK_GRAY.equals(nanoModeler.getbColor())) {
-            g2.setPaint(Color.LIGHT_GRAY);
-        } else {
-            g2.setPaint(Color.DARK_GRAY);
-        }
+        g2.setPaint(Color.DARK_GRAY);
         if (nanoModeler.isShowGrid()) {
             int d = nanoModeler.getGridSize();
             for (int i = 0; i < screenWidth; i += d)

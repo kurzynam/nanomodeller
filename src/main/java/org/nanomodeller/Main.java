@@ -99,7 +99,7 @@ public class Main {
 //
 //        ArrayList<ArrayList<Color>> palettes = new ArrayList<>();
         Locale.setDefault(Locale.US);
-            NanoModeler.getInstance().initNanoModeller();
+        NanoModeler.getInstance().initNanoModeller();
 
 
 

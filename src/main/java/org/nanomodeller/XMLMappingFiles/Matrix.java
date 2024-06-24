@@ -1,9 +1,9 @@
 package org.nanomodeller.XMLMappingFiles;
 
 
+import org.jscience.mathematics.number.Complex;
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.StringUtils;
-import org.jscience.mathematics.number.Complex;
 import org.jscience.mathematics.vector.ComplexMatrix;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.function.*;
@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import static org.nanomodeller.SurfaceEffect.surfaceCoupling;
 
@@ -49,9 +50,19 @@ public class Matrix {
         parser.addFunction("arctanh", new ArcTanH());
         parser.addFunction("arcsinh",new ArcSineH());
         parser.addFunction("arccosh", new ArcCosineH());
-        parser.addVariable("t", 1000);
-        parser.addVariable("n",0);
-        this.rows = rows;
+        this.rows = new Object[rows.length][rows[0].length];
+        for (int i = 0; i < rows.length; i++){
+            for (int j = 0; j < rows[0].length; j++){
+                parser.parseExpression((String)rows[i][j]);
+                if (parser.getComplexValue() == null){
+                    this.rows[i][j] = rows[i][j];
+                }else {
+                    this.rows[i][j] = Complex.valueOf(parser.getComplexValue().re(), parser.getComplexValue().im());
+                }
+            }
+        }
+
+
     }
 
     public Complex getValue(int i, int j){
@@ -96,51 +107,60 @@ public class Matrix {
         for (int i = 0; i < size; i++) {
             rows[i] = new Object[size];
         }
+        Function<Double, String> format = dbl -> {
+            if(dbl != 0)
+                return String.format("+(%f)", dbl);
+            else
+                return "";
+            }
+        ;
         for(Atom atom: par.getAtoms()){
             int i = par.getAtoms().indexOf(atom);
             for(Atom ato: par.getAtoms()){
                 int j = par.getAtoms().indexOf(ato);
-                rows[i][j] = "";
-                String electrodesPart = surfaceCoupling(par, ato, atom) + "";
-                if(ato.equals(atom)){
-                    String energy = "E - (" + ato.getString("OnSiteEnergy") + ")";
-                    rows[i][j] = energy;
-                    if (StringUtils.isNotEmpty(electrodesPart))
-                        electrodesPart += "+i*";
-                    if (Parameters.getInstance().getElectrodeByAtomIndex(j).isPresent())
-                        electrodesPart += Parameters.getInstance().getElectrodeByAtomIndex(j).get().getString("Coupling");
-                    electrodesPart +=  "+i*" + Globals.ETA;
+                String re = "";
+                String im = "0.001";
+                double electrodesPart = surfaceCoupling(par, ato, atom)/2;
+                im += format.apply(electrodesPart);
+                if(i == j){
+                    re = "E - " + ato.getString("OnSiteEnergy");
+                    if (Parameters.getInstance().getElectrodeByAtomIndex(j).isPresent()){
+                        im += format.apply(Parameters.getInstance()
+                                .getElectrodeByAtomIndex(j).get().getDouble("Coupling"));
+                    }
+                }
+                else{
+                    if(par.areBond(i,j)){
+                        re += "-" + par.getBond(i,j).getString("Coupling");
+                    }else{
+                        re = "0";
+                    }
+                }
+                if (StringUtils.isNotEmpty(im)){
+                    rows[i][j] = re + String.format(" + i*(%s)", im);
+                }else {
+                    rows[i][j] = re;
+                }
 
-                }
-                else if(par.areBond(i,j)){
-                    String coupling = par.getBond(i,j).getString("Coupling");
-                    rows[i][j] += "-" + coupling;
-                }else{
-                    rows[i][j] = "0";
-                }
-                if (StringUtils.isNotEmpty(electrodesPart) && !Compare.equal.equals(isZero(electrodesPart)))
-                    rows[i][j] += "-"+electrodesPart+"" ;
-                if(!Compare.notNumber.equals(isZero(rows[i][j].toString()))){
-                    rows[i][j] = Complex.valueOf(Double.parseDouble(rows[i][j].toString()), 0);
-                }
             }
         }
         Matrix result = new Matrix(rows);
+        System.out.println(result);
         return result;
     }
 
-    static Compare  isZero(String x){
-        Compare res = Compare.notEqual;
-        try {
-            if (Double.parseDouble(x) == 0){
-                res = Compare.equal;
+    @Override
+    public String toString(){
+        String res = "";
+        for (int i = 0; i < rows.length; i++){
+            for (int j = 0; j < rows.length; j++){
+                res += rows[i][j] + "  ";
             }
-        }
-        catch (Exception e){
-            res = Compare.notNumber;
+            res += "\n\n";
         }
         return res;
     }
+
 
     enum Compare{
         equal, notEqual, notNumber;

@@ -23,11 +23,7 @@ public class Parameters {
     public static void reloadInstance(Parameters par){
         instance = par;
     }
-
-    private String id;
-    private String time;
     private int GridSize;
-    private String name;
     private String path;
     private ArrayList<Bond> bonds = new ArrayList<Bond>();
     private ArrayList<Atom> atoms = new ArrayList<Atom>();
@@ -63,12 +59,6 @@ public class Parameters {
         return bonds;
     }
 
-    @XmlAttribute(name="id")
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) { this.id = id; }
-
     @XmlElements(@XmlElement(name="Atom"))
     public ArrayList<Atom> getAtoms() {
         return atoms;
@@ -92,14 +82,6 @@ public class Parameters {
         this.surface = surface;
     }
 
-    @XmlAttribute(name="time")
-    public String getTime() {
-        return time;
-    }
-    public void setTime(String time) {
-        this.time = time;
-    }
-
     @XmlAttribute(name="grid_size")
     public int getGridSize() {
         return GridSize;
@@ -110,14 +92,6 @@ public class Parameters {
 
     public Optional<Electrode> getElectrodeByAtomIndex(int id){
         return electrodes.stream().filter(electrode -> electrode.getAtomIndex() == id).findFirst();
-    }
-
-    @XmlAttribute(name="name")
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
     }
 
     public boolean areBond(int a1, int a2){

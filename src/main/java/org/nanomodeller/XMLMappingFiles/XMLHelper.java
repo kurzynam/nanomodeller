@@ -103,6 +103,10 @@ public class XMLHelper {
                 return (Electrode) unmarshaller.unmarshal(reader);
             } else if (elementType.equals(Surface.class)) {
                 return (Surface) unmarshaller.unmarshal(reader);
+            } else if (elementType.equals(PlotOptions.class)) {
+                return (PlotOptions) unmarshaller.unmarshal(reader);
+            } else if (elementType.equals(CommonProperties.class)) {
+                return (CommonProperties) unmarshaller.unmarshal(reader);
             }
         } catch (Exception e) {
             e.printStackTrace();

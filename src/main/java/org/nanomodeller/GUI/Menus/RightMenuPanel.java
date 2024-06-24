@@ -3,11 +3,9 @@ package org.nanomodeller.GUI.Menus;
 import org.nanomodeller.Calculation.TimeEvolutionHelper;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.GUI.ViewComponents.*;
-import org.nanomodeller.Globals;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Vector;
 
 import static org.nanomodeller.Globals.*;
 
@@ -16,7 +14,7 @@ public class RightMenuPanel extends MyPanel {
     JProgressBar secondPB = new JProgressBar();
     JProgressBar thirdPB = new JProgressBar();
     MyButton countStaticProperties = new MyButton("Count static properties", new ImageIcon(COUNT_LDOS_BUTTON_IMAGE_PATH));
-    MyButton countNormalisation = new MyButton("Static normalisation(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
+    MyButton countCharge = new MyButton("Static charge(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
     MyButton showNormalisation = new MyButton("Charge(i)", new ImageIcon(NORMALISATION_BUTTON_IMAGE_PATH));
     MyButton showLDOS = new MyButton("Static LDOS(i)", new ImageIcon(LDOS_BUTTON_IMAGE_PATH));
     MyButton timeEvolutionButton = new MyButton("Count time evolution", new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
@@ -29,6 +27,14 @@ public class RightMenuPanel extends MyPanel {
     MyButton showLDOSLastTButton = new MyButton("LDOS(T_max)", new ImageIcon(LDOS_LAST_T_IMAGE_PATH));
     MyButton showNormalisationLastTButton = new MyButton("N(T_max)", new ImageIcon(NORMALISATION_LAST_T_IMAGE_PATH));
 
+    public void clearBars(){
+        getFirstPB().setString("0%");
+        getFirstPB().setValue(0);
+        getSecondPB().setString("0%");
+        getSecondPB().setValue(0);
+        getThirdPB().setString("0%");
+        getThirdPB().setValue(0);
+    }
     public RightMenuPanel(NanoModeler nanoModeler) {
         super("");
         GridBagLayout layout = new GridBagLayout();
@@ -55,7 +61,7 @@ public class RightMenuPanel extends MyPanel {
         put(thirdPB, pointer);
         put(countStaticProperties, pointer);
         put(showLDOS, pointer);
-        put(countNormalisation, pointer);
+        put(countCharge, pointer);
         put(timeEvolutionButton, pointer);
         put(showLDOSTimeEvolutionButton, pointer);
         put(showCurrentTimeEvolutionButton, pointer);
@@ -96,7 +102,7 @@ public class RightMenuPanel extends MyPanel {
         showChargeTimeEvolutionButton.addActionListener(evt -> nanoModeler.showNormalisationTimeEvolution());
         showFermiLDOSTimeEvolutionButton.addActionListener(evt -> nanoModeler.showFermiLDOSTimeEvolution());
         showNormalisation.addActionListener(evt -> nanoModeler.showChargeTimeEvolution());
-        countNormalisation.addActionListener(evt -> nanoModeler.showNormalisation());
+        countCharge.addActionListener(evt -> nanoModeler.showCharge());
     }
     public void put(JComponent c, GridBagConstraints pointer){
         add(c, pointer);

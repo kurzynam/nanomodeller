@@ -9,6 +9,7 @@ import java.util.Hashtable;
 public class XMLTemplate {
     protected Hashtable<String, String> properties;
     protected String color;
+    protected Hashtable<String, Range> variables;
     @XmlAttribute(name="color")
     public String getColor() {
         return color;
@@ -17,14 +18,52 @@ public class XMLTemplate {
         this.color = color;
     }
 
+    public Double getMin(String varName){
+        return variables.get(varName).getMin();
+    }
+    public Double getMax(String varName){
+        return variables.get(varName).getMax();
+    }
+
+    public Double getInc(String varName){
+        return variables.get(varName).getIncrement();
+    }
+    public Double getWidth(String varName){
+        return getMax(varName) - getMin(varName);
+    }
+    public Integer getStepsNum(String varName){
+        return (int)(getWidth(varName)/getInc(varName));
+    }
+
     public String getString(String key){
         return properties.get(key);
     }
     public Double getDouble(String key){
-        return Double.parseDouble(getString(key));
+        try {
+            return Double.parseDouble(getString(key));
+        }catch (Exception e){
+            return (double) 0;
+        }
+
+    }
+
+    public Range getVar(String varName){
+        return variables.get(varName);
     }
     public Integer getInt(String key){
-        return Integer.parseInt(getString(key));
+        try {
+            return Integer.parseInt(getString(key));
+        }catch (Exception e){
+            return 0;
+        }
+    }
+
+    public Boolean getBool(String key){
+        try {
+            return Boolean.parseBoolean(getString(key));
+        }catch (Exception e){
+            return false;
+        }
     }
 
 
@@ -35,4 +74,14 @@ public class XMLTemplate {
     public void setProperties(Hashtable<String, String> properties) {
         this.properties = properties;
     }
+
+    @XmlElements(@XmlElement(name="Variable"))
+    public Hashtable<String, Range> getVariables() {
+        return variables;
+    }
+    public void setVariables(Hashtable<String, Range> v) {
+        this.variables = v;
+    }
+
+
 }
