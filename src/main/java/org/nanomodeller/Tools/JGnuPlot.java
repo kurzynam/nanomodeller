@@ -9,37 +9,39 @@ import com.panayotis.gnuplot.dataset.FileDataSet;
 import com.panayotis.gnuplot.plot.AbstractPlot;
 import com.panayotis.gnuplot.style.PlotStyle;
 import com.panayotis.gnuplot.style.Style;
+import org.nanomodeller.XMLMappingFiles.PlotOptions;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.nanomodeller.Globals.GNUPLOT_PATH;
 
 
 public class JGnuPlot extends JavaPlot {
 
-    public GlobalProperties getProperties() {
+    public PlotOptions getProperties() {
         return properties;
     }
 
     GNUPlotParameters parameters;
-    GlobalProperties properties;
+    PlotOptions properties;
     public JGnuPlot(boolean is3D){
         super(GNUPLOT_PATH, is3D);
         parameters = new GNUPlotParameters(is3D);
         setParameters(parameters);
-        properties = GlobalProperties.getInstance();
+        properties = GlobalProperties.getInstance().getPlotOptions();
     }
     public void setMultiplotStyle(){
         setMapView(true);
-        setTopMargin(1 - getProperties().getMargin());
-        setGap(getProperties().getMargin());
-        setBottomMargin(getProperties().getMargin());
-        setLeftMargin(getProperties().getMargin());
-        setRightMargin(1 - getProperties().getMargin());
-        setMultiplotLayout(properties.getMultiplotRows(),
-                properties.getMultiplotCols(),"Colums first".equals(properties.getRowsFirst()));
+        setTopMargin(1 - getProperties().getDouble("margin"));
+        setGap(getProperties().getDouble("margin"));
+        setBottomMargin(getProperties().getDouble("margin"));
+        setLeftMargin(getProperties().getDouble("margin"));
+        setRightMargin(1 - getProperties().getDouble("margin"));
+        setMultiplotLayout(properties.getInt("multiplotRows"),
+                properties.getInt("mutiplotCOls"),properties.getBool("colsFirst"));
         //unsetColorBox();
     }
 
@@ -47,7 +49,7 @@ public class JGnuPlot extends JavaPlot {
         super(false);
         parameters = new GNUPlotParameters(false);
         setParameters(parameters);
-        properties = GlobalProperties.getInstance();
+        properties = GlobalProperties.getInstance().getPlotOptions();
     }
 
 
@@ -58,20 +60,20 @@ public class JGnuPlot extends JavaPlot {
     public void readXMLGraphProperties(){
         setPalette();
         setAllticsFont();
-        if (StringUtils.isNotEmpty(properties.getxRange())){
-            setXrange(properties.getxRange());
+        if (StringUtils.isNotEmpty(properties.getString("xrange"))){
+            setXrange(properties.getString("xrange"));
         }
-        if (StringUtils.isNotEmpty(properties.getyRange())){
-            setYrange(properties.getyRange());
+        if (StringUtils.isNotEmpty(properties.getString("yrange"))){
+            setYrange(properties.getString("yrange"));
         }
-        if (StringUtils.isNotEmpty(properties.getzRange())){
-            setZrange(properties.getzRange());
+        if (StringUtils.isNotEmpty(properties.getString("zrange"))){
+            setZrange(properties.getString("zrange"));
         }
-        setGrid(properties.isShowGrid());
-        if (Globals.MULTIPLOT.equals(getProperties().getMultiplotStyle())){
+        setGrid(properties.getBool("showGrid"));
+        if (Globals.MULTIPLOT.equals(getProperties().getString("multiplotStyle"))){
             setMultiplotStyle();
         }
-        appendCommand(properties.getCustomGnuplotCommands());
+        appendCommand(properties.getString("cutomCommands"));
         appendCommand("set datafile separator \",\"");
     }
 
@@ -156,8 +158,8 @@ public class JGnuPlot extends JavaPlot {
     public void setMultiplotLayout(int rows, int cols, boolean colsfirst) {
         String order = colsfirst ? "columnsfirst" : "rowsfirst";
         appendCommand("set multiplot layout "+ rows + "," + cols + " " + order + " margins screen MP_LEFT, MP_RIGHT, MP_BOTTOM, MP_TOP spacing screen MP_GAP");
-        appendCommand("set ytics offset " + properties.getyTicsOffset()+",0");
-        appendCommand("set xtics offset 0," + properties.getxTicsOffset());
+        appendCommand("set ytics offset " + properties.getString("yticsOffset")+",0");
+        appendCommand("set xtics offset 0," + properties.getString("xticsOffset"));
     }
     public void unsetColorBox(){
         appendCommand("unset colorbox");
@@ -173,24 +175,25 @@ public class JGnuPlot extends JavaPlot {
     }
 
     public void setPalette(){
-        ArrayList<String> sortedKeys = new ArrayList(properties.getPaletteColors().keySet());
-        Collections.sort(sortedKeys);
-        String result = "set palette defined (";
+//        ArrayList<String> sortedKeys = new ArrayList(properties.getPaletteColors().keySet());
+//        Collections.sort(sortedKeys);
+//        String result = "set palette defined (";
+//
+//        for(Iterator<String> i = sortedKeys.iterator(); i.hasNext();) {
+//            String key = i.next();
+//            result += Double.parseDouble(key) + " " + StringUtils.toDoubleQuotes(properties.
+//                    getPaletteColors().get(key).toLowerCase().replace(" ", "-"));
+//            if(i.hasNext()) {
+//                result += ",";
+//            }
+//        }
+//        result += ")";
+//        appendCommand(result);
 
-        for(Iterator<String> i = sortedKeys.iterator(); i.hasNext();) {
-            String key = i.next();
-            result += Double.parseDouble(key) + " " + StringUtils.toDoubleQuotes(properties.
-                    getPaletteColors().get(key).toLowerCase().replace(" ", "-"));
-            if(i.hasNext()) {
-                result += ",";
-            }
-        }
-        result += ")";
-        appendCommand(result);
     }
 
     public void addPlotCommand(String path, Hashtable<Integer, Atom> shapes, ArrayList<String> selectedSteps){
-        addPlotCommand(path, shapes, selectedSteps,"");
+        //addPlotCommand(path, shapes, selectedSteps,"");
     }
     public void addSplotCommand(String path, Hashtable<Integer, Atom> shapes, ArrayList<String> selectedSteps){
         addSplotCommand(path, shapes,selectedSteps,"");
@@ -198,17 +201,17 @@ public class JGnuPlot extends JavaPlot {
     public void addSplotCommand(String path, Hashtable<Integer, Atom> shapes,
                                 ArrayList<String> selectedSteps, String title){
 
-        boolean colsFirst = "Colums first".equals(properties.getRowsFirst());
+        boolean colsFirst = properties.getBool("colsFirst");
         boolean isMultiplot = true;
         setZticsFont();
-        int cols = properties.getMultiplotCols();
+        int cols = properties.getInt("multiplotCols");
 
         int stepsSize = selectedSteps.size();
         int shapesSize = shapes.size();
         int maxGraphInex = shapesSize*stepsSize -1;
         int rows = (int)Math.ceil((maxGraphInex+0.0)/cols);
-        String style = getProperties().getFont();
-        double size = getProperties().getTextSize();
+        String style = getProperties().getString("font");
+        double size = getProperties().getDouble("textSize");
         appendCommand(" set label 1 center at graph 1,1.1 font " + StringUtils.toDoubleQuotes(style +"," +size));
         for (int j = 0; j < stepsSize; j++){
             String step = selectedSteps.get(j);
@@ -250,8 +253,8 @@ public class JGnuPlot extends JavaPlot {
                 String e_zero = shapes.get(i).getString("OnSiteEnergy").toString();
                 String ids = "2:($3-3):" + id;
                 String command = String.format("splot %s i %s u %s every  %s:%s title %s with pm3d",
-                        StringUtils.toSingleQuotes(path), step, ids, properties.getEveryT(),
-                        properties.getEveryE(), StringUtils.toSingleQuotes(title));
+                        StringUtils.toSingleQuotes(path), step, ids, properties.getString("everyT"),
+                        properties.getString("everyE"), StringUtils.toSingleQuotes(title));
                 appendCommand(command);
             }
         }
@@ -271,49 +274,41 @@ public class JGnuPlot extends JavaPlot {
     }
 
 
+    public void setProperties(PlotOptions opts){
+        appendCommand("set datafile separator ','");
+        appendCommand(fmt("set xrange [%s]", opts.getXrange()));
+        appendCommand(fmt("set xlabel '%s'", opts.getXlabel()));
+        appendCommand(fmt("set ylabel '%s'", opts.getYlabel()));
+        appendCommand(fmt("set title '%s'", opts.getTitle()));
+        appendCommand(fmt("set yrange [%s]", opts.getYrange()));
 
+    }
 
+    public void addPlotCommand(String path, Hashtable<Integer, Atom> shapes){
+        PlotOptions opts = PlotOptions.getInstance();
+        setProperties(opts);
+        String command ="plot ";
+        for (Atom atom : shapes.values()){
+            command += String.format("'%s' ", path) +
+                    String.format(" using '%s':'%s'", opts.getXaxis() ,atom.getTag()) +
+                    fmt(" with %s ", opts.getStyle()) +
+                    fmt(" title '%s' ", atom.getTag()) +
+                    ",";
+        }
+        appendCommand(command);
+    }
 
-
-
-    public void addPlotCommand(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String title){
-
-            String command = "plot ";
-            int counter = 0;
-            int size = selectedSteps.size();
-            if (size > 0){
-                for (int j = 0; j < size; j++){
-                    String step = selectedSteps.get(j);
-                    for (int i = 0; i < shapes.size(); i++) {
-                        int id = shapes.get(i).getID() + 3;
-                        double incr = counter++ * getProperties().getOffsetStep();
-                        String ids = "2:" + String.format("($%d + %f)", id, incr);
-                        command += String.format("%s u %s every :::%s::%s title %s with lines lw 2 smooth csplines",
-                                StringUtils.toSingleQuotes(path), ids, step, step, StringUtils.toSingleQuotes(title));
-                        if (i != shapes.size() - 1) {
-                            command += ", ";
-                        }
-                    }
-                    if (j != selectedSteps.size() - 1) {
-                        command += ", ";
-                    }
-                }
-            }else{
-                for (Atom shape : shapes.values()) {
-                    int num = shape.getID()  + 1;
-                    title = num + "";
-                    int id = num + 3;
-                    double incr = counter++ * getProperties().getOffsetStep();
-                    String ids = "2:" + String.format("($%d + %f)", id, incr);
-                    command += String.format("%s u %s title %s with lines lw 2 smooth csplines",
-                            StringUtils.toSingleQuotes(path), ids, StringUtils.toSingleQuotes(title));
-//                    if (i != shapes.size() - 1) {
-//                        command += ", ";
-//                    }
-                }
-            }
-            //command += " with lines lw 2 smooth csplines";
-            appendCommand(command);
+    public void addSplotCommand(String path, Hashtable<Integer, Atom> shapes){
+        PlotOptions opts = PlotOptions.getInstance();
+        setProperties(opts);
+        String command ="splot ";
+        for (Atom atom : shapes.values()){
+            command += String.format("'%s' ", path) +
+                    String.format(" using '%s':'%s':'%s'", opts.getXaxis(), opts.getYaxis(), atom.getTag()) +
+                    fmt(" title '%s' ", atom.getTag()) +
+                    ",";
+        }
+        appendCommand(command);
     }
 
     public void add2DSplotCommand(String path, Hashtable<Integer, Atom> shapes, String title){
@@ -332,9 +327,9 @@ public class JGnuPlot extends JavaPlot {
     }
     public void add2DSplotCommandMultiplot(String path, Hashtable<Integer, Atom> shapes, String title){
 
-        boolean colsFirst = "Colums first".equals(properties.getRowsFirst());
-        int rows = properties.getMultiplotRows();
-        int cols = properties.getMultiplotCols();
+        boolean colsFirst = properties.getBool("colsFirst");
+        int rows = properties.getInt("multiplotRows");
+        int cols = properties.getInt("multiplotCols");
 
         for (int i = 0; i < shapes.size(); i++) {
             if (colsFirst){
@@ -363,7 +358,7 @@ public class JGnuPlot extends JavaPlot {
             for (int i = 0; i < shapes.size(); i++) {
                 String command = "plot ";
                 int id = shapes.get(i).getID() + 3;
-                double incr = counter++ * getProperties().getOffsetStep();
+                double incr = counter++ * getProperties().getDouble("offsetStep");
                 String ids = "2:" + String.format("($%d + %f)", id, incr);
                 command += StringUtils.toSingleQuotes(path) + " u " + ids +String.format(" every :::%s::%s ", step,step) +" title " + StringUtils.toSingleQuotes(title);
                 command += " with lines lw 2";
@@ -459,6 +454,13 @@ public class JGnuPlot extends JavaPlot {
 //        }
 //    }
 
+    public String fmt(String cmd, String arg){
+        String res = "";
+        if (StringUtils.isNotEmpty(arg)){
+            res = String.format(cmd, arg);
+        }
+        return res;
+    }
     public void crossSection(String path, Hashtable<Integer, Atom> shapes,ArrayList<String> selectedSteps, String crossection, String title) {
 
         String command = "plot ";
@@ -528,8 +530,8 @@ public class JGnuPlot extends JavaPlot {
     }
 
     public void setAllticsFont(){
-        String style = getProperties().getFont();
-        double size =getProperties().getTextSize();
+        String style = getProperties().getString("font");
+        double size = getProperties().getDouble("textSize");
         setXticsFont(style,size);
         setYticsFont(style,size);
         setZticsFont(style,size);
@@ -545,30 +547,30 @@ public class JGnuPlot extends JavaPlot {
         setZticsFontSize(size);
     }
     public void setXticsFont(){
-        String style = getProperties().getFont();
-        double size = getProperties().getTextSize();
+        String style = getProperties().getString("font");
+        double size = getProperties().getDouble("fontSize");
         setXticsFont(style,size);
-        String xticsStep = getProperties().getXticsStep();
+        String xticsStep = getProperties().getString("xticsStep");
         if (StringUtils.isNotEmpty(xticsStep))
             appendCommand("set xtics " + xticsStep);
 
     }
 
     public void setYticsFont(){
-        String style = getProperties().getFont();
-        double size = getProperties().getTextSize();
+        String style = getProperties().getString("font");
+        double size = getProperties().getDouble("fontSize");
         setYticsFont(style,size);
-        String yticsStep = getProperties().getYticsStep();
+        String yticsStep = getProperties().getString("yticsStep");
         if (StringUtils.isNotEmpty(yticsStep))
             appendCommand("set ytics " + yticsStep);
     }
 
     public void setZticsFont(){
-        String style = getProperties().getFont();
-        double size = getProperties().getTextSize();
+        String style = getProperties().getString("font");
+        double size = getProperties().getDouble("textSize");
         setZticsFont(style,size);
         setCbticsFont(style,size);
-        String zticsStep = getProperties().getZticsStep();
+        String zticsStep = getProperties().getString("zticsStep");
         if (StringUtils.isNotEmpty(zticsStep)) {
             appendCommand("set ztics " + zticsStep);
             appendCommand("set cbtics " + zticsStep);

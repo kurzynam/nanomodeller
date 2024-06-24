@@ -60,9 +60,6 @@ public class StaticProperties {
         }
         ldosWriter.println("n, E" + header);
         chargeWriter.println("n, i, q");
-        for (String property : CommonProperties.getInstance().getProperties().keySet()){
-            matrix.getParser().addVariable(property, CommonProperties.getInstance().getDouble(property));
-        }
         for (Double n : cp.getVar("n")) {
             for (int i = 0; i < par.getAtoms().size(); i++){
                 charges[i] = 0;

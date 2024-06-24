@@ -51,6 +51,9 @@ public class Matrix {
         parser.addFunction("arcsinh",new ArcSineH());
         parser.addFunction("arccosh", new ArcCosineH());
         this.rows = new Object[rows.length][rows[0].length];
+        for (String property : CommonProperties.getInstance().getProperties().keySet()){
+            getParser().addVariable(property, CommonProperties.getInstance().getDouble(property));
+        }
         for (int i = 0; i < rows.length; i++){
             for (int j = 0; j < rows[0].length; j++){
                 parser.parseExpression((String)rows[i][j]);

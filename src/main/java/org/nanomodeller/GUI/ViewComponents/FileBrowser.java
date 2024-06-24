@@ -85,7 +85,7 @@ public class FileBrowser extends JPanel{
                 String path = ((JTree) e.getSource()).getAnchorSelectionPath().getLastPathComponent().toString();
                 if (isNodeChanged(path)){
                     readPropertiesFromXMLFile(getAbsolutePath() + "/parameters.xml");
-                    NanoModeler.getInstance().readDataFromObject(NanoModeler.getInstance().getStepRecorder().timeTextField);
+                    NanoModeler.getInstance().readDataFromObject();
                     NanoModeler.getInstance().refresh();
                 }
                 currentNodeName = path;

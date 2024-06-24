@@ -7,6 +7,7 @@ import org.nanomodeller.XMLMappingFiles.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Hashtable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -24,6 +25,7 @@ public class ElementPropertiesDialog extends JDialog {
     private JButton applyToAllButton;
     private JButton applyButton;
     private JPanel editPanel;
+    private JButton variablesButton;
     private JPanel colorPanel;
     private JScrollPane scrollPane;
 
@@ -34,6 +36,7 @@ public class ElementPropertiesDialog extends JDialog {
         setModal(true);
         getRootPane().setDefaultButton(cancelButton);
         editorPane.setText(textAreaContent);
+        editorPane.setAutoscrolls(true);
         setTitle("Properties");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setMinimumSize(new Dimension((int)screenSize.getWidth()/2, (int)(screenSize.getHeight()/1.3)));
@@ -45,10 +48,12 @@ public class ElementPropertiesDialog extends JDialog {
                 String GID = ((StructureElement)convertedStructureElement).getGroupID();
                 ((StructureElement)template).setGroupID(GID);
                 template.setProperties(convertedStructureElement.getProperties());
+                template.setVariables(convertedStructureElement.getVariables());
                 template.setColor(convertedStructureElement.getColor());
                 Predicate<StructureElement> filter = el -> StringUtils.equals(el.getGroupID(), GID);
                 Consumer<StructureElement> action = el -> {
                     el.setProperties(template.getProperties());
+                    el.setVariables(template.getVariables());
                     el.setColor(template.getColor());};
                 if (convertedStructureElement instanceof Atom){
                     NanoModeler.getInstance().getAtoms().values().stream()
@@ -83,6 +88,7 @@ public class ElementPropertiesDialog extends JDialog {
                 XMLTemplate convertedStructureElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), template.getClass());
                 Consumer<StructureElement> action = el -> {
                     el.setProperties(convertedStructureElement.getProperties());
+                    el.setVariables(convertedStructureElement.getVariables());
                     el.setColor(convertedStructureElement.getColor());};
                 if (convertedStructureElement instanceof Atom){
                     NanoModeler.getInstance().getAtoms().values().stream()
@@ -105,16 +111,53 @@ public class ElementPropertiesDialog extends JDialog {
         contentPane.registerKeyboardAction(e -> dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         applyButton.addActionListener(e -> {
-            XMLTemplate convertedStructureElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), template.getClass());
-            template.setProperties(convertedStructureElement.getProperties());
+            XMLTemplate convertedElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), template.getClass());
+            template.setProperties(convertedElement.getProperties());
+            template.setVariables(convertedElement.getVariables());
             if (template instanceof StructureElement){
-                ((StructureElement)template).setGroupID(((StructureElement)convertedStructureElement).getGroupID());
-                ((StructureElement)template).setTag(((StructureElement)convertedStructureElement).getTag());
+                ((StructureElement)template).setGroupID(((StructureElement)convertedElement).getGroupID());
+                ((StructureElement)template).setTag(((StructureElement)convertedElement).getTag());
+            } else if (template instanceof PlotOptions) {
+                PlotOptions optConv = ((PlotOptions)convertedElement);
+                GlobalProperties.getInstance().setPlotOptions(optConv);
+            } else if (template instanceof CommonProperties) {
+                CommonProperties propConv = ((CommonProperties)convertedElement);
             }
-            template.setColor(convertedStructureElement.getColor());
+            template.setColor(convertedElement.getColor());
 
             ((Component)NanoModeler.getInstance().getPaintSurface()).repaint();
             dispose();
+        });
+
+
+        variablesButton.addActionListener( e -> {
+            String text = editorPane.getText();
+            if (text.contains("<variables>")){
+                String newVariable ="<variables>\n" +
+                        "        <entry>\n" +
+                        "            <key></key>\n" +
+                        "            <value>\n" +
+                        "                <incr></incr>\n" +
+                        "                <max></max>\n" +
+                        "                <min></min>\n" +
+                        "            </value>\n" +
+                        "        </entry>";
+                editorPane.setText(text.replace("<variables>", newVariable));
+            }else {
+                String toReplace = getNameOfElementToReplace();
+                String variables = toReplace + "\n" +
+                        "    <variables>\n" +
+                        "        <entry>\n" +
+                        "            <key></key>\n" +
+                        "            <value>\n" +
+                        "                <incr></incr>\n" +
+                        "                <max></max>\n" +
+                        "                <min></min>\n" +
+                        "            </value>\n" +
+                        "        </entry>\n" +
+                        "    </variables>";
+                editorPane.setText(text.replace(toReplace, variables));
+            }
         });
         addPropertyButton.addActionListener(e -> {
             String text = editorPane.getText();
@@ -127,17 +170,7 @@ public class ElementPropertiesDialog extends JDialog {
                 editorPane.setText(text.replace("<properties>", newProperty));
             }else {
                 String toReplace = "";
-                if (template instanceof Atom){
-                    toReplace = "<Atom>";
-                }else if (template instanceof Bond){
-                    toReplace = "<Bond>";
-                }
-                else if (template instanceof Electrode){
-                    toReplace = "<Electrode>";
-                }
-                else if (template instanceof Surface){
-                    toReplace = "<Surface>";
-                }
+                toReplace = getNameOfElementToReplace();
                 String properties = toReplace + "\n" +
                         "    <properties>\n" +
                         "        <entry>\n" +
@@ -163,6 +196,28 @@ public class ElementPropertiesDialog extends JDialog {
             this.setVisible(false);
             colorDialog.showDialog();
         });
+    }
+
+    private String getNameOfElementToReplace() {
+        String toReplace = "";
+        if (template instanceof Atom){
+            toReplace = "<Atom>";
+        }else if (template instanceof Bond){
+            toReplace = "<Bond>";
+        }
+        else if (template instanceof Electrode){
+            toReplace = "<Electrode>";
+        }
+        else if (template instanceof Surface){
+            toReplace = "<Surface>";
+        }
+        else if (template instanceof PlotOptions){
+            toReplace = "<PlotOptions>";
+        }
+        else if (template instanceof CommonProperties){
+            toReplace = "<CommonProperties>";
+        }
+        return toReplace;
     }
 
     public JEditorPane getEditorPane() {

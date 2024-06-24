@@ -16,11 +16,11 @@ public class Globals {
     public static final String LDOS_E_FILE_NAME_PATTERN = "LDOS_E";
     public static final String NORMALISATION_FILE_NAME_PATTERN = "normalisation";
     public static final String STATIC_LDOS_FILE_NAME_PATTERN = "sLDOS.csv";
-    public static final String STATIC_NORMALISATION_FILE_NAME_PATTERN = "sNorm.csv";
+    public static final String STATIC_NORMALISATION_FILE_NAME_PATTERN = "sCharge.csv";
     public static final String CHARGE_FILE_NAME_PATTERN = "charge";
     public static final String CURRENT_FILE_NAME_PATTERN = "current";
     public static final String SLDOS_FILE_NAME_PATTERN = "sLDOS";
-    public static final String SNORM_FILE_NAME_PATTERN = "sNorm";
+    public static final String SNORM_FILE_NAME_PATTERN = "sCharge";
     public static final String FERMI_LDOS_FILE_NAME_PATTERN = "fermiLDOS";
     public static final String STATIC_LDOS_GNUPLOT_FILE_PATH = "plots/staticLDOS.plt";
     public static final String STATIC_NORMALISATION_GNUPLOT_FILE_PATH = "plots/normalisation.plt";

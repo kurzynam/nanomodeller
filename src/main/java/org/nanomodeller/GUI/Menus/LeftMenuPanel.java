@@ -12,7 +12,6 @@ import static org.nanomodeller.Globals.*;
 
 public class LeftMenuPanel extends MyPanel {
 
-    MyButton nextButton;
     JLabel logo = new JLabel();
     MyButton alignButton = new MyButton("Align", new ImageIcon(ALIGN_BUTTON_IMAGE_PATH));
     MyButton zoomInButton = new MyButton("Zoom+", new ImageIcon(ZOOM_IN_BUTTON_IMAGE_PATH));
@@ -23,9 +22,6 @@ public class LeftMenuPanel extends MyPanel {
     MyButton clearButton = new MyButton("Clear", new ImageIcon(CLEAR_BUTTON_IMAGE_PATH));
     MyButton refreshButton = new MyButton("Refresh", new ImageIcon(REFRESH_BUTTON_IMAGE_PATH));
 
-
-    ConsolasFontLabel timeLabel;
-    public MyTextField timeTextField;
     public FileBrowser fileBrowser;
     boolean enableScrollListener = true;
     NanoModeler modeller;
@@ -45,9 +41,6 @@ public class LeftMenuPanel extends MyPanel {
         Image newimg = img.getScaledInstance(170, 180, Image.SCALE_SMOOTH);
         ImageIcon imIc = new ImageIcon(newimg);
         logo.setIcon(imIc);
-        nextButton = new MyButton("NEXT");
-        timeLabel = new ConsolasFontLabel(Color.WHITE,"Duration", 22);
-        timeTextField = new MyTextField();
         fileBrowser = new FileBrowser(this);
         zoomInButton.setToolTipText("Ctrl+");
         zoomOutButton.setToolTipText("Ctrl-");
@@ -113,10 +106,7 @@ public class LeftMenuPanel extends MyPanel {
         alignButton.addActionListener(evt -> {
             this.modeller.align();
         });
-
-
     }
-
     public void saveStep() {
         modeller.saveData();
     }

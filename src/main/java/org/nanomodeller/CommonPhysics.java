@@ -1,8 +1,10 @@
 package org.nanomodeller;
 
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
+import org.nanomodeller.XMLMappingFiles.CommonProperties;
 import org.nanomodeller.XMLMappingFiles.GlobalProperties;
 import org.jscience.mathematics.number.Complex;
+import org.nanomodeller.XMLMappingFiles.Range;
 
 import static org.nanomodeller.CommonMath.comp;
 import static org.nanomodeller.CommonPhysics.DensType.*;
@@ -12,32 +14,29 @@ import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 
 public class CommonPhysics {
-    public static double toEnergy(int energyStep, double dE, GlobalProperties gp){
-        return gp.getDoubleEmin() + (energyStep * dE);
-    }
-    public static int toEnergyStep(double E, double dE, GlobalProperties gp){
-        double d = gp.getDoubleEmin();
-        return (int)((E-d)/dE);
+    public static double toEnergy(int energyStep, CommonProperties gp){
+        return gp.getMin("E") + (energyStep * gp.getInc("E"));
     }
 
-    public static Complex sigma(double E, Complex[] D, double Emin, double Emax){
+    public static Complex sigma(double E, Complex[] D){
         Complex result = comp(0,0.0);
         double dE = 0.01;
-        for (double e = Emin; e <= Emax; e+= dE){
-            Complex increment = (D[(int)((e-Emin)/dE)].divide(comp(E - e,0.05))).times(dE);
+        Range range = CommonProperties.getInstance().getVar("E");
+        for (double e : range){
+            Complex increment = (D[(int)((e-range.getMin())/dE)].divide(comp(E - e,0.05))).times(dE);
             result = result.plus(increment);
         }
         return result.times(2*PI);
     }
 
-    public static Complex[] density(GlobalProperties gp, DensType type){
-        int size = gp.getNumberOfEnergySteps();
+    public static Complex[] density(CommonProperties gp, DensType type){
+        int size = (int)((gp.getMax("E") - gp.getMin("E"))/gp.getInc("E"));
         MyFileWriter writer = new MyFileWriter("C:\\Users\\lenovo\\Desktop\\van2.csv");
         Complex[] result = new Complex[size+1];
-        double d = gp.getDoubleEmax() - gp.getDoubleEmin();
+        double d = gp.getMax("E") - gp.getMin("E");
         double count = 0;
         for (int e_step = 0; e_step <= size; e_step++) {
-            double energy = gp.getDoubleEmin() + (e_step * gp.getdE());
+            double energy = gp.getMin("E") + (e_step * gp.getInc("E"));
             if (vanHoveTwo.equals(type)){
                 result[e_step] = twoPeaks(energy, 5);
             }else if (vanHoveOne.equals(type)){
@@ -49,7 +48,7 @@ public class CommonPhysics {
                     result[e_step] = Complex.ZERO;
             }
             writer.println(energy + "," + result[e_step].getReal());
-            count += result[e_step].getReal() * gp.getdE();
+            count += result[e_step].getReal() * gp.getInc("E");
         }
         writer.close();
         System.out.println(count);
