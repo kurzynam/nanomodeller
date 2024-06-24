@@ -16,14 +16,14 @@
                 <key>E</key>
                 <value>
                     <incr>0.02</incr>
-                    <max>10.0</max>
+                    <max>6.0</max>
                     <min>-10.0</min>
                 </value>
             </entry>
             <entry>
                 <key>n</key>
                 <value>
-                    <incr>0.01</incr>
+                    <incr>0.2</incr>
                     <max>7.0</max>
                     <min>3.0</min>
                 </value>

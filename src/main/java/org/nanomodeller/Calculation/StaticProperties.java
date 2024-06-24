@@ -18,6 +18,8 @@ public class StaticProperties {
 
 
     public static void countStaticProperties(){
+
+        int cores = Runtime.getRuntime().availableProcessors();
         long startTime = System.currentTimeMillis();
         CommonProperties cp = CommonProperties.getInstance();
         Parameters par = Parameters.getInstance();
@@ -54,11 +56,16 @@ public class StaticProperties {
             }
         }
         StringBuilder header = new StringBuilder();
+        boolean saveAnyLDOS = false;
         for (Atom a : par.getAtoms()){
-            if(a.getBool("Save"))
-                header.append(", ").append(a.getTag());
+            if(a.getBool("Save")) {
+                header.append(", ").append(a.getID());
+                saveAnyLDOS = true;
+            }
         }
-        ldosWriter.println("n, E" + header);
+        if (saveAnyLDOS) {
+            ldosWriter.println("n, E" + header);
+        }
         chargeWriter.println("n, i, q");
         for (Double n : cp.getVar("n")) {
             for (int i = 0; i < par.getAtoms().size(); i++){
@@ -91,16 +98,20 @@ public class StaticProperties {
                     if (tempE <= 0)
                         charges[atom.getID()] += result * cp.getInc("E");
                 }
-                ldosWriter.println(n +"," + tempE + "," + results);
+                if (saveAnyLDOS){
+                    ldosWriter.println(n +"," + tempE + "," + results);
+                    }
             }
             for (Atom atom : par.getAtoms()) {
                 chargeWriter.println(n + "," + atom.getID() + "," + charges[atom.getID()]);
             }
             chargeWriter.println();
-            ldosWriter.println();
+            if (saveAnyLDOS)
+                ldosWriter.println();
         }
         nm.getMenu().clearBars();
-        ldosWriter.println();
+        if (saveAnyLDOS)
+            ldosWriter.println();
 
         ldosWriter.close();
         chargeWriter.close();
