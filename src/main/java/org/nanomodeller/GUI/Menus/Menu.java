@@ -104,8 +104,8 @@ public class Menu extends JMenuBar {
 
             }
         });
-        menu.add(commonProp);
         menu.add(plotOptions);
+        menu.add(commonProp);
         menu.add(dynamicDataDir);
         menu.add(showGrid);
         menu.add(menuItemExit);

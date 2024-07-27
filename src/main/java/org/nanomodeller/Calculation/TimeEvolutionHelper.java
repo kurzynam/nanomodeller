@@ -2,18 +2,16 @@ package org.nanomodeller.Calculation;
 
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.Flag;
-import org.nanomodeller.Tools.JEP_functions.*;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
 import org.jscience.mathematics.number.Complex;
 import org.nfunk.jep.JEP;
-import org.nfunk.jep.function.*;
-
-import java.time.Instant;
 import java.util.*;
 
 import static org.nanomodeller.Calculation.CalculationItem.applyTimeForItemsCalculation;
+import static org.nanomodeller.Calculation.JEPHelper.createJEP;
+import static org.nanomodeller.Calculation.ProgressBarState.updateProgressBar;
 import static org.nanomodeller.CommonPhysics.toEnergy;
 import static org.nanomodeller.Globals.*;
 
@@ -37,8 +35,8 @@ public class TimeEvolutionHelper {
     public CommonProperties gp;
 
     public String format;
-    public Parameters par;
-    public NanoModeler modeler;
+    public Parameters par = Parameters.getInstance();
+    public NanoModeler modeler = NanoModeler.getInstance();
     public Complex[][][] surfaceUt_k;
     public double[] sumOfCharges;
     private int tmax = 1;
@@ -71,10 +69,10 @@ public class TimeEvolutionHelper {
 
     public double[] D;
 
-    public Hashtable<Integer, Double> n;
+    public Hashtable<Integer, Double> n = new Hashtable<>();
     public Complex[][][] Ut_ij;
 
-    public Hashtable<Integer, CalculationElectrode> calculationElectrodes;
+    public Hashtable<Integer, CalculationElectrode> calculationElectrodes = new Hashtable<>();
     //public Electrode[] electrodes;
     //protected Atom[] atoms;
     boolean isSpinOrbit = false;
@@ -84,25 +82,23 @@ public class TimeEvolutionHelper {
     //region initialization
     public void initialize() {
 
-        Instant starts = Instant.now();
         boolean arraysInitialized = false;
-        initJEPfunctions();
+        parser = createJEP();
+        initializeCalculationBonds(parser, par.getBonds(), calculationBonds);
+        initializeCalculationAtoms(parser, par.getAtoms(), calculationAtoms);
+        initializeCalculationElectrodes(parser, par.getElectrodes(), calculationElectrodes, calculationAtoms);
 
         gp = CommonProperties.getInstance();
-        Iterator it = gp.getVariables().keySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Double> pair = (Map.Entry)it.next();
-            parser.addVariable(pair.getKey(),pair.getValue());
-        }
+
         double electrodesWidth = gp.getWidth("E");
         double dt = gp.getInc("t");
         Complex Ek = Complex.ONE;
         double constant = dE / electrodesWidth;
         Complex[][] integralEnergy = null;
-        MyFileWriter ldosList = null;
-        MyFileWriter chargeList = null;
-        MyFileWriter currentList = null;
-        MyFileWriter ldosEList = null;
+        MyFileWriter ldosList;
+        MyFileWriter chargeList;
+        MyFileWriter currentList;
+        MyFileWriter ldosEList;
         Parameters par = Parameters.getInstance();
 
         if (arraysInitialized && StringUtils.isEmpty(par.getPath())){
@@ -122,153 +118,120 @@ public class TimeEvolutionHelper {
         currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv");
         ldosList = new MyFileWriter(dynamicPATH + "/" + LDOS_FILE_NAME_PATTERN + ".csv");
         ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv");
-        ldosList.printf("Step, Time, Energy");
-        chargeList.printf("Step, Time");
-        currentList.printf("Step, Time");
+        ldosList.printf("Time, Energy");
+        chargeList.printf("Time");
+        currentList.printf("Time");
         for(int p = 0; p < numOfAtoms; p++){
             ldosList.printf(", LDOS%d", p);
             chargeList.printf(", Charge %d", p);
             currentList.printf(", Current %d", p);
-
         }
         ldosList.println();
         chargeList.println();
         currentList.println();
         ldosEList.println();
 
-        for (int n = 0; n < 1; n++) {
-            MyFileWriter sumldosF = new MyFileWriter(dynamicPATH + "/sumLDOSF.txt");
-            MyFileWriter TDOSWriter = new MyFileWriter(dynamicPATH + "/TDOS.txt");
-            initializeCalculationBonds(parser, par.getBonds(), calculationBonds);
-            initializeCalculationAtoms(parser, par.getAtoms(), calculationAtoms);
-            initializeCalculationElectrodes(parser, par.getElectrodes(), calculationElectrodes);
-            for (Integer i : calculationAtoms.keySet()){
-                Double n0 = calculationAtoms.get(i).get(INITIAL_OCCUPATION);
-                this.n.put(i, n0);
-                Double sf = calculationAtoms.get(i).get(SPIN_FLIP);
-                isSpinOrbit |= sf > 0 ;
-            }
-            double[] charges = new double[calculationAtoms.size()];
-            for (int i = 0; i < calculationAtoms.size(); i++) {
-                charges[i] = 0;
-            }
-            for (int t = tmax; t < tmax + numOfTimeSteps; t++) {
 
-                int T = t % 2 == 0 ? 1 : 0;;
-                double time = time(t - 1, dt);
-                double[] TDOStemp = new double[numberOfEnergySteps/everyE];
-                parser.addVariable("t", time);
-
-                applyTimeForItemsCalculation(parser, par.getAtoms(), calculationAtoms);
-                applyTimeForItemsCalculation(parser, par.getElectrodes(), calculationElectrodes);
-                applyTimeForItemsCalculation(parser, par.getBonds(), calculationBonds);
-
-                countUt_ij(t);
-
-                for (CalculationElectrode electrode : calculationElectrodes.values()) {
-                    electrode_id = electrode.getID();
-                    countUt_ik(electrode, Ut_ik.get(electrode_id), t, T, dt, time,
-                            electrodesWidth, integralEnergy);
-
-                }
-                if (par.isSurfacePresent()) {
-                    //Electrode surfaceElectrode = new Electrode(-1, null, null, par.getSurfaceCoupling(), gp.getInc("E"), Globals.SURFACE_ELECTRODE_ID, null);
-                    //countUt_ik(surfaceElectrode, surfaceUt_k, t);
-                }
-                double charge;
-                String chargesList = "";
-                String currentsList = "";
-                String ldosesEList = "";
-                for (CalculationAtom atom : calculationAtoms.values()) {
-                    charge = countCharge(atom.getID(), t, dt);
-                    double current = (charge-charges[atom.getID()])/dt;
-                    currentsList += current;
-                    chargesList += charge;
-                    ldosesEList += ldosE;
-                    if (atom.getID() != calculationAtoms.size() - 1){
-                        chargesList += ",";
-                        currentsList += ",";
-                        ldosesEList += ",";
-                    }
-                }
-                chargeList.println(n + "," + time + "," + chargesList);
-                currentList.println(n + "," + time + "," + currentsList);
-                ldosEList.println(n + "," + time + "," + ldosesEList);
-                int sigmaDim = 1;
-                if (isSpinOrbit){
-                    sigmaDim = 2;
-                }
-                ArrayList<String> ldosArray = new ArrayList<>();
-                ArrayList<String> normalisationArray = new ArrayList<>();
-                for (int e = 0; e < numberOfEnergySteps; e++) {
-                    if (e % everyE != 0) {
-                        continue;
-                    }
-                    ldosArray.add(n +"," + time(t, dt)+","+toEnergy(e, gp));
-                }
-                for (CalculationAtom a : calculationAtoms.values()) {
-                    int i = a.getID();
-                    for (int sigma = 0; sigma < sigmaDim; sigma++) {
-                        countDynamicParameters(i, sigma, t, dt, constant,
-                                ldosArray,
-                                TDOStemp, integralEnergy);
-                    }
-                }
-                if (time >= starTimeFrom && t % everyT == 0){
-                    for (int e = 0; e < ldosArray.size(); e++) {
-                        ldosList.println(ldosArray.get(e));
-                    }
-                    ldosList.println();
-                }
-                String timeToDisplay = String.format("%.2f\n", time);
-                modeler.getTimeEvolutionButton().setText("Cancel (" + timeToDisplay + ")");
-            }
-            TDOSWriter.close();
-            sumldosF.close();
-            if (isInterupted.getValue()) {
-                isInterupted.neg();
-            } else {
-                tmax += numOfTimeSteps;
-            }
-            chargeList.println();
-            currentList.println();
-            ldosEList.println();
-            ldosList.println();
+        MyFileWriter sumldosF = new MyFileWriter(dynamicPATH + "/sumLDOSF.txt");
+        MyFileWriter TDOSWriter = new MyFileWriter(dynamicPATH + "/TDOS.txt");
+        for (Integer i : calculationAtoms.keySet()){
+            Double n0 = calculationAtoms.get(i).get(INITIAL_OCCUPATION);
+            this.n.put(i, n0);
+            Double sf = calculationAtoms.get(i).get(SPIN_FLIP);
+            isSpinOrbit |= sf > 0 ;
         }
+        double[] charges = new double[calculationAtoms.size()];
+        for (int i = 0; i < calculationAtoms.size(); i++) {
+            charges[i] = 0;
+        }
+        int time = 0;
+        for (double t : gp.getVar("t")) {
+            updateProgressBar(t - gp.getVar("t").getMin(), "n", gp.getVar("t").getWidth(), NanoModeler.getInstance().getMenu().getSecondPB());
+            int T = time % 2;
+
+            double[] TDOStemp = new double[numberOfEnergySteps/everyE];
+            parser.addVariable("t", t);
+
+            applyTimeForItemsCalculation(parser, par.getAtoms(), calculationAtoms);
+            applyTimeForItemsCalculation(parser, par.getElectrodes(), calculationElectrodes);
+            applyTimeForItemsCalculation(parser, par.getBonds(), calculationBonds);
+
+            countUt_ij(time);
+
+            for (CalculationElectrode electrode : calculationElectrodes.values()) {
+                electrode_id = electrode.getID();
+                countUt_ik(electrode, Ut_ik.get(electrode_id), time, T, dt, t-dt,
+                        electrodesWidth, integralEnergy);
+
+            }
+
+            if (par.isSurfacePresent()) {
+                //Electrode surfaceElectrode = new Electrode(-1, null, null, par.getSurfaceCoupling(), gp.getInc("E"), Globals.SURFACE_ELECTRODE_ID, null);
+                //countUt_ik(surfaceElectrode, surfaceUt_k, t);
+            }
+            double charge;
+            String chargesList = "";
+            String currentsList = "";
+            String ldosesEList = "";
+            for (CalculationAtom atom : calculationAtoms.values()) {
+                charge = countCharge(atom.getID(), time, dt);
+                double current = (charge-charges[atom.getID()])/dt;
+                currentsList += current;
+                chargesList += charge;
+                ldosesEList += ldosE;
+                if (atom.getID() != calculationAtoms.size() - 1){
+                    chargesList += ",";
+                    currentsList += ",";
+                    ldosesEList += ",";
+                }
+            }
+            time++;
+            chargeList.printf("%3f,%s\n",  t, chargesList);
+            currentList.printf("%3f,%s\n", t, currentsList);
+            ldosEList.printf("%3f,%s\n", t, ldosEList);
+            int sigmaDim = 1;
+            if (isSpinOrbit){
+                sigmaDim = 2;
+            }
+            ArrayList<String> ldosArray = new ArrayList<>();
+            for (int e = 0; e < numberOfEnergySteps; e++) {
+                if (e % everyE != 0) {
+                    continue;
+                }
+                ldosArray.add(String.format("%.3f,%.3f", t, toEnergy(e, gp)));
+            }
+            for (CalculationAtom a : calculationAtoms.values()) {
+                int i = a.getID();
+                for (int sigma = 0; sigma < sigmaDim; sigma++) {
+                    countDynamicParameters(i, sigma, time, dt, constant,
+                            ldosArray,
+                            TDOStemp, integralEnergy);
+                }
+            }
+            //if (time >= starTimeFrom && t % everyT == 0){
+                for (int e = 0; e < ldosArray.size(); e++) {
+                    ldosList.println(ldosArray.get(e));
+                }
+                ldosList.println();
+            }
+        //}
+        TDOSWriter.close();
+        sumldosF.close();
+        if (isInterupted.getValue()) {
+            isInterupted.neg();
+        } else {
+            tmax += numOfTimeSteps;
+        }
+        chargeList.println();
+        currentList.println();
+        ldosEList.println();
+        ldosList.println();
+
         ldosList.close();
         chargeList.close();
         currentList.close();
         ldosEList.close();
-    }
-
-
-    private void initJEPfunctions() {
-        parser = new JEP();
-        parser.addFunction("cos", new Cosine());
-        parser.addFunction("exp", new Exponent());
-        parser.addFunction("pulse", new Pulse());
-        parser.addFunction("sin", new Sine());
-        parser.addFunction("tan", new Tangent());
-        parser.addFunction("abs", new Abs());
-        parser.addFunction("ln", new Logarithm());
-        parser.addFunction("arccos", new ArcCosine());
-        parser.addFunction("arcsin", new ArcSine());
-        parser.addFunction("sinh", new SineH());
-        parser.addFunction("cosh", new CosineH());
-        parser.addFunction("tanh", new TanH());
-        parser.addFunction("arctan", new ArcTangent());
-        parser.addFunction("arctanh", new ArcTanH());
-        parser.addFunction("arcsinh",new ArcSineH());
-        parser.addFunction("arccosh", new ArcCosineH());
-        parser.addFunction("rect", new Rectangular());
-        parser.addFunction("step", new Heaviside());
-        parser.addFunction("dirac", new DiracDelta());
-        parser.addFunction("delta", new DiracDelta());
-        parser.addFunction("ndirac", new NDelta());
-        parser.addFunction("ndelta", new NDelta());
-        parser.addFunction("tri", new Triangular());
-        parser.addFunction("linear", new Linear());
-        parser.addFunction("tstep", new TriangularStep());
+        NanoModeler.getInstance().getMenu().clearBars();
     }
 
     //endregion
@@ -288,8 +251,8 @@ public class TimeEvolutionHelper {
         this.dE = gp.getInc("E");
         this.energyDigits = (gp.getInc("E") + "").length() - (gp.getInc("E") + "").indexOf('.') - 1;
         this.numberOfEnergySteps = (int)((gp.getMax("E") - gp.getMin("E"))/gp.getInc("E"));
-        this.everyE = 5;
-        this.everyT = 5;
+        this.everyE = 1;
+        this.everyT = 1;
         this.starTimeFrom = 0;
         this.Ei = new double[par.getAtoms().size()];
         this.D = new double[numberOfEnergySteps];
@@ -300,8 +263,10 @@ public class TimeEvolutionHelper {
             for (int j = 0; j < numOfAtoms; j++) {
                 if (i == j) {
                     Ut_ij[0][i][j] = Complex.ONE;
+                    Ut_ij[1][i][j] = Complex.ONE;
                 } else {
                     Ut_ij[0][i][j] = Complex.ZERO;
+                    Ut_ij[1][i][j] = Complex.ZERO;
                 }
             }
         }
@@ -376,12 +341,14 @@ public class TimeEvolutionHelper {
     }
 
     private void CalculateU(int t, Complex[][] k1, Complex[][] k2, Complex[][] k3, Complex[][] k4, int k, int i, int j) {
-        int T = t % 2 == 0 ? 1 : 0;
+        int T = t % 2;
         Hashtable<String,Complex> U = new Hashtable<String,Complex>();
         String id = i + "";
         int second;
         double dt = (gp.getInc("t"));
         Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
+        if (bonds == null)
+            return;
         double prevTime = time(t - 1, dt);
         switch (k){
             case 0:
@@ -389,7 +356,7 @@ public class TimeEvolutionHelper {
                     second = b.getOtherAtomID(i);
                     U.put(second + "",Ut_ij[T][second][j]);
                 }
-                if (par.getElectrodesByAtomID(i).size() > 0){
+                if (!par.getElectrodesByAtomID(i).isEmpty()){
                     U.put(id, Ut_ij[T][i][j]);
                 }
                 k1[i][j] = function(i, prevTime, U);
@@ -399,7 +366,7 @@ public class TimeEvolutionHelper {
                     second = b.getOtherAtomID(i);
                     U.put(second + "",Ut_ij[T][second][j].plus(k1[second][j].times(dt / 2)));
                 }
-                if (par.getElectrodesByAtomID(i).size() > 0){
+                if (!par.getElectrodesByAtomID(i).isEmpty()){
                     U.put(id, Ut_ij[T][i][j].plus(k1[i][j].times(dt/2)));
                 }
                 k2[i][j] = function(i, prevTime + dt / 2,U);
@@ -409,7 +376,7 @@ public class TimeEvolutionHelper {
                     second = b.getOtherAtomID(i);
                     U.put(second + "",Ut_ij[T][second][j].plus(k2[second][j].times(dt / 2)));
                 }
-                if (par.getElectrodesByAtomID(i).size() > 0){
+                if (!par.getElectrodesByAtomID(i).isEmpty()){
                     U.put(id, Ut_ij[T][i][j].plus(k2[i][j].times(dt/2)));
                 }
                 k3[i][j] = function(i, prevTime + dt / 2, U);
@@ -451,7 +418,11 @@ public class TimeEvolutionHelper {
             anotherAtom = b.getOtherAtomID(i);
             result = result.plus(Complex.I.times(exp_i((Ei[i] - Ei[anotherAtom]) * time)).times(U.get(anotherAtom + "")).times(b.get(COUPLING)));
         }
-        result = result.plus(U.get(id).times(-calculationElectrodes.get(i).get(COUPLING)/ 2.0));
+        CalculationAtom at = calculationAtoms.get(i);
+        if (at.getElID() != null) {
+            CalculationElectrode cE = calculationElectrodes.get(at.getElID());
+            result = result.plus(U.get(i + "").times(-cE.get(COUPLING) / 2.0));
+        }
         return result;
     }
 
@@ -465,9 +436,9 @@ public class TimeEvolutionHelper {
 //            electrodeID = new Electrode(-1,null,null,par.getSurfaceCoupling(),gp.getInc("E"),Globals.SURFACE_ELECTRODE_ID,null);
 //        }
         double energyStep = dE;
-        if (electrode != null){
-            energyStep = electrode.get(DE);
-        }
+//        if (electrode != null){
+//            energyStep = electrode.get(DE);
+//        }
         int numberOfEnergySteps = (int)(electrodesWidth/energyStep);
 
         Complex[][][] kVec = new Complex[3][numOfAtoms][2];
@@ -485,14 +456,16 @@ public class TimeEvolutionHelper {
 
             for (int sigma_k = 0; sigma_k < sigmaDim; sigma_k++) {
                 Complex[][] array = Ut_ik[T][e][sigma_k];
-                Complex Ek = exp_i((toEnergy(e, gp) * prevTime));
+                Complex Ek = exp_i((toEnergy(e, gp) * (prevTime)));
                 for (int k = 0; k < 4; k++) {
                     for (int nSigma = 0; nSigma < sigmaDim; nSigma++) {
                         for (int i = 0; i < numOfAtoms; i++) {
-                            CalculationElectrode cElectrode = calculationElectrodes.get(i);
-                            double per = 0;
-                            if (cElectrode != null)
-                                per = cElectrode.get(PERTURBATION_COUPLING);
+                            Integer elID = calculationAtoms.get(i).getElID();
+                            CalculationElectrode cElectrode = elID != null ? calculationElectrodes.get(elID) : null;
+                            double per = 1;
+                            if (cElectrode != null) {
+                                per = cElectrode.get(PERTURBATION_COUPLING) != null ? cElectrode.get(PERTURBATION_COUPLING) : 1;
+                            }
                             double Vk;
                             if (i == elAtID) {
                                 Vk = calculatedVk;
@@ -541,14 +514,24 @@ public class TimeEvolutionHelper {
     }
     //endregion
 
-    protected Complex functionUik(int i, int sigma, int sigmaK, int k, double dt, Complex Ek,
+    protected Complex functionUik(int i, int sigma,
+                                  int sigmaK, int k,
+                                  double dt, Complex Ek,
                                   Complex[][] Ut_ik,
-                                  Complex[][] kVec, double Vk, double f, double Vsf,
+                                  Complex[][] kVec, double Vk,
+                                  double f, double Vsf,
                                   Complex[][] integralEnergy, int sigmaDim) {
 
         Complex result = Complex.ZERO;
         double gammaIJ = 0;
-        double gammaHalf = calculationElectrodes.get(i).get(COUPLING);//0.5;//el.getDoubleCoupling()/ 2.0;
+        double gammaHalf = 0;
+        Integer index = calculationAtoms.get(i).getElID();
+        if (index != null){
+            CalculationElectrode ce = calculationElectrodes.get(index);
+            if (ce != null)
+                gammaHalf = ce.get(COUPLING)/2.0;//0.5;//el.getDoubleCoupling()/ 2.0;
+        }
+
         int minusSigma = (sigma + 1) % sigmaDim;
         Complex spinFlipPart =
                 Complex.valueOf(0, -Vsf).times(integralEnergy[i][sigma].divide(integralEnergy[i][minusSigma]));
@@ -578,7 +561,7 @@ public class TimeEvolutionHelper {
         Hashtable<Integer, CalculationBond> table = calculationBonds.get(i);
         for (CalculationBond b : table.values()){
             int j = b.getSecond();
-            double Vij = b.get(COUPLING) * b.get(PERTURBATION_COUPLING);
+            double Vij = b.get(COUPLING);// * b.get(PERTURBATION_COUPLING);
             Complex correlationPart =
                     Complex.valueOf(0, Vij).times(integralEnergy[j][sigma].divide(integralEnergy[i][sigma]));
             if (k == 0){
@@ -607,34 +590,23 @@ public class TimeEvolutionHelper {
     public void countDynamicParameters(int i, int sigmaN, int t, double dt,
                                        double constant, ArrayList<String> ldosArray,
                                        double[] TDOStemp, Complex[][] integralEnergy){
-        double time = time(t, dt);
-        double normalisation = 0;
-        int sigmaDim = Ut_ik.get(0).length;
-        for (int e = 0; e < numberOfEnergySteps; e++) {
 
+        for (int e = 0; e < numberOfEnergySteps; e++) {
             for (int n_sigma = 0; n_sigma < 1; n_sigma++) {
                 double ldos = 0;
                 for (int n = 0; n < numOfElectrodes; n++) {
                     int step = (int) (1.0 * e * Ut_ik.get(n)[t % 2].length / numberOfEnergySteps);
                     ldos += pow(Ut_ik.get(n)[t % 2][step][n_sigma][i][n_sigma].magnitude(), 2);
                 }
-                normalisation += ldos * constant;
                 ldos = ldos / gp.getWidth("E");
-
-                double energy = toEnergy(e, gp);
-                TDOStemp[e / everyE] += ldos;
-                if (e % everyE == 0 && t % everyT == 0  && time >= starTimeFrom) {
-                    String val = ldosArray.get(e / everyE);
-                    ldosArray.set(e / everyE, val + "," + ldos);
-                }
-
+                ldosArray.set(e, ldosArray.get(e) + "," + String.format("%.6f",ldos));
             }
         }
         integralEnergy[i][sigmaN] = integralEnergy[i][sigmaN].times(exp_i(Ei[i] * dt));
         Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
         for (CalculationBond b : bonds.values()){
             int j = b.getOtherAtomID(i);
-            double u = b.get(CORRELATION_COUPLING);
+            double u = b.get(CORRELATION_COUPLING) != null ? b.get(CORRELATION_COUPLING) : 1;
             integralEnergy[i][sigmaN] = integralEnergy[i][sigmaN].times(exp_i(u* n.get(j)* dt));
         }
     }

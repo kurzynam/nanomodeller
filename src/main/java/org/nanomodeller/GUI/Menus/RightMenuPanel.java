@@ -86,8 +86,6 @@ public class RightMenuPanel extends MyPanel {
                 timeEvolutionButton.setText("Count time evolution");
             } else {
                 nanoModeler.getIsCanceled().setValue(false);
-                timeEvolutionButton.setImageIcon(new ImageIcon(DELETE_BUTTON_IMAGE_PATH));
-                timeEvolutionButton.setText("Cancel");
                 Runnable myRunnable = () -> new TimeEvolutionHelper(nanoModeler, nanoModeler.getIsInterupted());
                 nanoModeler.setDynamicCalculationsThread(new Thread(myRunnable));
                 nanoModeler.repaint();

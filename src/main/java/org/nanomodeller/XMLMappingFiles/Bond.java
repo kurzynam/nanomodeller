@@ -31,13 +31,6 @@ public class Bond extends StructureElement {
     }
 
 
-    public Boolean intersects (int x, int y){
-        Atom first = NanoModeler.getInstance().getAtoms().get(getFirst());
-        Atom second = NanoModeler.getInstance().getAtoms().get(getSecond());
-        return new Line2D.Double(first.getX(), first.getY(), second.getX(), second.getY()).intersects(x, y, 60, 60);
-
-    }
-
     public Bond(int first, int second/*, int centerX, int centerY*/){
         if (first > second){
             this.second = first;
@@ -70,18 +63,21 @@ public class Bond extends StructureElement {
     }
 
     public static void initializeCalculationBonds(JEP parser, ArrayList<Bond> bonds, Hashtable<Integer, Hashtable<Integer,CalculationBond>> cBonds) {
-        bonds.stream().forEach(
-                bond -> {
-                    CalculationBond cb = new CalculationBond(bond.first, bond.second);
-                    fillProperties(parser, bond, cb);
-                    Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.get(bond.first);
-                    if (bondsOfFirstAtom == null) {
-                        bondsOfFirstAtom = new Hashtable<>();
-                        cBonds.put(bond.first, bondsOfFirstAtom);
-                    }
-                    bondsOfFirstAtom.put(bond.second, cb);
-                }
-         );
+        for (Bond bond : bonds) {
+            insertBond(parser, cBonds, bond, bond.getFirst(), bond.getSecond());
+            insertBond(parser, cBonds, bond, bond.getSecond(), bond.getFirst());
+        }
+    }
+
+    private static void insertBond(JEP parser, Hashtable<Integer, Hashtable<Integer, CalculationBond>> cBonds, Bond bond, int first, int second) {
+        CalculationBond cb = new CalculationBond(first, second);
+        fillProperties(parser, bond, cb);
+        Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.get(first);
+        if (bondsOfFirstAtom == null) {
+            bondsOfFirstAtom = new Hashtable<>();
+            cBonds.put(first, bondsOfFirstAtom);
+        }
+        bondsOfFirstAtom.put(second, cb);
     }
 
 

@@ -26,6 +26,11 @@ public class MyFileWriter {
     public void printf(String format, Object... args){
         pw.write(String.format(format, args));
     }
+
+    public void print(String format){
+        pw.write(format);
+    }
+
     public void printcsv(String... args){
         String res = "";
         for (int i = 0; i < args.length ; i++){

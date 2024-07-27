@@ -3,29 +3,45 @@
     <CommonProperties>
         <properties>
             <entry>
+                <key>staticChargeFileName</key>
+                <value>n_N50V4W1.csv</value>
+            </entry>
+            <entry>
                 <key>W</key>
-                <value>4</value>
+                <value>1</value>
             </entry>
             <entry>
                 <key>V</key>
                 <value>1</value>
             </entry>
+            <entry>
+                <key>staticLDOSFileName</key>
+                <value>LDOS.csv</value>
+            </entry>
         </properties>
         <variables>
+            <entry>
+                <key>t</key>
+                <value>
+                    <incr>0.01</incr>
+                    <max>30.0</max>
+                    <min>0.0</min>
+                </value>
+            </entry>
             <entry>
                 <key>E</key>
                 <value>
                     <incr>0.02</incr>
-                    <max>6.0</max>
-                    <min>-10.0</min>
+                    <max>4.0</max>
+                    <min>-4.0</min>
                 </value>
             </entry>
             <entry>
                 <key>n</key>
                 <value>
-                    <incr>0.2</incr>
-                    <max>7.0</max>
-                    <min>3.0</min>
+                    <incr>0.03</incr>
+                    <max>8.0</max>
+                    <min>-8.0</min>
                 </value>
             </entry>
         </variables>

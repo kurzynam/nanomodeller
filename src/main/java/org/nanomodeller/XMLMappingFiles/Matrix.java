@@ -2,7 +2,6 @@ package org.nanomodeller.XMLMappingFiles;
 
 
 import org.jscience.mathematics.number.Complex;
-import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.StringUtils;
 import org.jscience.mathematics.vector.ComplexMatrix;
 import org.nfunk.jep.JEP;
@@ -11,9 +10,9 @@ import org.nfunk.jep.function.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.ArrayList;
 import java.util.function.Function;
 
+import static org.nanomodeller.Calculation.JEPHelper.createJEP;
 import static org.nanomodeller.SurfaceEffect.surfaceCoupling;
 
 @XmlRootElement(name="Matrix")
@@ -32,28 +31,10 @@ public class Matrix {
         return parser;
     }
 
-    public Matrix(Object[][] rows){
+    public Matrix(Object[][] rows, CommonProperties cp){
 
-        parser = new JEP();
-        parser.addComplex();
-        parser.addFunction("cos", new Cosine());
-        parser.addFunction("sin", new Sine());
-        parser.addFunction("tan", new Tangent());
-        parser.addFunction("abs", new Abs());
-        parser.addFunction("ln", new Logarithm());
-        parser.addFunction("arccos", new ArcCosine());
-        parser.addFunction("arcsin", new ArcSine());
-        parser.addFunction("sinh", new SineH());
-        parser.addFunction("cosh", new CosineH());
-        parser.addFunction("tanh", new TanH());
-        parser.addFunction("arctan", new ArcTangent());
-        parser.addFunction("arctanh", new ArcTanH());
-        parser.addFunction("arcsinh",new ArcSineH());
-        parser.addFunction("arccosh", new ArcCosineH());
         this.rows = new Object[rows.length][rows[0].length];
-        for (String property : CommonProperties.getInstance().getProperties().keySet()){
-            getParser().addVariable(property, CommonProperties.getInstance().getDouble(property));
-        }
+        parser = createJEP();
         for (int i = 0; i < rows.length; i++){
             for (int j = 0; j < rows[0].length; j++){
                 parser.parseExpression((String)rows[i][j]);
@@ -103,7 +84,7 @@ public class Matrix {
         return ComplexMatrix.valueOf(tempArray);
 
     }
-    public static Matrix readMatrixFromDataFile(Parameters par){
+    public static Matrix readMatrixFromDataFile(Parameters par, CommonProperties cp){
 
         int size = par.getAtoms().size();
         Object[][] rows = new Object[size][];
@@ -127,8 +108,8 @@ public class Matrix {
                 im += format.apply(electrodesPart);
                 if(i == j){
                     re = "E - " + ato.getString("OnSiteEnergy");
-                    if (Parameters.getInstance().getElectrodeByAtomIndex(j).isPresent()){
-                        im += format.apply(Parameters.getInstance()
+                    if (par.getElectrodeByAtomIndex(j).isPresent()){
+                        im += format.apply(par
                                 .getElectrodeByAtomIndex(j).get().getDouble("Coupling"));
                     }
                 }
@@ -147,7 +128,7 @@ public class Matrix {
 
             }
         }
-        Matrix result = new Matrix(rows);
+        Matrix result = new Matrix(rows, cp);
         System.out.println(result);
         return result;
     }

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 @XmlRootElement(name="Parameters")
-public class Parameters {
+public class Parameters implements Cloneable{
 
     private static Parameters instance;
 
@@ -39,6 +39,14 @@ public class Parameters {
     }
 
 
+    @Override
+    public Parameters clone(){
+        try {
+            return (Parameters) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 
     public ArrayList<Electrode> getElectrodesByAtomID(int id){
         ArrayList<Electrode> el = new ArrayList<Electrode>();

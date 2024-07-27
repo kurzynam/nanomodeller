@@ -4,6 +4,15 @@ import java.util.ArrayList;
 
 public class CalculationElectrode extends CalculationItem{
     private int ID;
+    private int atomID;
+
+    public int getAtomID() {
+        return atomID;
+    }
+
+    public void setAtomID(int atomID) {
+        this.atomID = atomID;
+    }
 
     public int getID() {
         return ID;

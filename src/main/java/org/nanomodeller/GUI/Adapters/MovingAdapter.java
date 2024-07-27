@@ -118,12 +118,14 @@ public class MovingAdapter extends MouseAdapter {
 
     public void mouseReleased(MouseEvent e) {
         int width = NanoModeler.getInstance().getGridSize()/4;
-        nanoModeler.getAtoms().values().stream().
-                filter(atom -> nanoModeler.getSelection().intersects(atom.getX(), atom.getY(), width, width)).
-                forEach(atom -> nanoModeler.getSelectedAtoms().put(atom.getID(), atom));
-        nanoModeler.getElectrodes().values().stream().
-                filter(electrode -> nanoModeler.getSelection().intersects(electrode.getX(), electrode.getY(), width, width)).
-                forEach(electrode -> nanoModeler.getSelectedElectrodes().put(electrode.getID(), electrode));
+        if (nanoModeler.getSelection() != null){
+            nanoModeler.getAtoms().values().stream().
+                    filter(atom -> nanoModeler.getSelection().intersects(atom.getX(), atom.getY(), width, width)).
+                    forEach(atom -> nanoModeler.getSelectedAtoms().put(atom.getID(), atom));
+            nanoModeler.getElectrodes().values().stream().
+                    filter(electrode -> nanoModeler.getSelection().intersects(electrode.getX(), electrode.getY(), width, width)).
+                    forEach(electrode -> nanoModeler.getSelectedElectrodes().put(electrode.getID(), electrode));
+        }
         nanoModeler.setSelection(null);
         nanoModeler.setAnchor(null);
         nanoModeler.repaint();

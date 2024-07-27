@@ -1,133 +1,100 @@
 package org.nanomodeller.Calculation;
 
 
-import static org.nanomodeller.CommonPhysics.DensType.*;
-import static org.nanomodeller.CommonPhysics.density;
-import static org.nanomodeller.CommonPhysics.sigma;
-
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
+import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
 import org.jscience.mathematics.number.Complex;
 import org.jscience.mathematics.vector.ComplexMatrix;
 
 import javax.swing.*;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Hashtable;
 
 public class StaticProperties {
 
 
     public static void countStaticProperties(){
 
-        int cores = Runtime.getRuntime().availableProcessors();
-        long startTime = System.currentTimeMillis();
+        int cores = 3;//Runtime.getRuntime().availableProcessors();
+        Thread[] threads = new Thread[cores];
+        StaticPropertiesRunnable[] spr = new StaticPropertiesRunnable[cores];
         CommonProperties cp = CommonProperties.getInstance();
-        Parameters par = Parameters.getInstance();
-        MyFileWriter ldosWriter = new MyFileWriter(par.getPath() + "/" + Globals.STATIC_LDOS_FILE_NAME_PATTERN);
-        MyFileWriter chargeWriter = new MyFileWriter(par.getPath() + "/" +Globals.STATIC_NORMALISATION_FILE_NAME_PATTERN);
-        Matrix matrix = Matrix.readMatrixFromDataFile(par);
-        NanoModeler nm = NanoModeler.getInstance();
-        Complex[] sigma1 = null;
-        Complex[] sigma2 = null;
-        Complex[] sigma3 = null;
-        double[] charges = new double[par.getAtoms().size()];
-        if (matrix.contains("O")){
-            sigma1 = new Complex[cp.getStepsNum("E")];
-            Complex[] dens = density(cp, vanHoveOne);
-            int i = 0;
-            for (Double e : cp.getVar("E")){
-                sigma1[i++] = sigma(e, dens);
+        NanoModeler.getInstance().getMenu().clearBars();
+        long startTime = System.currentTimeMillis();
+        MyFileWriter ldosWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" + cp.getString("staticLDOSFileName"));
+        MyFileWriter chargeWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" +cp.getString("staticChargeFileName"));
+        for (int i = 0; i < threads.length; i++){
+            double width = cp.getWidth("n")/threads.length;
+            double start = cp.getMin("n") + i * width;
+            double end = start +  width;
+            spr[i] = new StaticPropertiesRunnable(start, end, CommonProperties.getInstance().clone(),Parameters.getInstance().clone());
+            if (i == 0)
+                spr[i].isFirst = true;
+            threads[i] = new Thread(spr[i]);
+        }
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        if (matrix.contains("T")){
-            sigma2 = new Complex[cp.getStepsNum("E")];
-            Complex[] dens = density(cp, vanHoveTwo);
-            int i = 0;
-            for (Double e : cp.getVar("E")){
-                sigma2[i++] = sigma(e, dens);
-            }
-        }
-        if (matrix.contains("F")){
-            sigma3 = new Complex[cp.getStepsNum("E")];
-            Complex[] dens = density(cp, flat);
-            int i = 0;
-            for (Double e : cp.getVar("E")){
-                sigma3[i++] = sigma(e, dens);
-            }
-        }
+
         StringBuilder header = new StringBuilder();
         boolean saveAnyLDOS = false;
-        for (Atom a : par.getAtoms()){
+        for (Atom a : Parameters.getInstance().getAtoms()){
             if(a.getBool("Save")) {
-                header.append(", ").append(a.getID());
+                header.append(",").append(a.getID());
                 saveAnyLDOS = true;
             }
         }
         if (saveAnyLDOS) {
-            ldosWriter.println("n, E" + header);
+            ldosWriter.print("n,E" + header + "\n");
         }
-        chargeWriter.println("n, i, q");
-        for (Double n : cp.getVar("n")) {
-            for (int i = 0; i < par.getAtoms().size(); i++){
-                charges[i] = 0;
-            }
-            matrix.getParser().addVariable("n", n);
-            updateProgressBar(n, "n", cp, nm.getMenu().getSecondPB());
-            for (double tempE : cp.getVar("E")) {
-                updateProgressBar(tempE, "E", cp, nm.getMenu().getFirstPB());
-                String results = "";
-                matrix.getParser().addVariable("E", tempE);
-//                if (sigma1 != null) {
-//                    Complex comp = sigma1[toEnergyStep(tempE, dE, gp)];
-//                    matrix.getParser().addComplexVariable("O", comp.getReal(), comp.getImaginary());
-//                }
-//                if (sigma2 != null) {
-//                    Complex comp = sigma2[toEnergyStep(tempE, dE, gp)];
-//                    matrix.getParser().addComplexVariable("T", comp.getReal(), comp.getImaginary());
-//                }
-//                if (sigma3 != null) {
-//                    Complex comp = sigma3[toEnergyStep(tempE, dE, gp)];
-//                    matrix.getParser().addComplexVariable("F", comp.getReal(), comp.getImaginary());
-//                }
-                ComplexMatrix M = matrix.convertToComplexMatrix();
-                ComplexMatrix TempMatrix = M.inverse();
-                for (Atom atom : par.getAtoms() ){
-                    double result = countLocalDensity(TempMatrix.get(atom.getID(), atom.getID()));
-                    if(atom.getBool("Save"))
-                        results += result + ",";
-                    if (tempE <= 0)
-                        charges[atom.getID()] += result * cp.getInc("E");
-                }
-                if (saveAnyLDOS){
-                    ldosWriter.println(n +"," + tempE + "," + results);
-                    }
-            }
-            for (Atom atom : par.getAtoms()) {
-                chargeWriter.println(n + "," + atom.getID() + "," + charges[atom.getID()]);
-            }
-            chargeWriter.println();
-            if (saveAnyLDOS)
-                ldosWriter.println();
+        chargeWriter.print("n,i,q\n");
+
+//        for (StaticPropertiesRunnable s : spr){
+//            if (StringUtils.isNotEmpty(s.getLdos()))
+//                ldosWriter.print(s.getLdos());
+//        }
+
+        for (StaticPropertiesRunnable s : spr){
+            if (StringUtils.isNotEmpty(s.getCharge()))
+                chargeWriter.print(s.getCharge());
+            if (StringUtils.isNotEmpty(s.getLdos()))
+                ldosWriter.print(s.getLdos());
         }
-        nm.getMenu().clearBars();
-        if (saveAnyLDOS)
-            ldosWriter.println();
 
         ldosWriter.close();
         chargeWriter.close();
+        NanoModeler.getInstance().getMenu().clearBars();
         long endTime = System.currentTimeMillis();
         System.out.println(endTime - startTime);
+
     }
 
-    private static void updateProgressBar(Double n, String name, CommonProperties cp, JProgressBar bar) {
-        int percentageSec = (int) (100 * (n - cp.getMin(name))/ cp.getWidth(name));
-        if (percentageSec % 5 == 0){
-            bar.setValue(percentageSec);
-            bar.setString(name + ": " + percentageSec + "%");
-        }
-    }
 
     public static double countLocalDensity(Complex M){
         return (-1/Math.PI)*M.getImaginary();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

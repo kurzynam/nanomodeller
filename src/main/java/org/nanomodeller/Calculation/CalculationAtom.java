@@ -4,6 +4,15 @@ import java.util.ArrayList;
 
 public class CalculationAtom extends CalculationItem{
     private int ID;
+    private Integer elID;
+
+    public Integer getElID() {
+        return elID;
+    }
+
+    public void setElID(Integer elID) {
+        this.elID = elID;
+    }
 
     public CalculationAtom(int ID){
         this.ID = ID;

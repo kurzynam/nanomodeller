@@ -1,5 +1,6 @@
 package org.nanomodeller.XMLMappingFiles;
 
+import org.nanomodeller.Calculation.CalculationAtom;
 import org.nanomodeller.Calculation.CalculationElectrode;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nfunk.jep.JEP;
@@ -63,9 +64,13 @@ public class Electrode extends StructureElement {
     public void setID(int ID) {
         this.ID = ID;
     }
-    public static void initializeCalculationElectrodes(JEP parser, ArrayList<Electrode> electrodes, Hashtable<Integer, CalculationElectrode> cElectrodes) {
+    public static void initializeCalculationElectrodes(JEP parser, ArrayList<Electrode> electrodes,
+                                                       Hashtable<Integer, CalculationElectrode> cElectrodes,
+                                                       Hashtable<Integer, CalculationAtom> cAtoms) {
         electrodes.stream().forEach(electrode ->{
-            CalculationElectrode el = new CalculationElectrode(electrode.getAtomIndex());
+            CalculationElectrode el = new CalculationElectrode(electrode.getID());
+            el.setAtomID(electrode.getAtomIndex());
+            cAtoms.get(electrode.getAtomIndex()).setElID(el.getID());
             fillProperties(parser, electrode, el);
             cElectrodes.put(el.getID(), el);
         });

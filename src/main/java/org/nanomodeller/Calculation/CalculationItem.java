@@ -3,6 +3,8 @@ package org.nanomodeller.Calculation;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import org.nanomodeller.XMLMappingFiles.Bond;
+import org.nanomodeller.XMLMappingFiles.Electrode;
 import org.nanomodeller.XMLMappingFiles.StructureElement;
 import org.nfunk.jep.JEP;
 
@@ -37,12 +39,23 @@ public class CalculationItem {
         for (int i = 0; i < elements.size(); i++){
             StructureElement structureElement = (StructureElement)elements.get(i);
             for (Object key : structureElement.getProperties().keySet()){
-                if (((CalculationItem)items.get(i)).isSkip(key.toString())){
-                    continue;
+
+                CalculationItem calculationItem;
+                if (structureElement instanceof Bond){
+                   // for (CalculationBond b : ((Hashtable <Integer, Hashtable<Integer, CalculationBond>> items).keySet()).values())
                 }
-                parser.parseExpression(structureElement.getString(key.toString()));
-                double val = parser.getValue();
-                ((CalculationItem)items.get(i)).setProperty(key.toString(), val);
+                else{
+                    if (structureElement instanceof Electrode)
+                        calculationItem = (CalculationItem) items.get(((Electrode) structureElement).getID());
+                    else
+                        calculationItem = (CalculationItem) items.get(i);
+                    if (calculationItem.isSkip(key.toString())){
+                        continue;
+                    }
+                    parser.parseExpression(structureElement.getString(key.toString()));
+                    double val = parser.getValue();
+                    calculationItem.setProperty(key.toString(), val);
+                }
             }
         }
     }

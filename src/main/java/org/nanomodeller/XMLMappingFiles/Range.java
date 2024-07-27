@@ -40,6 +40,10 @@ public class Range implements Iterable<Double>{
         return increment;
     }
 
+    public Double getWidth(){
+        return max - min;
+    }
+
     public void setIncrement(Double increment) {
         this.increment = increment;
     }
