@@ -203,9 +203,9 @@ public class TimeEvolutionHelper {
             for (CalculationAtom a : calculationAtoms.values()) {
                 int i = a.getID();
                 for (int sigma = 0; sigma < sigmaDim; sigma++) {
-                    countDynamicParameters(i, sigma, time, dt, constant,
+                    countDynamicParameters(i, sigma, time, dt,
                             ldosArray,
-                            TDOStemp, integralEnergy);
+                            integralEnergy);
                 }
             }
             //if (time >= starTimeFrom && t % everyT == 0){
@@ -326,21 +326,17 @@ public class TimeEvolutionHelper {
     //region Uij methods
     public void countUt_ij(int t){
         t = t % 2;
-        Complex[][] k1, k2, k3, k4;
-        k1 = new Complex[numOfAtoms][numOfAtoms];
-        k2 = new Complex[numOfAtoms][numOfAtoms];
-        k3 = new Complex[numOfAtoms][numOfAtoms];
-        k4 = new Complex[numOfAtoms][numOfAtoms];
+        Complex[][][] arrays = new Complex[4][numOfAtoms][numOfAtoms];
         for (int k = 0; k <4; k++){
             for (int i = 0; i < numOfAtoms; i++){
                 for (int j = 0; j < numOfAtoms; j++){
-                    CalculateU(t, k1, k2, k3, k4, k, i, j);
+                    CalculateU(t, arrays, k, i, j);
                 }
             }
         }
     }
 
-    private void CalculateU(int t, Complex[][] k1, Complex[][] k2, Complex[][] k3, Complex[][] k4, int k, int i, int j) {
+    private void CalculateU(int t, Complex[][][] arrays, int k, int i, int j) {
         int T = t % 2;
         Hashtable<String,Complex> U = new Hashtable<String,Complex>();
         String id = i + "";
@@ -359,43 +355,43 @@ public class TimeEvolutionHelper {
                 if (!par.getElectrodesByAtomID(i).isEmpty()){
                     U.put(id, Ut_ij[T][i][j]);
                 }
-                k1[i][j] = function(i, prevTime, U);
+                arrays[0][i][j] = function(i, prevTime, U);
                 break;
             case 1:
                 for (CalculationBond b : bonds.values()){
                     second = b.getOtherAtomID(i);
-                    U.put(second + "",Ut_ij[T][second][j].plus(k1[second][j].times(dt / 2)));
+                    U.put(second + "",Ut_ij[T][second][j].plus(arrays[0][second][j].times(dt / 2)));
                 }
                 if (!par.getElectrodesByAtomID(i).isEmpty()){
-                    U.put(id, Ut_ij[T][i][j].plus(k1[i][j].times(dt/2)));
+                    U.put(id, Ut_ij[T][i][j].plus(arrays[0][i][j].times(dt/2)));
                 }
-                k2[i][j] = function(i, prevTime + dt / 2,U);
+                arrays[1][i][j] = function(i, prevTime + dt / 2,U);
                 break;
             case 2:
                 for (CalculationBond b : bonds.values()){
                     second = b.getOtherAtomID(i);
-                    U.put(second + "",Ut_ij[T][second][j].plus(k2[second][j].times(dt / 2)));
+                    U.put(second + "",Ut_ij[T][second][j].plus(arrays[1][second][j].times(dt / 2)));
                 }
                 if (!par.getElectrodesByAtomID(i).isEmpty()){
-                    U.put(id, Ut_ij[T][i][j].plus(k2[i][j].times(dt/2)));
+                    U.put(id, Ut_ij[T][i][j].plus(arrays[1][i][j].times(dt/2)));
                 }
-                k3[i][j] = function(i, prevTime + dt / 2, U);
+                arrays[2][i][j] = function(i, prevTime + dt / 2, U);
                 break;
             default:
                 for (CalculationBond b : bonds.values()){
                     second = b.getOtherAtomID(i);
-                    U.put(second + "", Ut_ij[T][second][j].plus(k3[second][j].times(dt)));
+                    U.put(second + "", Ut_ij[T][second][j].plus(arrays[2][second][j].times(dt)));
                 }
                 if (par.getElectrodesByAtomID(i).size() > 0){
-                    U.put(id, Ut_ij[T][i][j].plus(k3[i][j].times(dt)));
+                    U.put(id, Ut_ij[T][i][j].plus(arrays[2][i][j].times(dt)));
                 }
-                k4[i][j] = function(i, prevTime + dt, U);
+                arrays[3][i][j] = function(i, prevTime + dt, U);
                 Ut_ij[t % 2][i][j] =
                         Ut_ij[T][i][j].plus(
-                                (k1[i][j].plus(
-                                        k2[i][j].times(2)).plus(
-                                        k3[i][j].times(2)).plus(
-                                        k4[i][j]))
+                                (arrays[0][i][j].plus(
+                                        arrays[1][i][j].times(2)).plus(
+                                        arrays[2][i][j].times(2)).plus(
+                                        arrays[3][i][j]))
                                         .times(dt/6));
                 break;
         }
@@ -588,8 +584,8 @@ public class TimeEvolutionHelper {
 
 
     public void countDynamicParameters(int i, int sigmaN, int t, double dt,
-                                       double constant, ArrayList<String> ldosArray,
-                                       double[] TDOStemp, Complex[][] integralEnergy){
+                                       ArrayList<String> ldosArray,
+                                       Complex[][] integralEnergy){
 
         for (int e = 0; e < numberOfEnergySteps; e++) {
             for (int n_sigma = 0; n_sigma < 1; n_sigma++) {
