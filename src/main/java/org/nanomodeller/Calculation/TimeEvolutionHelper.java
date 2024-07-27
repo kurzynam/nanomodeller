@@ -336,24 +336,24 @@ public class TimeEvolutionHelper {
         }
     }
 
-    private void updateU(Hashtable<String, Complex> U, int T, int i, int j,
+    private void updateU(Hashtable<Integer, Complex> U, int T, int i, int j,
                          Complex[][][] array, int rkn,
                          double dt, double prevTime,
                          int factor) {
         for (CalculationBond b : calculationBonds.get(i).values()) {
             int second = b.getOtherAtomID(i);
-            U.put(second + "", Ut_ij[T][second][j].plus(array[rkn][second][j].times(dt / factor)));
+            U.put(second, Ut_ij[T][second][j].plus(array[rkn][second][j].times(dt / factor)));
         }
         if (!par.getElectrodesByAtomID(i).isEmpty()) {
-            U.put(i + "", Ut_ij[T][i][j].plus(array[rkn][i][j].times(dt / factor)));
+            U.put(i, Ut_ij[T][i][j].plus(array[rkn][i][j].times(dt / factor)));
         }
         array[rkn+1][i][j] = function(i, prevTime + dt / 2,U);
     }
 
     private void CalculateU(int t, Complex[][][] arrays, int k, int i, int j) {
         int T = t % 2;
-        Hashtable<String,Complex> U = new Hashtable<String,Complex>();
-        String id = i + "";
+        Hashtable<Integer, Complex> U = new Hashtable<>();
+        Integer id = i;
         int second;
         double dt = (gp.getInc("t"));
         Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
@@ -364,7 +364,7 @@ public class TimeEvolutionHelper {
             case 0:
                 for (CalculationBond b : bonds.values()){
                     second = b.getOtherAtomID(i);
-                    U.put(second + "",Ut_ij[T][second][j]);
+                    U.put(second, Ut_ij[T][second][j]);
                 }
                 if (!par.getElectrodesByAtomID(i).isEmpty()){
                     U.put(id, Ut_ij[T][i][j]);
@@ -391,13 +391,13 @@ public class TimeEvolutionHelper {
     }
 
 
-    private Complex function(int i, double time, Hashtable<String,Complex> U ) {
+    private Complex function(int i, double time, Hashtable<Integer, Complex> U ) {
         return function(i, time, U,null);
     }
 
 
 
-    private Complex function(int i, double time, Hashtable<String,Complex> U , Electrode electrode) {
+    private Complex function(int i, double time, Hashtable<Integer, Complex> U , Electrode electrode) {
 
         Complex result = Complex.ZERO;
         String id = i + "";
@@ -405,12 +405,12 @@ public class TimeEvolutionHelper {
         int anotherAtom;
         for (CalculationBond b : bonds.values()){
             anotherAtom = b.getOtherAtomID(i);
-            result = result.plus(Complex.I.times(exp_i((Ei[i] - Ei[anotherAtom]) * time)).times(U.get(anotherAtom + "")).times(b.get(COUPLING)));
+            result = result.plus(Complex.I.times(exp_i((Ei[i] - Ei[anotherAtom]) * time)).times(U.get(anotherAtom)).times(b.get(COUPLING)));
         }
         CalculationAtom at = calculationAtoms.get(i);
         if (at.getElID() != null) {
             CalculationElectrode cE = calculationElectrodes.get(at.getElID());
-            result = result.plus(U.get(i + "").times(-cE.get(COUPLING) / 2.0));
+            result = result.plus(U.get(i).times(-cE.get(COUPLING) / 2.0));
         }
         return result;
     }
