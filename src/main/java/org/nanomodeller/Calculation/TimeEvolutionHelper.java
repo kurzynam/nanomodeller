@@ -336,6 +336,20 @@ public class TimeEvolutionHelper {
         }
     }
 
+    private void updateU(Hashtable<String, Complex> U, int T, int i, int j,
+                         Complex[][][] array, int rkn,
+                         double dt, double prevTime,
+                         int factor) {
+        for (CalculationBond b : calculationBonds.get(i).values()) {
+            int second = b.getOtherAtomID(i);
+            U.put(second + "", Ut_ij[T][second][j].plus(array[rkn][second][j].times(dt / factor)));
+        }
+        if (!par.getElectrodesByAtomID(i).isEmpty()) {
+            U.put(i + "", Ut_ij[T][i][j].plus(array[rkn][i][j].times(dt / factor)));
+        }
+        array[rkn+1][i][j] = function(i, prevTime + dt / 2,U);
+    }
+
     private void CalculateU(int t, Complex[][][] arrays, int k, int i, int j) {
         int T = t % 2;
         Hashtable<String,Complex> U = new Hashtable<String,Complex>();
@@ -358,34 +372,13 @@ public class TimeEvolutionHelper {
                 arrays[0][i][j] = function(i, prevTime, U);
                 break;
             case 1:
-                for (CalculationBond b : bonds.values()){
-                    second = b.getOtherAtomID(i);
-                    U.put(second + "",Ut_ij[T][second][j].plus(arrays[0][second][j].times(dt / 2)));
-                }
-                if (!par.getElectrodesByAtomID(i).isEmpty()){
-                    U.put(id, Ut_ij[T][i][j].plus(arrays[0][i][j].times(dt/2)));
-                }
-                arrays[1][i][j] = function(i, prevTime + dt / 2,U);
+                updateU(U, T, i, j, arrays, 0, dt, prevTime, 2);
                 break;
             case 2:
-                for (CalculationBond b : bonds.values()){
-                    second = b.getOtherAtomID(i);
-                    U.put(second + "",Ut_ij[T][second][j].plus(arrays[1][second][j].times(dt / 2)));
-                }
-                if (!par.getElectrodesByAtomID(i).isEmpty()){
-                    U.put(id, Ut_ij[T][i][j].plus(arrays[1][i][j].times(dt/2)));
-                }
-                arrays[2][i][j] = function(i, prevTime + dt / 2, U);
+                updateU(U, T, i, j, arrays, 1, dt, prevTime, 2);
                 break;
             default:
-                for (CalculationBond b : bonds.values()){
-                    second = b.getOtherAtomID(i);
-                    U.put(second + "", Ut_ij[T][second][j].plus(arrays[2][second][j].times(dt)));
-                }
-                if (par.getElectrodesByAtomID(i).size() > 0){
-                    U.put(id, Ut_ij[T][i][j].plus(arrays[2][i][j].times(dt)));
-                }
-                arrays[3][i][j] = function(i, prevTime + dt, U);
+                updateU(U, T, i, j, arrays, 2, dt, prevTime, 2);
                 Ut_ij[t % 2][i][j] =
                         Ut_ij[T][i][j].plus(
                                 (arrays[0][i][j].plus(
