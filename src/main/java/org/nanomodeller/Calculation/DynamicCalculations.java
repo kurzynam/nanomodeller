@@ -1,5 +1,8 @@
 package org.nanomodeller.Calculation;
 
+import org.nanomodeller.Calculation.CalculationEntities.CalculationAtom;
+import org.nanomodeller.Calculation.CalculationEntities.CalculationBond;
+import org.nanomodeller.Calculation.CalculationEntities.CalculationElectrode;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.Flag;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
@@ -9,28 +12,29 @@ import org.jscience.mathematics.number.Complex;
 import org.nfunk.jep.JEP;
 import java.util.*;
 
-import static org.nanomodeller.Calculation.CalculationItem.applyTimeForItemsCalculation;
-import static org.nanomodeller.Calculation.JEPHelper.createJEP;
-import static org.nanomodeller.Calculation.ProgressBarState.updateProgressBar;
+import static org.jscience.mathematics.number.Complex.*;
+import static org.nanomodeller.Calculation.CalculationEntities.CalculationItem.applyTimeForItemsCalculation;
+import static org.nanomodeller.Calculation.Tools.JEPHelper.createJEP;
+import static org.nanomodeller.Calculation.Tools.ProgressBarState.updateProgressBar;
 import static org.nanomodeller.CommonPhysics.toEnergy;
 import static org.nanomodeller.Globals.*;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static org.jscience.mathematics.number.Complex.ZERO;
-import static org.jscience.mathematics.number.Complex.valueOf;
 import static org.nanomodeller.XMLMappingFiles.Atom.initializeCalculationAtoms;
 import static org.nanomodeller.XMLMappingFiles.Bond.initializeCalculationBonds;
 import static org.nanomodeller.XMLMappingFiles.Electrode.initializeCalculationElectrodes;
 
-public class TimeEvolutionHelper {
+public class DynamicCalculations {
 
     public static final String CORRELATION_COUPLING = "CorrelationCoupling";
     public static final String SPIN_FLIP = "SpinFlip";
     public static final String DE = "dE";
     public static final String COUPLING = "Coupling";
     public static final String PERTURBATION_COUPLING = "PerturbationCoupling";
+
+    public boolean areCorrelations = false;
     //region public members
     public CommonProperties gp;
 
@@ -87,12 +91,13 @@ public class TimeEvolutionHelper {
         initializeCalculationBonds(parser, par.getBonds(), calculationBonds);
         initializeCalculationAtoms(parser, par.getAtoms(), calculationAtoms);
         initializeCalculationElectrodes(parser, par.getElectrodes(), calculationElectrodes, calculationAtoms);
+        areCorrelations = par.getBonds().stream().anyMatch(bond -> bond.getProperties().contains(CORRELATION_COUPLING));
 
         gp = CommonProperties.getInstance();
 
         double electrodesWidth = gp.getWidth("E");
         double dt = gp.getInc("t");
-        Complex Ek = Complex.ONE;
+        Complex Ek = ONE;
         double constant = dE / electrodesWidth;
         Complex[][] integralEnergy = null;
         MyFileWriter ldosList;
@@ -109,7 +114,7 @@ public class TimeEvolutionHelper {
             integralEnergy = new Complex[par.getAtoms().size()][2];
             for (int i = 0; i < 2; i++) {
                 for (int comp = 0; comp < integralEnergy.length; comp++) {
-                    integralEnergy[comp][i] = Complex.ONE;
+                    integralEnergy[comp][i] = ONE;
                 }
             }
         }
@@ -146,8 +151,8 @@ public class TimeEvolutionHelper {
         }
         int time = 0;
         for (double t : gp.getVar("t")) {
-            updateProgressBar(t - gp.getVar("t").getMin(), "n", gp.getVar("t").getWidth(), NanoModeler.getInstance().getMenu().getSecondPB());
-            int T = time % 2;
+            updateProgressBar(t - gp.getVar("t").getMin(), "t", gp.getVar("t").getWidth(), NanoModeler.getInstance().getMenu().getSecondPB());
+
 
             double[] TDOStemp = new double[numberOfEnergySteps/everyE];
             parser.addVariable("t", t);
@@ -160,9 +165,8 @@ public class TimeEvolutionHelper {
 
             for (CalculationElectrode electrode : calculationElectrodes.values()) {
                 electrode_id = electrode.getID();
-                countUt_ik(electrode, Ut_ik.get(electrode_id), time, T, dt, t-dt,
-                        electrodesWidth, integralEnergy);
-
+                countUt_ik(electrode, Ut_ik.get(electrode_id), time, dt,
+                        integralEnergy);
             }
 
             if (par.isSurfacePresent()) {
@@ -262,8 +266,8 @@ public class TimeEvolutionHelper {
             int i = a.getID();
             for (int j = 0; j < numOfAtoms; j++) {
                 if (i == j) {
-                    Ut_ij[0][i][j] = Complex.ONE;
-                    Ut_ij[1][i][j] = Complex.ONE;
+                    Ut_ij[0][i][j] = ZERO;
+                    Ut_ij[1][i][j] = ZERO;
                 } else {
                     Ut_ij[0][i][j] = Complex.ZERO;
                     Ut_ij[1][i][j] = Complex.ZERO;
@@ -296,7 +300,7 @@ public class TimeEvolutionHelper {
             //sumOfCharges[i] = 0.0 + n.get(Integer.valueOf(i));
             for (int j = 0; j < numOfAtoms; j++) {
                 if (i == j) {
-                    Ut_ij[0][i][j] = Complex.ONE;
+                    Ut_ij[0][i][j] = ONE;
                 } else {
                     Ut_ij[0][i][j] = Complex.ZERO;
                 }
@@ -391,16 +395,8 @@ public class TimeEvolutionHelper {
     }
 
 
-    private Complex function(int i, double time, Hashtable<Integer, Complex> U ) {
-        return function(i, time, U,null);
-    }
-
-
-
-    private Complex function(int i, double time, Hashtable<Integer, Complex> U , Electrode electrode) {
-
+    private Complex function(int i, double time, Hashtable<Integer, Complex> U) {
         Complex result = Complex.ZERO;
-        String id = i + "";
         Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
         int anotherAtom;
         for (CalculationBond b : bonds.values()){
@@ -410,27 +406,20 @@ public class TimeEvolutionHelper {
         CalculationAtom at = calculationAtoms.get(i);
         if (at.getElID() != null) {
             CalculationElectrode cE = calculationElectrodes.get(at.getElID());
-            result = result.plus(U.get(i).times(-cE.get(COUPLING) / 2.0));
+            result = result.plus(U.get(i).times(-cE.get(COUPLING)/ 2.0));
         }
         return result;
     }
 
     //region Rk4
 
-    public void countUt_ik(CalculationElectrode electrode, Complex[][][][][] Ut_ik, int t, int T, double dt,
-                           double prevTime, double electrodesWidth,
+    public void countUt_ik(CalculationElectrode electrode, Complex[][][][][] Ut_ik, int t, double dt,
                            Complex[][] integralEnergy){
+        int T = t % 2;
+        double prevTime = (t - 1) * dt;
+        int numberOfEnergySteps = gp.getVariables().get("E").getStepsNum();
 
-//        if (Globals.SURFACE_ELECTRODE_ID == (electrode)){
-//            electrodeID = new Electrode(-1,null,null,par.getSurfaceCoupling(),gp.getInc("E"),Globals.SURFACE_ELECTRODE_ID,null);
-//        }
-        double energyStep = dE;
-//        if (electrode != null){
-//            energyStep = electrode.get(DE);
-//        }
-        int numberOfEnergySteps = (int)(electrodesWidth/energyStep);
-
-        Complex[][][] kVec = new Complex[3][numOfAtoms][2];
+        Complex[][][] kVec = new Complex[4][numOfAtoms][2];
         double calculatedVk = sqrt(gp.getWidth("E") * electrode.get(COUPLING) / ( 2 * PI));
         int elAtID = electrode.getID();
         double[] Vsf = new double[numOfAtoms];
@@ -442,7 +431,6 @@ public class TimeEvolutionHelper {
             sigmaDim = 2;
         }
         for (int e = 0; e < numberOfEnergySteps; e++) {
-
             for (int sigma_k = 0; sigma_k < sigmaDim; sigma_k++) {
                 Complex[][] array = Ut_ik[T][e][sigma_k];
                 Complex Ek = exp_i((toEnergy(e, gp) * (prevTime)));
@@ -451,32 +439,20 @@ public class TimeEvolutionHelper {
                         for (int i = 0; i < numOfAtoms; i++) {
                             Integer elID = calculationAtoms.get(i).getElID();
                             CalculationElectrode cElectrode = elID != null ? calculationElectrodes.get(elID) : null;
-                            double per = 1;
-                            if (cElectrode != null) {
-                                per = cElectrode.get(PERTURBATION_COUPLING) != null ? cElectrode.get(PERTURBATION_COUPLING) : 1;
-                            }
-                            double Vk;
-                            if (i == elAtID) {
-                                Vk = calculatedVk;
-                            } else {
-                                Vk = 0;
-                            }
-                            if (k == 0) {
-                                kVec[k][i][nSigma] = functionUik(i, nSigma, sigma_k, k, dt, Ek, array, null, Vk, per, Vsf[i],
-                                        integralEnergy, sigmaDim);
-                            } else if (k < 3) {
-                                kVec[k][i][nSigma] = functionUik(i, nSigma, sigma_k, k, dt, Ek, array, kVec[k - 1], Vk, per,  Vsf[i],
-                                        integralEnergy, sigmaDim);
-                            } else {
-                                Complex kVec3 = functionUik(i, nSigma, sigma_k, k, dt, Ek, array, kVec[k - 1], Vk, per,  Vsf[i],
-                                        integralEnergy, sigmaDim);
+                            double per = (cElectrode != null) && cElectrode.get(PERTURBATION_COUPLING) != null ?
+                                    cElectrode.get(PERTURBATION_COUPLING) : 1;
+                            double Vk = (i == elAtID) ?
+                                    calculatedVk : 0;
+                            Complex[][] kVecTemp = (k > 0) ? kVec[k - 1] : null;
+                            kVec[k][i][nSigma] = functionUik(i, nSigma, sigma_k, k, dt, Ek, array, kVecTemp, Vk, per,  Vsf[i],
+                                    integralEnergy, sigmaDim);
+                            if (k == 3){
                                 Ut_ik[t % 2][e][sigma_k][i][nSigma] =
                                         Ut_ik[T][e][sigma_k][i][nSigma].plus(
                                                 (kVec[0][i][nSigma].plus(
                                                         kVec[1][i][nSigma].times(2)).plus(
-                                                        kVec[2][i][nSigma].times(2)).plus(kVec3))
+                                                        kVec[2][i][nSigma].times(2)).plus(kVec[k][i][nSigma]))
                                                         .times(dt / 6));
-
                             }
                         }
                     }
@@ -487,7 +463,7 @@ public class TimeEvolutionHelper {
     //endregion
 
     //region constructor
-    public TimeEvolutionHelper(NanoModeler modeller, Flag isInterupted){
+    public DynamicCalculations(NanoModeler modeller, Flag isInterupted){
         this.modeler = modeller;
         this.isInterupted = isInterupted;
         initialize();
@@ -495,7 +471,7 @@ public class TimeEvolutionHelper {
     //endregion
 
     //region maths
-    public Complex  exp_i(double argument){
+    public Complex exp_i(double argument){
         return valueOf(Math.cos(argument), Math.sin(argument));
     }
     public double time(int timeStep, double dt){
@@ -518,7 +494,7 @@ public class TimeEvolutionHelper {
         if (index != null){
             CalculationElectrode ce = calculationElectrodes.get(index);
             if (ce != null)
-                gammaHalf = ce.get(COUPLING)/2.0;//0.5;//el.getDoubleCoupling()/ 2.0;
+                gammaHalf = ce.get(COUPLING)/2.0;
         }
 
         int minusSigma = (sigma + 1) % sigmaDim;
@@ -529,11 +505,9 @@ public class TimeEvolutionHelper {
             if (k == 0) {
                 result = Ut_ik[i][sigma].times(-gammaHalf*f*f);
             }
-            else if (k == 3){
-                result = Ut_ik[i][sigma].plus(kVec[i][sigma].times(dt)).times(-gammaHalf*f*f);
-            }
             else{
-                result = Ut_ik[i][sigma].plus(kVec[i][sigma].times(dt/2)).times(-gammaHalf*f*f);
+                double tStep = (k < 3) ? dt : dt/2;
+                result = Ut_ik[i][sigma].plus(kVec[i][sigma].times(tStep)).times(-gammaHalf*f*f);
             }
         }
         if (k == 0) {
@@ -591,12 +565,14 @@ public class TimeEvolutionHelper {
                 ldosArray.set(e, ldosArray.get(e) + "," + String.format("%.6f",ldos));
             }
         }
-        integralEnergy[i][sigmaN] = integralEnergy[i][sigmaN].times(exp_i(Ei[i] * dt));
-        Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
-        for (CalculationBond b : bonds.values()){
-            int j = b.getOtherAtomID(i);
-            double u = b.get(CORRELATION_COUPLING) != null ? b.get(CORRELATION_COUPLING) : 1;
-            integralEnergy[i][sigmaN] = integralEnergy[i][sigmaN].times(exp_i(u* n.get(j)* dt));
+        if (areCorrelations){
+            integralEnergy[i][sigmaN] = integralEnergy[i][sigmaN].times(exp_i(Ei[i] * dt));
+            Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
+            for (CalculationBond b : bonds.values()){
+                int j = b.getOtherAtomID(i);
+                double u = b.get(CORRELATION_COUPLING) != null ? b.get(CORRELATION_COUPLING) : 1;
+                integralEnergy[i][sigmaN] = integralEnergy[i][sigmaN].times(exp_i(u* n.get(j)* dt));
+            }
         }
     }
 

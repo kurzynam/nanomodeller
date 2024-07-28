@@ -3,12 +3,12 @@
     <CommonProperties>
         <properties>
             <entry>
-                <key>staticChargeFileName</key>
-                <value>n_N50V4W1.csv</value>
-            </entry>
-            <entry>
                 <key>W</key>
                 <value>1</value>
+            </entry>
+            <entry>
+                <key>staticChargeFileName</key>
+                <value>n_N50V4W1.csv</value>
             </entry>
             <entry>
                 <key>V</key>
@@ -24,7 +24,7 @@
                 <key>t</key>
                 <value>
                     <incr>0.01</incr>
-                    <max>30.0</max>
+                    <max>70.0</max>
                     <min>0.0</min>
                 </value>
             </entry>

@@ -1,7 +1,7 @@
 package org.nanomodeller.GUI;
 
 import org.nanomodeller.*;
-import org.nanomodeller.Calculation.StaticProperties;
+import org.nanomodeller.Calculation.StaticCalculations;
 import org.nanomodeller.GUI.Adapters.MovingAdapter;
 import org.nanomodeller.GUI.Adapters.KeyAdapter;
 import org.nanomodeller.GUI.Dialogs.ElementPropertiesDialog;
@@ -174,7 +174,7 @@ public class NanoModeler extends JFrame {
     public void countStaticProperties() {
         saveData();
         new Thread(() -> {
-            StaticProperties.countStaticProperties();
+            StaticCalculations.countStaticProperties();
             ToastMessage toastMessage = new ToastMessage("LDOS counting finished ", TOAST_MESSAGE_DURATION, this);
             toastMessage.setVisible(true);
         }).start();
@@ -424,7 +424,7 @@ public class NanoModeler extends JFrame {
         }
         count = 0;
         for (Integer i: getSortedKeys(electrodes)){
-            electrodes.get(i).setID(count);
+            electrodes.get(i).setID(count++);
         }
         getBonds().stream().filter(bond -> bond.getFirst() < 0).forEach(bond -> bond.setFirst(-bond.getFirst() - 1));
         getBonds().stream().filter(bond -> bond.getSecond() < 0).forEach(bond -> bond.setSecond(-bond.getSecond() - 1));

@@ -1,4 +1,4 @@
-package org.nanomodeller.Calculation;
+package org.nanomodeller.Calculation.Tools;
 
 import javax.swing.*;
 

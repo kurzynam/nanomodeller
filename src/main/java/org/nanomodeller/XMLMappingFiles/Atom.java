@@ -2,7 +2,7 @@ package org.nanomodeller.XMLMappingFiles;
 
 
 import jakarta.xml.bind.annotation.XmlRootElement;
-import org.nanomodeller.Calculation.CalculationAtom;
+import org.nanomodeller.Calculation.CalculationEntities.CalculationAtom;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nfunk.jep.JEP;
 

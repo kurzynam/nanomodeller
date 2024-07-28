@@ -1,4 +1,4 @@
-package org.nanomodeller.Calculation;
+package org.nanomodeller.Calculation.Tools;
 
 import org.nanomodeller.XMLMappingFiles.CommonProperties;
 import org.nfunk.jep.JEP;

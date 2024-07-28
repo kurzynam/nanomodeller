@@ -1,6 +1,6 @@
 package org.nanomodeller.GUI.Menus;
 
-import org.nanomodeller.Calculation.TimeEvolutionHelper;
+import org.nanomodeller.Calculation.DynamicCalculations;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.GUI.ViewComponents.*;
 
@@ -86,7 +86,7 @@ public class RightMenuPanel extends MyPanel {
                 timeEvolutionButton.setText("Count time evolution");
             } else {
                 nanoModeler.getIsCanceled().setValue(false);
-                Runnable myRunnable = () -> new TimeEvolutionHelper(nanoModeler, nanoModeler.getIsInterupted());
+                Runnable myRunnable = () -> new DynamicCalculations(nanoModeler, nanoModeler.getIsInterupted());
                 nanoModeler.setDynamicCalculationsThread(new Thread(myRunnable));
                 nanoModeler.repaint();
                 nanoModeler.getDynamicCalculationsThread().start();

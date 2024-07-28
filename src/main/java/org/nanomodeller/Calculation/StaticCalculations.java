@@ -2,26 +2,19 @@ package org.nanomodeller.Calculation;
 
 
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
 import org.jscience.mathematics.number.Complex;
-import org.jscience.mathematics.vector.ComplexMatrix;
 
-import javax.swing.*;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Hashtable;
-
-public class StaticProperties {
+public class StaticCalculations {
 
 
     public static void countStaticProperties(){
 
         int cores = 3;//Runtime.getRuntime().availableProcessors();
         Thread[] threads = new Thread[cores];
-        StaticPropertiesRunnable[] spr = new StaticPropertiesRunnable[cores];
+        StaticCalculationsRunnable[] spr = new StaticCalculationsRunnable[cores];
         CommonProperties cp = CommonProperties.getInstance();
         NanoModeler.getInstance().getMenu().clearBars();
         long startTime = System.currentTimeMillis();
@@ -31,7 +24,7 @@ public class StaticProperties {
             double width = cp.getWidth("n")/threads.length;
             double start = cp.getMin("n") + i * width;
             double end = start +  width;
-            spr[i] = new StaticPropertiesRunnable(start, end, CommonProperties.getInstance().clone(),Parameters.getInstance().clone());
+            spr[i] = new StaticCalculationsRunnable(start, end, CommonProperties.getInstance().clone(),Parameters.getInstance().clone());
             if (i == 0)
                 spr[i].isFirst = true;
             threads[i] = new Thread(spr[i]);
@@ -60,12 +53,12 @@ public class StaticProperties {
         }
         chargeWriter.print("n,i,q\n");
 
-//        for (StaticPropertiesRunnable s : spr){
+//        for (StaticCalculationsRunnable s : spr){
 //            if (StringUtils.isNotEmpty(s.getLdos()))
 //                ldosWriter.print(s.getLdos());
 //        }
 
-        for (StaticPropertiesRunnable s : spr){
+        for (StaticCalculationsRunnable s : spr){
             if (StringUtils.isNotEmpty(s.getCharge()))
                 chargeWriter.print(s.getCharge());
             if (StringUtils.isNotEmpty(s.getLdos()))

@@ -9,11 +9,11 @@ import org.nanomodeller.XMLMappingFiles.Parameters;
 
 import java.io.StringWriter;
 
-import static org.nanomodeller.Calculation.ProgressBarState.updateProgressBar;
-import static org.nanomodeller.Calculation.StaticProperties.countLocalDensity;
+import static org.nanomodeller.Calculation.Tools.ProgressBarState.updateProgressBar;
+import static org.nanomodeller.Calculation.StaticCalculations.countLocalDensity;
 
 
-public class StaticPropertiesRunnable implements Runnable {
+public class StaticCalculationsRunnable implements Runnable {
     private volatile String charge;
     private volatile String ldos;
     public boolean isFirst;
@@ -26,7 +26,7 @@ public class StaticPropertiesRunnable implements Runnable {
 
     private Parameters par;
 
-    public StaticPropertiesRunnable(double start, double end, CommonProperties cp, Parameters par) {
+    public StaticCalculationsRunnable(double start, double end, CommonProperties cp, Parameters par) {
         this.start = start;
         this.end = end;
         this.cp = cp;

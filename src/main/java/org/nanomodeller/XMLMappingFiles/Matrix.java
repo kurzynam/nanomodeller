@@ -5,14 +5,13 @@ import org.jscience.mathematics.number.Complex;
 import org.nanomodeller.Tools.StringUtils;
 import org.jscience.mathematics.vector.ComplexMatrix;
 import org.nfunk.jep.JEP;
-import org.nfunk.jep.function.*;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.function.Function;
 
-import static org.nanomodeller.Calculation.JEPHelper.createJEP;
+import static org.nanomodeller.Calculation.Tools.JEPHelper.createJEP;
 import static org.nanomodeller.SurfaceEffect.surfaceCoupling;
 
 @XmlRootElement(name="Matrix")

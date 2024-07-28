@@ -44,6 +44,10 @@ public class Range implements Iterable<Double>{
         return max - min;
     }
 
+    public Integer getStepsNum(){
+        return (int)(getWidth()/getIncrement());
+    }
+
     public void setIncrement(Double increment) {
         this.increment = increment;
     }

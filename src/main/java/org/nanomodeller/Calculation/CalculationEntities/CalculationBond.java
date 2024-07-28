@@ -1,6 +1,4 @@
-package org.nanomodeller.Calculation;
-
-import org.nanomodeller.UnorderedPair;
+package org.nanomodeller.Calculation.CalculationEntities;
 
 public class CalculationBond extends CalculationItem{
     int first, second;

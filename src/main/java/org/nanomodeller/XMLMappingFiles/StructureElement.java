@@ -1,7 +1,7 @@
 package org.nanomodeller.XMLMappingFiles;
 
 import jakarta.xml.bind.annotation.XmlElement;
-import org.nanomodeller.Calculation.CalculationItem;
+import org.nanomodeller.Calculation.CalculationEntities.CalculationItem;
 import org.nanomodeller.Globals;
 import org.nfunk.jep.JEP;
 

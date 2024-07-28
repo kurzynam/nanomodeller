@@ -1,12 +1,11 @@
 package org.nanomodeller.XMLMappingFiles;
 
-import org.nanomodeller.Calculation.CalculationBond;
-import org.nanomodeller.GUI.NanoModeler;
+import org.nanomodeller.Calculation.CalculationEntities.CalculationBond;
 import org.nfunk.jep.JEP;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
-import java.awt.geom.Line2D;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -72,11 +71,7 @@ public class Bond extends StructureElement {
     private static void insertBond(JEP parser, Hashtable<Integer, Hashtable<Integer, CalculationBond>> cBonds, Bond bond, int first, int second) {
         CalculationBond cb = new CalculationBond(first, second);
         fillProperties(parser, bond, cb);
-        Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.get(first);
-        if (bondsOfFirstAtom == null) {
-            bondsOfFirstAtom = new Hashtable<>();
-            cBonds.put(first, bondsOfFirstAtom);
-        }
+        Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.computeIfAbsent(first, k -> new Hashtable<>());
         bondsOfFirstAtom.put(second, cb);
     }
 

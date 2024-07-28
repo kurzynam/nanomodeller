@@ -1,4 +1,4 @@
-package org.nanomodeller.Calculation;
+package org.nanomodeller.Calculation.CalculationEntities;
 
 import java.util.ArrayList;
 

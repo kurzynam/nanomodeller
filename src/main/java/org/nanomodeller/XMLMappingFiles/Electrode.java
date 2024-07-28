@@ -1,7 +1,7 @@
 package org.nanomodeller.XMLMappingFiles;
 
-import org.nanomodeller.Calculation.CalculationAtom;
-import org.nanomodeller.Calculation.CalculationElectrode;
+import org.nanomodeller.Calculation.CalculationEntities.CalculationAtom;
+import org.nanomodeller.Calculation.CalculationEntities.CalculationElectrode;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nfunk.jep.JEP;
 
