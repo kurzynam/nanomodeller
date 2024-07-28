@@ -106,16 +106,11 @@ public class DynamicCalculations {
         MyFileWriter ldosEList;
         Parameters par = Parameters.getInstance();
 
-        if (arraysInitialized && StringUtils.isEmpty(par.getPath())){
-            readData();
-        }
-        else {
-            readData(true);
-            integralEnergy = new Complex[par.getAtoms().size()][2];
-            for (int i = 0; i < 2; i++) {
-                for (int comp = 0; comp < integralEnergy.length; comp++) {
-                    integralEnergy[comp][i] = ONE;
-                }
+        readData(true);
+        integralEnergy = new Complex[par.getAtoms().size()][2];
+        for (int i = 0; i < 2; i++) {
+            for (int comp = 0; comp < integralEnergy.length; comp++) {
+                integralEnergy[comp][i] = ONE;
             }
         }
         String dynamicPATH = par.getPath();
@@ -238,12 +233,19 @@ public class DynamicCalculations {
         NanoModeler.getInstance().getMenu().clearBars();
     }
 
+
+
+
+
+
+
+
+
+
+
     //endregion
 
     //region data reading
-    public void readData(){
-        readData(false);
-    }
     public void readData(boolean initializeMatrices){
         this.par = Parameters.getInstance();
         this.numOfElectrodes = par.getElectrodes().size();

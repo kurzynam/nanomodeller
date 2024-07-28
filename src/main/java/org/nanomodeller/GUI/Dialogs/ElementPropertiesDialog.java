@@ -122,6 +122,9 @@ public class ElementPropertiesDialog extends JDialog {
                 GlobalProperties.getInstance().setPlotOptions(optConv);
             } else if (template instanceof CommonProperties) {
                 CommonProperties propConv = ((CommonProperties)convertedElement);
+            } else if (template instanceof  DefaultElements) {
+                DefaultElements devElements = ((DefaultElements)convertedElement);
+                GlobalProperties.getInstance().setDefaultElements(devElements);
             }
             template.setColor(convertedElement.getColor());
 
@@ -199,24 +202,7 @@ public class ElementPropertiesDialog extends JDialog {
     }
 
     private String getNameOfElementToReplace() {
-        String toReplace = "";
-        if (template instanceof Atom){
-            toReplace = "<Atom>";
-        }else if (template instanceof Bond){
-            toReplace = "<Bond>";
-        }
-        else if (template instanceof Electrode){
-            toReplace = "<Electrode>";
-        }
-        else if (template instanceof Surface){
-            toReplace = "<Surface>";
-        }
-        else if (template instanceof PlotOptions){
-            toReplace = "<PlotOptions>";
-        }
-        else if (template instanceof CommonProperties){
-            toReplace = "<CommonProperties>";
-        }
+        String toReplace = String.format("<%s>",template.getClass().getSimpleName());
         return toReplace;
     }
 

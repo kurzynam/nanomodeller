@@ -36,6 +36,7 @@ public class Menu extends JMenuBar {
         MyMenuItem dynamicDataDir= new MyMenuItem("Select root directory");
         MyMenuItem showGrid = new MyMenuItem("Show/hide grid");
         MyMenuItem commonProp = new MyMenuItem("Common properties");
+        MyMenuItem defaultElements = new MyMenuItem("Default elements");
         MyMenuItem menuItemExit = new MyMenuItem("Exit");
         menuItemExit.setMnemonic(KeyEvent.VK_E);
         menuItemExit.setToolTipText("Exit application");
@@ -52,6 +53,16 @@ public class Menu extends JMenuBar {
 
             showOptionsDialog(properties);
         });
+
+        defaultElements.addActionListener((ActionEvent event) -> {
+            XMLTemplate elements = GlobalProperties.getInstance().getDefaultElements();
+            if (elements == null){
+                elements = new DefaultElements();
+                GlobalProperties.getInstance().setDefaultElements((DefaultElements) elements);
+            }
+            showOptionsDialog(elements);
+        });
+
         menuItemExit.addActionListener((ActionEvent event) -> {
             System.exit(0);
         });
@@ -108,6 +119,7 @@ public class Menu extends JMenuBar {
         menu.add(commonProp);
         menu.add(dynamicDataDir);
         menu.add(showGrid);
+        menu.add(defaultElements);
         menu.add(menuItemExit);
         add(menu);
         add(about);

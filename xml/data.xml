@@ -4,7 +4,7 @@
         <properties>
             <entry>
                 <key>W</key>
-                <value>1</value>
+                <value>1000</value>
             </entry>
             <entry>
                 <key>staticChargeFileName</key>
@@ -46,6 +46,44 @@
             </entry>
         </variables>
     </CommonProperties>
+    <defaultElements>
+        <Atom>
+            <properties>
+                <entry>
+                    <key>SpinFlip</key>
+                    <value>0</value>
+                </entry>
+                <entry>
+                    <key>Save</key>
+                    <value>false</value>
+                </entry>
+                <entry>
+                    <key>InitialOccupation</key>
+                    <value>0</value>
+                </entry>
+                <entry>
+                    <key>OnSiteEnergy</key>
+                    <value>n</value>
+                </entry>
+            </properties>
+        </Atom>
+        <Bond>
+            <properties>
+                <entry>
+                    <key>Coupling</key>
+                    <value>1</value>
+                </entry>
+            </properties>
+        </Bond>
+        <Electrode>
+            <properties>
+                <entry>
+                    <key>Coupling</key>
+                    <value>1</value>
+                </entry>
+            </properties>
+        </Electrode>
+    </defaultElements>
     <dynamicPATH>C:\Users\mkurzyna\Desktop\root</dynamicPATH>
     <PlotOptions>
         <customCommand></customCommand>

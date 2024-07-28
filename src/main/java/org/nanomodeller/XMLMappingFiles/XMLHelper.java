@@ -90,29 +90,18 @@ public class XMLHelper {
         return null;
     }
 
-    public static XMLTemplate convertXMLStringToElement(String xml, Class elementType){
+    public static <T> T convertXMLStringToElement(String xml, Class<T> elementType) {
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(elementType);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            if (elementType.equals(Atom.class)) {
-                return (Atom) unmarshaller.unmarshal(reader);
-            } else if (elementType.equals(Bond.class)) {
-                return (Bond) unmarshaller.unmarshal(reader);
-            } else if (elementType.equals(Electrode.class)) {
-                return (Electrode) unmarshaller.unmarshal(reader);
-            } else if (elementType.equals(Surface.class)) {
-                return (Surface) unmarshaller.unmarshal(reader);
-            } else if (elementType.equals(PlotOptions.class)) {
-                return (PlotOptions) unmarshaller.unmarshal(reader);
-            } else if (elementType.equals(CommonProperties.class)) {
-                return (CommonProperties) unmarshaller.unmarshal(reader);
-            }
+            return elementType.cast(unmarshaller.unmarshal(reader));
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
+
     public static void convertObjectToXMLFile(Object o){
         convertObjectToXMLFile(o, Globals.XML_FILE_PATH);
     }

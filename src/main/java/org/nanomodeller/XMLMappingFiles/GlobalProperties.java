@@ -23,8 +23,19 @@ public class GlobalProperties{
 
     private PlotOptions plotOptions;
 
+    private DefaultElements defaultElements;
 
+    public static void setInstance(GlobalProperties instance) {
+        GlobalProperties.instance = instance;
+    }
 
+    public DefaultElements getDefaultElements() {
+        return defaultElements;
+    }
+
+    public void setDefaultElements(DefaultElements defaultElements) {
+        this.defaultElements = defaultElements;
+    }
 
     public String getDynamicPATH() {
         return dynamicPATH;

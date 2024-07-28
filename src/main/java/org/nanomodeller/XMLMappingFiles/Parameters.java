@@ -27,7 +27,7 @@ public class Parameters implements Cloneable{
     private String path;
     private ArrayList<Bond> bonds = new ArrayList<Bond>();
     private ArrayList<Atom> atoms = new ArrayList<Atom>();
-    private ArrayList<Electrode> electrodes = new ArrayList<Electrode>();
+    private ArrayList<Electrode> electrodes = new ArrayList<>();
 
     private Surface surface;
 
