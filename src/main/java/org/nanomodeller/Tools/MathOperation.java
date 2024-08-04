@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 public class MathOperation {
 
 //
-//    public static double countTransmision(double left,double right,Complex M){
+//    public static double countTransmision(double left,double right,ComplexNumber M){
 //        return left*right*Math.pow(M.magnitude(),2);
 //    }
 //
@@ -21,22 +21,22 @@ public class MathOperation {
 //        }
 //        return result;
 //    }
-//    public static Complex[][] increaseDiagonalReal(ComplexMatrix M,int dim, double increment){
-//        Complex[][] c=new Complex[dim][dim];
+//    public static ComplexNumber[][] increaseDiagonalReal(ComplexMatrix M,int dim, double increment){
+//        ComplexNumber[][] c=new ComplexNumber[dim][dim];
 //        for(int i=0;i<dim;i++){
 //            for(int j=0;j<dim;j++){
 //                if(i!=j){
-//                    c[i][j]=Complex.valueOf(M.get(i, j).getReal(),M.get(i, j).getImaginary());
+//                    c[i][j]=ComplexNumber.valueOf(M.get(i, j).getReal(),M.get(i, j).getImaginary());
 //                }else{
-//                    c[i][j]=Complex.valueOf(M.get(i, j).getReal()+increment,M.get(i, j).getImaginary());
+//                    c[i][j]=ComplexNumber.valueOf(M.get(i, j).getReal()+increment,M.get(i, j).getImaginary());
 //                }
 //            }
 //        }
 //        return c;
 //    }
-//    public static Complex[][] decreaseDimension(ComplexMatrix M){
+//    public static ComplexNumber[][] decreaseDimension(ComplexMatrix M){
 //        int d=M.getNumberOfColumns();
-//        Complex[][] c=new Complex[d-1][d-1];
+//        ComplexNumber[][] c=new ComplexNumber[d-1][d-1];
 //        for(int i=0;i<d-1;i++){
 //            for(int j=0;j<d-1;j++){
 //                c[i][j]=M.get(i, j);
@@ -45,9 +45,9 @@ public class MathOperation {
 //        return c;
 //    }
 //
-//    public static Complex[][] cofactor(ComplexMatrix M,int row,int col){
+//    public static ComplexNumber[][] cofactor(ComplexMatrix M,int row,int col){
 //        int d=M.getNumberOfColumns()-1;
-//        Complex[][] c=new Complex[d][d];
+//        ComplexNumber[][] c=new ComplexNumber[d][d];
 //        int incrX=0,incrY=0;
 //        PrintWriter pw = null;
 //        try {
@@ -73,8 +73,8 @@ public class MathOperation {
 //        }
 //        return c;
 //    }
-//    public static Complex[][] set(ComplexMatrix M,int row,int col,Complex change){
-//        Complex[][] c=new Complex[M.getNumberOfRows()][M.getNumberOfColumns()];
+//    public static ComplexNumber[][] set(ComplexMatrix M,int row,int col,ComplexNumber change){
+//        ComplexNumber[][] c=new ComplexNumber[M.getNumberOfRows()][M.getNumberOfColumns()];
 //        for(int i=0;i<M.getNumberOfRows();i++){
 //            for(int j=0;j<M.getNumberOfColumns();j++){
 //                c[i][j]=M.get(i, j);

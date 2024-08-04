@@ -5,10 +5,10 @@ import org.nfunk.jep.function.PostfixMathCommand;
 
 import java.util.Stack;
 
-public class Heaviside extends PostfixMathCommand {
+public class Step extends PostfixMathCommand {
 
 
-    public Heaviside() {
+    public Step() {
         numberOfParameters = 1;
     }
 

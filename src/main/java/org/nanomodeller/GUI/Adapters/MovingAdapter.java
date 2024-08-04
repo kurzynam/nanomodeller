@@ -39,10 +39,10 @@ public class MovingAdapter extends MouseAdapter {
                     Atom secondAtom = nanoModeler.getAtomByID(second);
                     Point center = new Point((firstAtom.getX() + secondAtom.getX())/2,
                             (firstAtom.getY() + secondAtom.getY())/2);
-                    return center.distance(e.getPoint()) < d/2;
+                    return center.distance(e.getPoint()) < d / 2.0;
                 }
         ).findFirst();
-        if(!clickedAtom.isPresent() && !clickedElectrode.isPresent()
+        if(clickedAtom.isEmpty() && clickedElectrode.isEmpty()
                 && clickedBond.isPresent()) {
             nanoModeler.getSelectedBonds().clear();
             nanoModeler.getSelectedBonds().add(clickedBond.get());
@@ -68,10 +68,8 @@ public class MovingAdapter extends MouseAdapter {
             if (size == 1) {
                 Atom first = (Atom) nanoModeler.getSelectedAtoms().values().toArray()[0];
                 if (clickedAtom.isPresent()) {
-                    nanoModeler.getBonds().add(new Bond(first.getID(), clickedAtom.get().getID()/*, centerX, centerY*/));
-                } else if (clickedElectrode.isPresent()) {
-                    clickedElectrode.get().setAtomIndex(first.getID());
-                }
+                    nanoModeler.getBonds().add(new Bond(first.getID(), clickedAtom.get().getID()));
+                } else clickedElectrode.ifPresent(electrode -> electrode.setAtomIndex(first.getID()));
             }
             nanoModeler.getSelectedAtoms().clear();
             nanoModeler.getSelectedElectrodes().clear();
@@ -83,8 +81,9 @@ public class MovingAdapter extends MouseAdapter {
                 nanoModeler.getSelectedAtoms().put(clickedAtom.get().getID(), clickedAtom.get());
                 doPop(e);
             }else{
-                if (!isRightMouseButton)
+                if (!isRightMouseButton) {
                     nanoModeler.getSelectedAtoms().clear();
+                }
                 nanoModeler.getSelectedAtoms().put(clickedAtom.get().getID(), clickedAtom.get());
             }
 

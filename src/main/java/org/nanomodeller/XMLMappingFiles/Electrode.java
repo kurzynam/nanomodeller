@@ -23,7 +23,24 @@ public class Electrode extends StructureElement {
         tag = ID + "";
         setX(x);
         setY(y);
+        ArrayList<StructureElement> electrodes = GlobalProperties.getInstance().getDefaultElements().getElectrodes();
+        if (electrodes != null
+                && !electrodes.isEmpty()){
+            this.properties = electrodes.get(0).getProperties();
+            this.color = electrodes.get(0).color;
+        }
     }
+
+    public Electrode(int atomIndex, int ID, int x, int y, Electrode electrode) {
+        this.atomIndex = atomIndex;
+        this.ID = ID;
+        tag = ID + "";
+        setX(x);
+        setY(y);
+        this.properties = electrode.properties;
+        this.color = electrode.color;
+    }
+
     public Boolean contains(int x, int y){
         int distance = NanoModeler.getInstance().getGridSize() * 2;
         return  (getX() - distance < x && x < getX() + distance) && (getY() - distance < y && y < getY() + distance);

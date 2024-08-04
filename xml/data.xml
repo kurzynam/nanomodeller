@@ -23,8 +23,8 @@
             <entry>
                 <key>t</key>
                 <value>
-                    <incr>0.01</incr>
-                    <max>70.0</max>
+                    <incr>0.02</incr>
+                    <max>60.0</max>
                     <min>0.0</min>
                 </value>
             </entry>
@@ -32,8 +32,8 @@
                 <key>E</key>
                 <value>
                     <incr>0.02</incr>
-                    <max>4.0</max>
-                    <min>-4.0</min>
+                    <max>10.0</max>
+                    <min>-10.0</min>
                 </value>
             </entry>
             <entry>
@@ -54,16 +54,16 @@
                     <value>0</value>
                 </entry>
                 <entry>
-                    <key>Save</key>
-                    <value>false</value>
-                </entry>
-                <entry>
                     <key>InitialOccupation</key>
                     <value>0</value>
                 </entry>
                 <entry>
+                    <key>Save</key>
+                    <value>true</value>
+                </entry>
+                <entry>
                     <key>OnSiteEnergy</key>
-                    <value>n</value>
+                    <value>0</value>
                 </entry>
             </properties>
         </Atom>

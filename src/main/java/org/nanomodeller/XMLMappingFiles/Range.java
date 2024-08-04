@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 
 @XmlRootElement(name="Range")
 public class Range implements Iterable<Double>{
-    private Double min, max, increment;
+    private Double min, max, increment, saveEvery;
 
     public Range(){};
 
@@ -17,6 +17,10 @@ public class Range implements Iterable<Double>{
         this.min = min;
         this.max = max;
         this.increment = increment;
+    }
+    @XmlElement(name="saveEvery")
+    public Double getSaveEvery() {
+        return saveEvery;
     }
 
     @XmlElement(name="min")
@@ -54,7 +58,7 @@ public class Range implements Iterable<Double>{
 
     @Override
     public Iterator<Double> iterator() {
-        return new Iterator<Double>() {
+        return new Iterator<>() {
             private Double current = min;
 
             @Override

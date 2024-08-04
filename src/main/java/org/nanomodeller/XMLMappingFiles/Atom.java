@@ -17,7 +17,6 @@ public class Atom extends StructureElement implements Comparable<Atom>{
 
     private int ID;
 
-    private Hashtable<String, String> properties;
     private Integer X;
     private Integer Y;
 
@@ -37,6 +36,12 @@ public class Atom extends StructureElement implements Comparable<Atom>{
         color = atom.color;
         setGroupID(atom.groupID);
         properties = atom.properties;
+        ArrayList<StructureElement> atoms = GlobalProperties.getInstance().getDefaultElements().getAtoms();
+        if (atoms != null
+                && !atoms.isEmpty()){
+            this.properties = atoms.get(0).getProperties();
+            this.color = atoms.get(0).color;
+        }
     }
     public void move(int dx, int dy){
         setX(this.getX() + dx);
@@ -52,6 +57,12 @@ public class Atom extends StructureElement implements Comparable<Atom>{
         tag = newID + "";
         this.setX(x);
         this.setY(y);
+        ArrayList<StructureElement> atoms = GlobalProperties.getInstance().getDefaultElements().getAtoms();
+        if (atoms != null
+                && !atoms.isEmpty()){
+            this.properties = atoms.get(0).getProperties();
+            this.color = atoms.get(0).color;
+        }
     }
 
     public static Point middle(Atom first, Atom second){
@@ -86,11 +97,6 @@ public class Atom extends StructureElement implements Comparable<Atom>{
     @XmlAttribute(name="ID")
     public int getID() { return ID; }
     public void setID(int id) { this.ID = id; }
-
-    public void setCoordinates(int x, int y){
-        this.setX(x);
-        this.setY(y);
-    }
 
     public void setCoordinates(double x, double y){
         this.setX((int) x);

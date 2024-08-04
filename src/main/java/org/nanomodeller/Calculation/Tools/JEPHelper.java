@@ -1,5 +1,6 @@
 package org.nanomodeller.Calculation.Tools;
 
+import org.nanomodeller.Tools.JEP_functions.Step;
 import org.nanomodeller.XMLMappingFiles.CommonProperties;
 import org.nfunk.jep.JEP;
 import org.nfunk.jep.function.*;
@@ -22,6 +23,7 @@ public class JEPHelper {
         parser.addFunction("arctanh", new ArcTanH());
         parser.addFunction("arcsinh",new ArcSineH());
         parser.addFunction("arccosh", new ArcCosineH());
+        parser.addFunction("step", new Step());
 
         for (String property : CommonProperties.getInstance().getProperties().keySet()){
             parser.addVariable(property, CommonProperties.getInstance().getDouble(property));

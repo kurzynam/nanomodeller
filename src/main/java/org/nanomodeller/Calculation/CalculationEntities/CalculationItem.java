@@ -32,7 +32,7 @@ public class CalculationItem {
         this.dontSkip.replace(key, false);
     }
     public boolean isSkip(String key){
-        return this.dontSkip.get(key);
+        return !this.dontSkip.get(key);
     }
 
     public static void applyTimeForItemsCalculation(JEP parser, ArrayList<?> elements, Hashtable items) {

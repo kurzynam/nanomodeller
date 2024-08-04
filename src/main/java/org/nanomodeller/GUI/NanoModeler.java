@@ -574,11 +574,12 @@ public class NanoModeler extends JFrame {
     }
     public void paste() {
 
-        ArrayList<Electrode> newElectrodeSelection = new ArrayList<Electrode>();
+
         Hashtable<Atom, Atom> copy = new Hashtable<>();
         int leftMostX = copiedAtoms.values().stream().map(atom -> atom.getX()).min(Integer::compareTo).get();
         int upperMostY = copiedAtoms.values().stream().map(atom -> atom.getY()).min(Integer::compareTo).get();
         selectedAtoms.clear();
+        selectedElectrodes.clear();
         for (Integer i: getSortedKeys(copiedAtoms)){
             Atom s = copiedAtoms.get(i);
             Atom as = new Atom(s, getX() + (s.getX() - leftMostX), getY() + (s.getY() - upperMostY), atomIDSeq());
@@ -600,17 +601,22 @@ public class NanoModeler extends JFrame {
                 }
             }
         }
-        for (Integer e : getSortedKeys(copiedElectrodes)){
-            Electrode electrode = copiedElectrodes.get(e);
-            Atom as = null;
+
+        for (Electrode electrode : copiedElectrodes.values()){
+
+            Atom atomsCopy = null;
             if (electrode.getAtomIndex() >= 0){
-                as = copy.get(electrode.getAtomIndex());
+                Atom elAtom = copiedAtoms.get(electrode.getAtomIndex());
+                atomsCopy = copy.get(elAtom);
             }
-            Electrode el = new Electrode(as.getID(), electrodeIDSeq(), electrode.getX(), electrode.getY() );
-            getElectrodes().put(el.getID(), el);
-            newElectrodeSelection.add(el);
+            if (atomsCopy != null){
+                Electrode el = new Electrode(atomsCopy.getID(), electrodeIDSeq(),  getX() + (electrode.getX() - leftMostX),
+                        getY() + electrode.getY() - upperMostY, electrode);
+                getElectrodes().put(el.getID(), el);
+                selectedElectrodes.put(el.getID(),el);
+            }
+
         }
-        getSelectedElectrodes().clear();
         getPaintSurface().repaint();
     }
     public void copy() {

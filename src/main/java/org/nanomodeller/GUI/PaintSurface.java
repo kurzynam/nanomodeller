@@ -82,7 +82,8 @@ class PaintSurface extends Component {
             if (electrode.getAtomIndex() >= 0){
                 g2.setStroke(thindashed);
                 Atom connectedAtom = nanoModeler.getAtoms().get(electrode.getAtomIndex());
-                g2.drawLine(electrode.getX(), electrode.getY(), connectedAtom.getX(), connectedAtom.getY());
+                if (connectedAtom != null)
+                    g2.drawLine(electrode.getX(), electrode.getY(), connectedAtom.getX(), connectedAtom.getY());
             }
             if (!nanoModeler.getSelectedElectrodes().contains(electrode)) {
                 drawElectrode(g2, electrode.getX(), electrode.getY());
