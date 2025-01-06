@@ -4,7 +4,7 @@
         <properties>
             <entry>
                 <key>W</key>
-                <value>1000</value>
+                <value>1</value>
             </entry>
             <entry>
                 <key>staticChargeFileName</key>
@@ -12,7 +12,7 @@
             </entry>
             <entry>
                 <key>V</key>
-                <value>1</value>
+                <value>4</value>
             </entry>
             <entry>
                 <key>staticLDOSFileName</key>
@@ -23,25 +23,25 @@
             <entry>
                 <key>t</key>
                 <value>
-                    <incr>0.02</incr>
-                    <max>60.0</max>
+                    <incr>0.05</incr>
+                    <max>20.0</max>
                     <min>0.0</min>
                 </value>
             </entry>
             <entry>
                 <key>E</key>
                 <value>
-                    <incr>0.02</incr>
-                    <max>10.0</max>
-                    <min>-10.0</min>
+                    <incr>0.01</incr>
+                    <max>5.0</max>
+                    <min>-5.0</min>
                 </value>
             </entry>
             <entry>
                 <key>n</key>
                 <value>
-                    <incr>0.03</incr>
-                    <max>8.0</max>
-                    <min>-8.0</min>
+                    <incr>1.0</incr>
+                    <max>7.0</max>
+                    <min>-7.0</min>
                 </value>
             </entry>
         </variables>

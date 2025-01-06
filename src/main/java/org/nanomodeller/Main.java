@@ -1,5 +1,6 @@
 package org.nanomodeller;
 
+import org.nanomodeller.Calculation.Tools.complex;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.jscience.mathematics.number.Complex;
@@ -101,6 +102,20 @@ public class Main {
         Locale.setDefault(Locale.US);
         NanoModeler.getInstance().initNanoModeller();
 
+
+//
+//
+//
+//        long startTime = System.currentTimeMillis();
+//        complex c = new complex(1,1);
+//        complex z = new complex(0.00000001, 0.00000001);
+//        for (int i = 0; i <1000000000; i++)
+//            c.add(z);
+//
+//        long endTime = System.currentTimeMillis();
+//
+//        System.out.println(endTime - startTime);
+//        System.out.println(c.getRe());
 
 
 //        XMLEditorForm xmlEditorForm = new XMLEditorForm();

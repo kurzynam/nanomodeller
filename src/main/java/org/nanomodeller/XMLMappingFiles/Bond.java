@@ -72,5 +72,6 @@ public class Bond extends StructureElement {
         fillProperties(parser, bond, cb);
         Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.computeIfAbsent(first, k -> new Hashtable<>());
         bondsOfFirstAtom.put(second, cb);
+        cb.setElement(bond);
     }
 }

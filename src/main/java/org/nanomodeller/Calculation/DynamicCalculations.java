@@ -3,6 +3,7 @@ package org.nanomodeller.Calculation;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationAtom;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationBond;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationElectrode;
+import org.nanomodeller.Calculation.Tools.cmplx;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.Flag;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
@@ -130,9 +131,9 @@ public class DynamicCalculations {
             double[] TDOStemp = new double[numberOfEnergySteps/everyE];
             parser.addVariable("t", t);
 
-            applyTimeForItemsCalculation(parser, par.getAtoms(), calculationAtoms);
-            applyTimeForItemsCalculation(parser, par.getElectrodes(), calculationElectrodes);
-            applyTimeForItemsCalculation(parser, par.getBonds(), calculationBonds);
+            applyTimeForItemsCalculation(parser, calculationAtoms);
+            applyTimeForItemsCalculation(parser, calculationElectrodes);
+            applyTimeForItemsCalculation(parser, calculationBonds, true);
 
             countUt_ij(time);
 
@@ -499,10 +500,31 @@ public class DynamicCalculations {
             int j = b.getSecond();
             // * b.get(PERTURBATION_COUPLING);
             result = result.minus(
+
+
+
                             Complex.valueOf(0, b.get(COUPLING)).
                             times(integralEnergy[j][sigma].
                             divide(integralEnergy[i][sigma])).
-                            times(k == 0 ? Ut_ik[j][sigma] : Ut_ik[j][sigma].plus(kVec[j][sigma].times(k == 3 ? dt : dt/2))));
+                            times(k == 0 ? Ut_ik[j][sigma] : Ut_ik[j][sigma].plus(kVec[j][sigma].times(k == 3 ? dt : dt/2)))
+
+
+
+                            );
+//
+//            cmplx temp = new cmplx(Ut_ik[j][sigma]);
+//            if (k != 0){
+//                cmplx temp2 = new cmplx(kVec[j][sigma]);
+//                temp2.timesRe(k == 3 ? dt : dt/2);
+//
+//                temp.plus(temp2);
+//            }
+//            temp.timesIm(b.get(COUPLING));
+//            temp.timesRe(integralEnergy[j][sigma]);
+//            temp.divide(integralEnergy[i][sigma]);
+//            temp.subtractFrom(result);
+//            result = temp.toComplex();
+
         }
         if (sigmaK == sigma) {
             Complex decrement = Ek.divide((integralEnergy[i][sigma])).times(Vk*f);

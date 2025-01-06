@@ -108,6 +108,7 @@ public class Atom extends StructureElement implements Comparable<Atom>{
             CalculationAtom ato = new CalculationAtom(atom.getID());
             fillProperties(parser, atom, ato);
             cAtoms.put(ato.getID(), ato);
+            ato.setElement(atom);
         });
     }
     public Atom(){}

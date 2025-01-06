@@ -90,6 +90,7 @@ public class Electrode extends StructureElement {
             cAtoms.get(electrode.getAtomIndex()).setElID(el.getID());
             fillProperties(parser, electrode, el);
             cElectrodes.put(el.getID(), el);
+            el.setElement(electrode);
         });
     }
 
