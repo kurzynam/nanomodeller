@@ -3,7 +3,6 @@ package org.nanomodeller.Calculation;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationAtom;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationBond;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationElectrode;
-import org.nanomodeller.Calculation.Tools.cmplx;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.Tools.Flag;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
@@ -83,9 +82,10 @@ public class DynamicCalculations {
         double dt = gp.getInc("t");
         Complex[][] integralEnergy = null;
         MyFileWriter ldosList;
+
         MyFileWriter chargeList;
-        MyFileWriter currentList;
-        MyFileWriter ldosEList;
+//        MyFileWriter currentList;
+//        MyFileWriter ldosEList;
         Parameters par = Parameters.getInstance();
 
         readData(true);
@@ -96,21 +96,23 @@ public class DynamicCalculations {
             }
         }
         String dynamicPATH = par.getPath();
+//        StringBuilder ldosBuilder = new StringBuilder();
         chargeList = new MyFileWriter(dynamicPATH + "/" + CHARGE_FILE_NAME_PATTERN + ".csv");
-        currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv");
+//        currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv");
         ldosList = new MyFileWriter(dynamicPATH + "/" + LDOS_FILE_NAME_PATTERN + ".csv");
-        ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv");
+//        ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv");
         ldosList.printf("Time, Energy");
+//        ldosBuilder.append("Time, Energy")
         chargeList.printf("Time,i,q");
-        currentList.printf("Time");
+//        currentList.printf("Time");
         for(int p = 0; p < numOfAtoms; p++){
             ldosList.printf(", LDOS%d", p);
-            currentList.printf(", Current %d", p);
+//            currentList.printf(", Current %d", p);
         }
         ldosList.println();
         chargeList.println();
-        currentList.println();
-        ldosEList.println();
+//        currentList.println();
+//        ldosEList.println();
 
 
         MyFileWriter sumldosF = new MyFileWriter(dynamicPATH + "/sumLDOSF.txt");
@@ -150,22 +152,19 @@ public class DynamicCalculations {
             double charge;
 
             String currentsList = "";
-            String ldosesEList = "";
             for (CalculationAtom atom : calculationAtoms.values()) {
                 charge = countCharge(atom.getID(), time);
                 double current = (charge-charges[atom.getID()])/dt;
                 currentsList += current;
                 chargeList.printf("%3f,%d,%s\n", t, atom.getID(), charge);
-                ldosesEList += ldosE;
                 if (atom.getID() != calculationAtoms.size() - 1){
                     currentsList += ",";
-                    ldosesEList += ",";
                 }
             }
             time++;
 
-            currentList.printf("%3f%s\n", t, currentsList);
-            ldosEList.printf("%3f%s\n", t, ldosEList);
+//            currentList.printf("%3f%s\n", t, currentsList);
+//            ldosEList.printf("%3f%s\n", t, ldosEList);
             int sigmaDim = 1;
             if (isSpinOrbit){
                 sigmaDim = 2;
@@ -198,14 +197,14 @@ public class DynamicCalculations {
         } else {
         }
         chargeList.println();
-        currentList.println();
-        ldosEList.println();
+//        currentList.println();
+//        ldosEList.println();
         ldosList.println();
-
+//
         ldosList.close();
         chargeList.close();
-        currentList.close();
-        ldosEList.close();
+//        currentList.close();
+//        ldosEList.close();
         NanoModeler.getInstance().getMenu().clearBars();
     }
 

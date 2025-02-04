@@ -16,6 +16,7 @@ import static org.nanomodeller.Calculation.StaticCalculations.countLocalDensity;
 public class StaticCalculationsRunnable implements Runnable {
     private volatile String charge;
     private volatile String ldos;
+    private volatile String avgCharge;
     public boolean isFirst;
 
     private double start;
@@ -31,6 +32,14 @@ public class StaticCalculationsRunnable implements Runnable {
         this.end = end;
         this.cp = cp;
         this.par = par;
+    }
+
+    public String getAvgCharge() {
+        return avgCharge;
+    }
+
+    public void setAvgCharge(String avgCharge) {
+        this.avgCharge = avgCharge;
     }
 
     @Override
@@ -49,6 +58,7 @@ public class StaticCalculationsRunnable implements Runnable {
     private void calculate() {
         StringWriter ldos = new StringWriter();
         StringWriter charge = new StringWriter();
+        StringWriter avgCharge = new StringWriter();
         Matrix matrix = Matrix.readMatrixFromDataFile(par, cp);
         double[] charges = new double[par.getAtoms().size()];
         StringBuilder header = new StringBuilder();
@@ -86,19 +96,19 @@ public class StaticCalculationsRunnable implements Runnable {
                     ldos.append(n +"," + tempE + results + "\n");
                 }
             }
+            double avg = 0;
             for (Atom atom : par.getAtoms()) {
                 charge.append(n + "," + atom.getID() + "," + charges[atom.getID()] + "\n");
+                avg += charges[atom.getID()];
             }
+            avg /= charges.length;
+            avgCharge.append(n + ","  + avg + "\n");
             charge.append("\n");
             if (saveAnyLDOS)
                 ldos.append("\n");
         }
-        double avg = 0;
-        for( Double ch : charges){
-           avg+= ch;
-        }
-        System.out.println(avg/20);
         this.charge =  charge.toString();
+        this.avgCharge = avgCharge.toString();
         this.ldos = ldos.toString();
 
     }

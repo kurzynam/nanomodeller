@@ -20,6 +20,7 @@ public class StaticCalculations {
         long startTime = System.currentTimeMillis();
         MyFileWriter ldosWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" + cp.getString("staticLDOSFileName"));
         MyFileWriter chargeWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" +cp.getString("staticChargeFileName"));
+        MyFileWriter avgChargeWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/avg" +cp.getString("staticChargeFileName"));
         for (int i = 0; i < threads.length; i++){
             double width = cp.getWidth("n")/threads.length;
             double start = cp.getMin("n") + i * width;
@@ -52,6 +53,7 @@ public class StaticCalculations {
             ldosWriter.print("n,E" + header + "\n");
         }
         chargeWriter.print("n,i,q\n");
+        avgChargeWriter.print("n,q\n");
 
 //        for (StaticCalculationsRunnable s : spr){
 //            if (StringUtils.isNotEmpty(s.getLdos()))
@@ -61,12 +63,15 @@ public class StaticCalculations {
         for (StaticCalculationsRunnable s : spr){
             if (StringUtils.isNotEmpty(s.getCharge()))
                 chargeWriter.print(s.getCharge());
+            if (StringUtils.isNotEmpty(s.getAvgCharge()))
+                avgChargeWriter.print(s.getAvgCharge());
             if (StringUtils.isNotEmpty(s.getLdos()))
                 ldosWriter.print(s.getLdos());
         }
 
         ldosWriter.close();
         chargeWriter.close();
+        avgChargeWriter.close();
         NanoModeler.getInstance().getMenu().clearBars();
         long endTime = System.currentTimeMillis();
         System.out.println(endTime - startTime);

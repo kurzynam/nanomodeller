@@ -1,5 +1,6 @@
 package org.nanomodeller.Calculation.Tools;
 
+import org.nanomodeller.Tools.JEP_functions.Sigmoid;
 import org.nanomodeller.Tools.JEP_functions.Step;
 import org.nanomodeller.XMLMappingFiles.CommonProperties;
 import org.nfunk.jep.JEP;
@@ -24,6 +25,7 @@ public class JEPHelper {
         parser.addFunction("arcsinh",new ArcSineH());
         parser.addFunction("arccosh", new ArcCosineH());
         parser.addFunction("step", new Step());
+        parser.addFunction("sigmoid", new Sigmoid());
 
         for (String property : CommonProperties.getInstance().getProperties().keySet()){
             parser.addVariable(property, CommonProperties.getInstance().getDouble(property));
