@@ -20,7 +20,7 @@ public class Step extends PostfixMathCommand {
         Object var2 = var1.pop();
         if (var2 instanceof Number) {
             double val = ((Number)var2).doubleValue();
-            if (val > 0){
+            if (val >= 0){
                 var1.push(new Double(1));
             }
             else{

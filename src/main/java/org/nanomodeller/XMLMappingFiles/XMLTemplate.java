@@ -24,6 +24,9 @@ public class XMLTemplate {
     public Double getMax(String varName){
         return variables.get(varName).getMax();
     }
+    public boolean shouldCompute(String varName){
+        return variables.get(varName).getMax() >= variables.get(varName).getMin();
+    }
 
     public Double getInc(String varName){
         return variables.get(varName).getIncrement();

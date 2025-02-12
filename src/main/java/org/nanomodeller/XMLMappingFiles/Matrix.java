@@ -1,152 +1,137 @@
 package org.nanomodeller.XMLMappingFiles;
 
-
-import org.jscience.mathematics.number.Complex;
-import org.nanomodeller.Tools.StringUtils;
-import org.jscience.mathematics.vector.ComplexMatrix;
-import org.nfunk.jep.JEP;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.util.function.Function;
-
-import static org.nanomodeller.Calculation.Tools.JEPHelper.createJEP;
+import net.objecthunter.exp4j.ValidationResult;
+import org.ejml.data.Complex_F64;
+import org.ejml.data.ZMatrixRMaj;
+import net.objecthunter.exp4j.function.Function;
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
 import static org.nanomodeller.SurfaceEffect.surfaceCoupling;
 
-@XmlRootElement(name="Matrix")
 public class Matrix {
 
-    private JEP parser;
-    private Object[][] rows;
+    private Object[][] reals;
+    private Object[][] imags;
 
-    @XmlElements(@XmlElement(name="Row"))
+    public Complex_F64 getValue(int i, int j, double m, double n, double tempE) {
 
-    public Object[][] getRows() {
-        return rows;
-    }
-
-    public JEP getParser() {
-        return parser;
-    }
-
-    public Matrix(Object[][] rows, CommonProperties cp){
-
-        this.rows = new Object[rows.length][rows[0].length];
-        parser = createJEP();
-        for (int i = 0; i < rows.length; i++){
-            for (int j = 0; j < rows[0].length; j++){
-                parser.parseExpression((String)rows[i][j]);
-                if (parser.getComplexValue() == null){
-                    this.rows[i][j] = rows[i][j];
-                }else {
-                    this.rows[i][j] = Complex.valueOf(parser.getComplexValue().re(), parser.getComplexValue().im());
-                }
+        if (reals[i][j] instanceof Complex_F64) {
+            return (Complex_F64) reals[i][j];
+        }
+        else if (reals[i][j] instanceof Double) {
+            double im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).evaluate();
+            return new Complex_F64((Double) reals[i][j], im);
+        }
+        else {
+            double re = ((Expression)reals[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).evaluate();
+            double im;
+            if (imags[i][j] instanceof Double) {
+                return new Complex_F64(re, (Double) imags[i][j]);
+            }else{
+                im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).evaluate();
+                return new Complex_F64(re, im);
             }
         }
-
-
     }
 
-    public Complex getValue(int i, int j){
-        if (rows[i][j] instanceof String) {
-            parser.parseExpression(rows[i][j].toString());
-            Complex res = Complex.valueOf(parser.getComplexValue().re(), parser.getComplexValue().im());
-            return res;
-        }else{
-            return (Complex)rows[i][j];
-        }
+    public ZMatrixRMaj convertToComplexMatrix(double m, double n, double tempE) {
+        int dim = reals.length;
+        ZMatrixRMaj matrix = new ZMatrixRMaj(dim, dim);
 
-    }
-    public boolean contains(String pattern){
-        int dim = rows.length;
-        for (int i = 0; i < dim; i++){
-            for (int j = 0; j < dim; j++){
-                if (rows[i][j].toString().contains(pattern)){
-                    return true;
-                }
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++) {
+                Complex_F64 value = getValue(i, j, m, n, tempE);
+                matrix.set(i, j, value.real, value.imaginary);
             }
         }
-        return false;
-
+        return matrix;
     }
 
-    public ComplexMatrix convertToComplexMatrix(){
-
-        int dim = rows.length;
-        Complex[][] tempArray = new Complex[dim][dim];
-        for (int i = 0; i < dim; i++){
-            for (int j = 0; j < dim; j++){
-                tempArray[i][j] = getValue(i,j);
-            }
-        }
-        return ComplexMatrix.valueOf(tempArray);
-
-    }
-    public static Matrix readMatrixFromDataFile(Parameters par, CommonProperties cp){
-
+    public Matrix (Parameters par) {
         int size = par.getAtoms().size();
-        Object[][] rows = new Object[size][];
-        for (int i = 0; i < size; i++) {
-            rows[i] = new Object[size];
-        }
-        Function<Double, String> format = dbl -> {
-            if(dbl != 0)
-                return String.format("+(%f)", dbl);
-            else
-                return "";
+        reals = new Object[size][size];
+        imags = new Object[size][size];
+        java.util.function.Function<Double, String> format = dbl -> dbl != 0 ? String.format("+(%f)", dbl) : "";
+        Function stepFunction = new Function("step", 1) {
+            @Override
+            public double apply(double... args) {
+                return (args[0] >= 0) ? 1 : 0;
             }
-        ;
-        for(Atom atom: par.getAtoms()){
+        };
+
+        for (Atom atom : par.getAtoms()) {
             int i = par.getAtoms().indexOf(atom);
-            for(Atom ato: par.getAtoms()){
+            for (Atom ato : par.getAtoms()) {
                 int j = par.getAtoms().indexOf(ato);
+
+
                 String re = "";
                 String im = "0.001";
-                double electrodesPart = surfaceCoupling(par, ato, atom)/2;
+                double electrodesPart = surfaceCoupling(par, ato, atom) / 2;
                 im += format.apply(electrodesPart);
-                if(i == j){
+
+                if (i == j) {
                     re = "E - " + ato.getString("OnSiteEnergy");
-                    if (par.getElectrodeByAtomIndex(j).isPresent()){
-                        im += format.apply(par
-                                .getElectrodeByAtomIndex(j).get().getDouble("Coupling"));
+                    if (par.getElectrodeByAtomIndex(j).isPresent()) {
+                        im += format.apply(par.getElectrodeByAtomIndex(j).get().getDouble("Coupling"));
                     }
-                }
-                else{
-                    if(par.areBond(i,j)){
-                        re += "-" + par.getBond(i,j).getString("Coupling");
-                    }else{
+                } else {
+                    if (par.areBond(i, j)) {
+                        re += "-" + par.getBond(i, j).getString("Coupling");
+                    } else {
                         re = "0";
                     }
                 }
-                if (StringUtils.isNotEmpty(im)){
-                    rows[i][j] = re + String.format(" + i*(%s)", im);
+
+                Expression realEx = new ExpressionBuilder(re).
+                        variables("E", "n","m").
+                        functions(stepFunction).build();
+                Expression imEx = new ExpressionBuilder(im).
+                        variables("E", "n","m").
+                        functions(stepFunction).build();
+                Double r = null;
+                Double ii = null;
+
+                ValidationResult vreal = realEx.validate();
+                if(ValidationResult.SUCCESS.equals(vreal)) {
+                    r = realEx.evaluate();
                 }else {
-                    rows[i][j] = re;
+                    this.reals[i][j] = realEx;
                 }
 
+                ValidationResult vimag = realEx.validate();
+                if(ValidationResult.SUCCESS.equals(vimag)) {
+                    ii = imEx.evaluate();
+                }else {
+                    this.imags[i][j] = imEx;
+                }
+
+                if (r != null) {
+                    if (ii != null) {
+                        this.reals[i][j] = new Complex_F64(r, ii);
+                    }
+                    else {
+                        this.reals[i][j] = r;
+                    }
+                }
+                if (ii != null) {
+                    if (r == null) {
+                        this.imags[i][j] = ii;
+                    }
+                }
             }
         }
-        Matrix result = new Matrix(rows, cp);
-        System.out.println(result);
-        return result;
     }
 
     @Override
-    public String toString(){
-        String res = "";
-        for (int i = 0; i < rows.length; i++){
-            for (int j = 0; j < rows.length; j++){
-                res += rows[i][j] + "  ";
+    public String toString() {
+        StringBuilder res = new StringBuilder();
+        for (Object[] row : reals) {
+            for (Object cell : row) {
+                res.append(cell).append("  ");
             }
-            res += "\n\n";
+            res.append("\n\n");
         }
-        return res;
-    }
-
-
-    enum Compare{
-        equal, notEqual, notNumber;
+        return res.toString();
     }
 }
-

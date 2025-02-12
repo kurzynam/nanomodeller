@@ -1,6 +1,7 @@
 package org.nanomodeller.Calculation;
 
-import org.jscience.mathematics.vector.ComplexMatrix;
+import org.ejml.data.ZMatrixRMaj;
+import org.ejml.dense.row.CommonOps_ZDRM;
 import org.nanomodeller.GUI.NanoModeler;
 import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.CommonProperties;
@@ -12,24 +13,16 @@ import java.io.StringWriter;
 import static org.nanomodeller.Calculation.Tools.ProgressBarState.updateProgressBar;
 import static org.nanomodeller.Calculation.StaticCalculations.countLocalDensity;
 
-
 public class StaticCalculationsRunnable implements Runnable {
     private volatile String charge;
     private volatile String ldos;
     private volatile String avgCharge;
-    public boolean isFirst;
-
-    private double start;
-
-    private double end;
+    public boolean isFirstThread;
 
     private CommonProperties cp;
-
     private Parameters par;
 
-    public StaticCalculationsRunnable(double start, double end, CommonProperties cp, Parameters par) {
-        this.start = start;
-        this.end = end;
+    public StaticCalculationsRunnable(CommonProperties cp, Parameters par) {
         this.cp = cp;
         this.par = par;
     }
@@ -59,59 +52,56 @@ public class StaticCalculationsRunnable implements Runnable {
         StringWriter ldos = new StringWriter();
         StringWriter charge = new StringWriter();
         StringWriter avgCharge = new StringWriter();
-        Matrix matrix = Matrix.readMatrixFromDataFile(par, cp);
+        Matrix matrix = new Matrix(par);
         double[] charges = new double[par.getAtoms().size()];
-        StringBuilder header = new StringBuilder();
-        boolean saveAnyLDOS = false;
-        for (Atom a : par.getAtoms()){
-            if(a.getBool("Save")) {
-                header.append(", ").append(a.getID());
-                saveAnyLDOS = true;
-            }
-        }
-        if (saveAnyLDOS)
-            ldos.append("\n");
-        for (double n = start; n < end; n += cp.getInc("n")) {
-            for (int i = 0; i < par.getAtoms().size(); i++){
-                charges[i] = 0;
-            }
-            matrix.getParser().addVariable("n", n);
-            if (isFirst)
-                updateProgressBar(n - start, "n", end - start, NanoModeler.getInstance().getMenu().getSecondPB());
-            for (double tempE : cp.getVar("E")) {
-                if (isFirst)
-                    updateProgressBar(tempE - cp.getMin("E"), "E", cp.getWidth("E"), NanoModeler.getInstance().getMenu().getFirstPB());
-                String results = "";
-                matrix.getParser().addVariable("E", tempE);
-                ComplexMatrix M = matrix.convertToComplexMatrix();
-                ComplexMatrix TempMatrix = M.inverse();
-                for (Atom atom : par.getAtoms() ){
-                    double result = countLocalDensity(TempMatrix.get(atom.getID(), atom.getID()));
-                    if(atom.getBool("Save"))
-                        results +=   "," + result;
-                    if (tempE <= 0)
-                        charges[atom.getID()] += result * cp.getInc("E");
+        double m = cp.getMin("m");
+
+        do {
+            if (isFirstThread)
+                updateProgressBar(m - cp.getMin("m"), "m", cp.getWidth("m"), NanoModeler.getInstance().getMenu().getThirdPB());
+            double n = cp.getMin("n");
+            do {
+                for (int i = 0; i < par.getAtoms().size(); i++) {
+                    charges[i] = 0;
                 }
-                if (saveAnyLDOS){
-                    ldos.append(n +"," + tempE + results + "\n");
+                if (isFirstThread)
+                    updateProgressBar(n - cp.getMin("n"), "n", cp.getWidth("n"), NanoModeler.getInstance().getMenu().getSecondPB());
+
+                double tempE = cp.getMin("E");
+                do {
+                    if (isFirstThread)
+                        updateProgressBar(tempE - cp.getMin("E"), "E", cp.getWidth("E"), NanoModeler.getInstance().getMenu().getFirstPB());
+                    ZMatrixRMaj M = matrix.convertToComplexMatrix(m, n, tempE);
+                    ZMatrixRMaj TempMatrix = new ZMatrixRMaj(M.numRows, M.numCols);
+                    CommonOps_ZDRM.invert(M, TempMatrix);
+                    int i = 0;
+                    for (Atom atom : par.getAtoms()) {
+                        double real = TempMatrix.getReal(atom.getID(), atom.getID());
+                        double imag = TempMatrix.getImag(atom.getID(), atom.getID());
+                        double result = countLocalDensity(imag);
+                        if (tempE <= 0)
+                            charges[i++] += result * cp.getInc("E");
+                    }
+                    tempE += cp.getInc("E");
+
+                } while (tempE <= cp.getMax("E"));
+                double avg = 0;
+                for (double v : charges) {
+                    avg += v;
                 }
-            }
-            double avg = 0;
-            for (Atom atom : par.getAtoms()) {
-                charge.append(n + "," + atom.getID() + "," + charges[atom.getID()] + "\n");
-                avg += charges[atom.getID()];
-            }
-            avg /= charges.length;
-            avgCharge.append(n + ","  + avg + "\n");
-            charge.append("\n");
-            if (saveAnyLDOS)
-                ldos.append("\n");
-        }
-        this.charge =  charge.toString();
+                avg /= charges.length;
+                if (cp.shouldCompute("m"))
+                    avgCharge.append(m + ",");
+                if (cp.shouldCompute("n"))
+                    avgCharge.append(n +",");
+                avgCharge.append(avg + "\n");
+                n += cp.getInc("n");
+            } while (n <= cp.getMax("n"));
+            avgCharge.append("\n");
+            m += cp.getInc("m");
+        } while (m <= cp.getMax("m"));
+        this.charge = charge.toString();
         this.avgCharge = avgCharge.toString();
         this.ldos = ldos.toString();
-
     }
-
-
 }
