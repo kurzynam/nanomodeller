@@ -84,8 +84,8 @@ public class DynamicCalculations {
         MyFileWriter ldosList;
 
         MyFileWriter chargeList;
-//        MyFileWriter currentList;
-//        MyFileWriter ldosEList;
+        MyFileWriter currentList;
+        MyFileWriter ldosEList;
         Parameters par = Parameters.getInstance();
 
         readData(true);
@@ -96,23 +96,23 @@ public class DynamicCalculations {
             }
         }
         String dynamicPATH = par.getPath();
-//        StringBuilder ldosBuilder = new StringBuilder();
+        StringBuilder ldosBuilder = new StringBuilder();
         chargeList = new MyFileWriter(dynamicPATH + "/" + CHARGE_FILE_NAME_PATTERN + ".csv");
-//        currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv");
+        currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv");
         ldosList = new MyFileWriter(dynamicPATH + "/" + LDOS_FILE_NAME_PATTERN + ".csv");
-//        ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv");
+        ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv");
         ldosList.printf("Time, Energy");
-//        ldosBuilder.append("Time, Energy")
+        ldosBuilder.append("Time, Energy");
         chargeList.printf("Time,i,q");
-//        currentList.printf("Time");
+        currentList.printf("Time");
         for(int p = 0; p < numOfAtoms; p++){
             ldosList.printf(", LDOS%d", p);
-//            currentList.printf(", Current %d", p);
+            currentList.printf(", Current %d", p);
         }
         ldosList.println();
         chargeList.println();
-//        currentList.println();
-//        ldosEList.println();
+        currentList.println();
+        ldosEList.println();
 
 
         MyFileWriter sumldosF = new MyFileWriter(dynamicPATH + "/sumLDOSF.txt");
@@ -126,7 +126,8 @@ public class DynamicCalculations {
             charges[i] = 0;
         }
         int time = 0;
-        for (double t : gp.getVar("t")) {
+        double t = gp.getMin("t");
+        do {
             updateProgressBar(t - gp.getVar("t").getMin(), "t", gp.getVar("t").getWidth(), NanoModeler.getInstance().getMenu().getSecondPB());
 
 
@@ -163,19 +164,25 @@ public class DynamicCalculations {
             }
             time++;
 
-//            currentList.printf("%3f%s\n", t, currentsList);
-//            ldosEList.printf("%3f%s\n", t, ldosEList);
+            currentList.printf("%3f%s\n", t, currentsList);
+            ldosEList.printf("%3f%s\n", t, ldosEList);
             int sigmaDim = 1;
             if (isSpinOrbit){
                 sigmaDim = 2;
             }
             ArrayList<String> ldosArray = new ArrayList<>();
-            for (int e = 0; e < numberOfEnergySteps; e++) {
-                if (e % everyE != 0) {
-                    continue;
+            if (gp.shouldCompute("E")){
+                for (int e = 0; e < numberOfEnergySteps; e++) {
+                    if (e % everyE != 0) {
+                        continue;
+                    }
+                    ldosArray.add(String.format("%.3f,%.3f", t, toEnergy(e, gp)));
                 }
-                ldosArray.add(String.format("%.3f,%.3f", t, toEnergy(e, gp)));
+            } else {
+                ldosArray.add(String.format("%.3f", t));
+                numberOfEnergySteps = 1;
             }
+
             for (CalculationAtom a : calculationAtoms.values()) {
                 int i = a.getID();
                 for (int sigma = 0; sigma < sigmaDim; sigma++) {
@@ -189,7 +196,8 @@ public class DynamicCalculations {
             }
             ldosList.println();
             chargeList.println();
-        }
+            t += gp.getInc("t");
+        } while (t <= gp.getMax("t"));
         TDOSWriter.close();
         sumldosF.close();
         if (isInterupted.getValue()) {
@@ -197,14 +205,14 @@ public class DynamicCalculations {
         } else {
         }
         chargeList.println();
-//        currentList.println();
-//        ldosEList.println();
+        currentList.println();
+        ldosEList.println();
         ldosList.println();
 //
         ldosList.close();
         chargeList.close();
-//        currentList.close();
-//        ldosEList.close();
+        currentList.close();
+        ldosEList.close();
         NanoModeler.getInstance().getMenu().clearBars();
     }
 
@@ -225,12 +233,12 @@ public class DynamicCalculations {
         this.par = Parameters.getInstance();
         this.numOfElectrodes = par.getElectrodes().size();
         this.numOfAtoms = par.getAtoms().size();
-        this.timeDigits = (gp.getInc("t") + "").length() - ((gp.getInc("t") + "").indexOf('.') - 1);
+        this.timeDigits = (gp.getInc("t") + "").length() - ((gp.getInc("t") + "").indexOf('.') - 1) - 1;
         this.numOfTimeSteps = gp.getStepsNum("t");
         this.Emin = gp.getMin("E");
         this.Emax = gp.getMax("E");
         this.dE = gp.getInc("E");
-        this.energyDigits = (gp.getInc("E") + "").length() - (gp.getInc("E") + "").indexOf('.') - 1;
+        this.energyDigits = (gp.getInc("E") + "").length() - (gp.getInc("E") + "").indexOf('.') - 2;
         this.numberOfEnergySteps = (int)((gp.getMax("E") - gp.getMin("E"))/gp.getInc("E"));
         this.everyE = 1;
         this.everyT = 1;
@@ -249,8 +257,8 @@ public class DynamicCalculations {
                 }
             }
         }
-        int resultDigits = 2 * timeDigits + 2 * energyDigits;
-        this.format = "%." + timeDigits + "f %." + energyDigits + "f %."+resultDigits+"f %d\n";
+        int resultDigits = 3;//2 * timeDigits + 2 * energyDigits;
+        this.format = "%." + 3 + "f %." + 3 + "f %."+resultDigits+"f %d\n";
         if(initializeMatrices){
             initializeMatrices();
         }
@@ -543,7 +551,7 @@ public class DynamicCalculations {
                     ldos += pow(Ut_ik.get(n)[t % 2][step][n_sigma][i][n_sigma].magnitude(), 2);
                 }
                 ldos = ldos / gp.getWidth("E");
-                ldosArray.set(e, ldosArray.get(e) + "," + String.format("%.6f",ldos));
+                ldosArray.set(e, ldosArray.get(e) + "," + String.format("%.4f",ldos));
             }
         }
         integralEnergy[i][sigmaN] = integralEnergy[i][sigmaN].times(exp_i(getEnergy(i) * dt));

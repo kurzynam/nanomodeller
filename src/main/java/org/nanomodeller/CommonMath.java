@@ -1,6 +1,9 @@
 package org.nanomodeller;
 
 import org.jscience.mathematics.number.Complex;
+import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
+
+import java.io.BufferedReader;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.pow;
@@ -14,6 +17,7 @@ public class CommonMath {
     public static Complex comp(double re){
         return Complex.valueOf(re, 0);
     }
+
     public static Complex elypticFunction(Complex m, boolean twoPeaks){
         Complex result = ZERO;
         Complex temp;

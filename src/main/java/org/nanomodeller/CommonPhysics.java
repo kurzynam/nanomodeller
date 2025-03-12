@@ -1,17 +1,16 @@
 package org.nanomodeller;
 
+import org.jscience.mathematics.number.Complex;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.XMLMappingFiles.CommonProperties;
-import org.nanomodeller.XMLMappingFiles.GlobalProperties;
-import org.jscience.mathematics.number.Complex;
 import org.nanomodeller.XMLMappingFiles.Range;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
 import static org.nanomodeller.CommonMath.comp;
 import static org.nanomodeller.CommonPhysics.DensType.*;
 import static org.nanomodeller.VanHove.onePeak;
 import static org.nanomodeller.VanHove.twoPeaks;
-import static java.lang.Math.PI;
-import static java.lang.Math.abs;
 
 public class CommonPhysics {
     public static double toEnergy(int energyStep, CommonProperties gp){
