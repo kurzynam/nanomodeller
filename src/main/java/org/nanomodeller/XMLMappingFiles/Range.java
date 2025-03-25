@@ -8,43 +8,43 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 @XmlRootElement(name="Range")
-public class Range implements Iterable<Double>{
-    private Double min, max, increment, saveEvery;
+public class Range implements Iterable<Float>{
+    private float min, max, increment, saveEvery;
 
     public Range(){};
 
-    public Range(Double min, Double max, Double increment) {
+    public Range(float min, float max, float increment) {
         this.min = min;
         this.max = max;
         this.increment = increment;
     }
     @XmlElement(name="saveEvery")
-    public Double getSaveEvery() {
+    public float getSaveEvery() {
         return saveEvery;
     }
 
     @XmlElement(name="min")
-    public Double getMin() {
+    public float getMin() {
         return min;
     }
 
-    public void setMin(Double min) {
+    public void setMin(float min) {
         this.min = min;
     }
     @XmlElement(name="max")
-    public Double getMax() {
+    public float getMax() {
         return max;
     }
 
-    public void setMax(Double max) {
+    public void setMax(float max) {
         this.max = max;
     }
     @XmlElement(name="incr")
-    public Double getIncrement() {
+    public float getIncrement() {
         return increment;
     }
 
-    public Double getWidth(){
+    public float getWidth(){
         return max - min;
     }
 
@@ -52,26 +52,24 @@ public class Range implements Iterable<Double>{
         return (int)(getWidth()/getIncrement());
     }
 
-    public void setIncrement(Double increment) {
+    public void setIncrement(float increment) {
         this.increment = increment;
     }
 
     @Override
-    public Iterator<Double> iterator() {
+    public Iterator<Float> iterator() {
         return new Iterator<>() {
-            private Double current = min;
-
+            private float current = min;
             @Override
             public boolean hasNext() {
                 return current <= max;
             }
-
             @Override
-            public Double next() {
+            public Float next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException();
                 }
-                Double nextValue = current;
+                float nextValue = current;
                 current += increment;
                 return nextValue;
             }

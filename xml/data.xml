@@ -3,12 +3,12 @@
     <CommonProperties>
         <properties>
             <entry>
-                <key>W</key>
-                <value>1</value>
+                <key>staticChargeFileName</key>
+                <value>sCharge.csv</value>
             </entry>
             <entry>
-                <key>staticChargeFileName</key>
-                <value>n_N50V4W1.csv</value>
+                <key>W</key>
+                <value>1</value>
             </entry>
             <entry>
                 <key>V</key>
@@ -16,32 +16,44 @@
             </entry>
             <entry>
                 <key>staticLDOSFileName</key>
-                <value>LDOS.csv</value>
+                <value>sLDOS.csv</value>
             </entry>
         </properties>
         <variables>
             <entry>
+                <key>m</key>
+                <value>
+                    <incr>0.1</incr>
+                    <max>0.0</max>
+                    <min>1.0</min>
+                    <saveEvery>0.0</saveEvery>
+                </value>
+            </entry>
+            <entry>
                 <key>t</key>
                 <value>
-                    <incr>0.05</incr>
-                    <max>20.0</max>
+                    <incr>0.01</incr>
+                    <max>100.0</max>
                     <min>0.0</min>
+                    <saveEvery>0.0</saveEvery>
                 </value>
             </entry>
             <entry>
                 <key>E</key>
                 <value>
                     <incr>0.01</incr>
-                    <max>5.0</max>
-                    <min>-5.0</min>
+                    <max>0.0</max>
+                    <min>-20.0</min>
+                    <saveEvery>0.0</saveEvery>
                 </value>
             </entry>
             <entry>
                 <key>n</key>
                 <value>
-                    <incr>1.0</incr>
-                    <max>7.0</max>
-                    <min>-7.0</min>
+                    <incr>0.01</incr>
+                    <max>5.0</max>
+                    <min>-5.0</min>
+                    <saveEvery>0.0</saveEvery>
                 </value>
             </entry>
         </variables>

@@ -82,4 +82,8 @@ public class PlotOptions extends XMLTemplate{
     public void setStyle(String style) {
         this.style = style;
     }
+
+    public double getDouble(String key) {
+        return Double.parseDouble(getString(key));
+    }
 }

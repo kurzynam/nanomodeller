@@ -6,6 +6,8 @@ import org.ejml.data.ZMatrixRMaj;
 import net.objecthunter.exp4j.function.Function;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import org.nanomodeller.Tools.DataAccessTools.FileOperationHelper;
+import java.io.IOException;
 import static org.nanomodeller.SurfaceEffect.surfaceCoupling;
 
 public class Matrix {
@@ -47,10 +49,12 @@ public class Matrix {
         return matrix;
     }
 
-    public Matrix (Parameters par) {
+    public Matrix (Parameters par) throws IOException {
         int size = par.getAtoms().size();
         reals = new Object[size][size];
         imags = new Object[size][size];
+        double[][] gammas = FileOperationHelper.readDoubleDataFromFile("surfaces/MDOS.txt");
+        double[][] lambdas = FileOperationHelper.readDoubleDataFromFile("surfaces/MDOSh.txt");
         java.util.function.Function<Double, String> format = dbl -> dbl != 0 ? String.format("+(%f)", dbl) : "";
         Function stepFunction = new Function("step", 1) {
             @Override
@@ -58,13 +62,26 @@ public class Matrix {
                 return (args[0] >= 0) ? 1 : 0;
             }
         };
-
+        Function dosiFunction = new Function("idos", 2) {
+            @Override
+            public double apply(double... args) {
+                if (args[1] == 0)
+                    return 0.5;
+                return 9.5*FileOperationHelper.findValueByEnergy(gammas,args[0],(int)args[1]);
+            }
+        };
+        Function dosrFunction = new Function("rdos", 2) {
+            @Override
+            public double apply(double... args) {
+                if (args[1] == 0)
+                    return 0;
+                return 9.5*FileOperationHelper.findValueByEnergy(lambdas,args[0],(int)args[1]);
+            }
+        };
         for (Atom atom : par.getAtoms()) {
             int i = par.getAtoms().indexOf(atom);
             for (Atom ato : par.getAtoms()) {
                 int j = par.getAtoms().indexOf(ato);
-
-
                 String re = "";
                 String im = "0.001";
                 double electrodesPart = surfaceCoupling(par, ato, atom) / 2;
@@ -73,7 +90,14 @@ public class Matrix {
                 if (i == j) {
                     re = "E - " + ato.getString("OnSiteEnergy");
                     if (par.getElectrodeByAtomIndex(j).isPresent()) {
-                        im += format.apply(par.getElectrodeByAtomIndex(j).get().getDouble("Coupling"));
+                        String coupling = par.getElectrodeByAtomIndex(j).get().getString("Coupling");
+                        if (coupling.contains("dos")){
+                            im += "+" + coupling.replace("dos","idos");
+                            re += "-" + coupling.replace("dos","rdos");
+                        }
+                        else {
+                            im += "+" + coupling;
+                        }
                     }
                 } else {
                     if (par.areBond(i, j)) {
@@ -85,10 +109,10 @@ public class Matrix {
 
                 Expression realEx = new ExpressionBuilder(re).
                         variables("E", "n","m").
-                        functions(stepFunction).build();
+                        functions(stepFunction, dosiFunction, dosrFunction).build();
                 Expression imEx = new ExpressionBuilder(im).
                         variables("E", "n","m").
-                        functions(stepFunction).build();
+                        functions(stepFunction, dosiFunction, dosrFunction).build();
                 Double r = null;
                 Double ii = null;
 

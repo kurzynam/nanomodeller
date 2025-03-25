@@ -44,21 +44,24 @@ public class MovingAdapter extends MouseAdapter {
         ).findFirst();
         if(clickedAtom.isEmpty() && clickedElectrode.isEmpty()
                 && clickedBond.isPresent()) {
-            nanoModeler.getSelectedBonds().clear();
+            clearAllSelectedElements();
             nanoModeler.getSelectedBonds().add(clickedBond.get());
         }
 
         if(!clickedAtom.isPresent() && !clickedElectrode.isPresent()
                 && !clickedBond.isPresent()){
             if (e.getClickCount() == 2){
-                Atom atom = new Atom(e.getX(), e.getY(), NanoModeler.getInstance().atomIDSeq());
-                NanoModeler.getInstance().getAtoms().put(atom.getID(), atom);
+                if (nanoModeler.isCtrlPressed()) {
+                    Electrode electrode = new Electrode(-1, e.getX(), e.getY(), NanoModeler.getInstance().electrodeIDSeq());
+                    NanoModeler.getInstance().getElectrodes().put(electrode.getID(), electrode);
+                }else{
+                    Atom atom = new Atom(e.getX(), e.getY(), NanoModeler.getInstance().atomIDSeq());
+                    NanoModeler.getInstance().getAtoms().put(atom.getID(), atom);
+                }
             } else if (isRightMouseButton && e.getClickCount() == 1) {
                 doPop(e);
             }else{
-                nanoModeler.getSelectedAtoms().clear();
-                nanoModeler.getSelectedBonds().clear();
-                nanoModeler.getSelectedElectrodes().clear();
+                clearAllSelectedElements();
                 return;
             }
         }
@@ -82,12 +85,15 @@ public class MovingAdapter extends MouseAdapter {
                 doPop(e);
             }else{
                 if (!isRightMouseButton) {
-                    nanoModeler.getSelectedAtoms().clear();
+                    clearAllSelectedElements();
                 }
                 nanoModeler.getSelectedAtoms().put(clickedAtom.get().getID(), clickedAtom.get());
             }
 
         } else if (clickedElectrode.isPresent()) {
+            if (!isRightMouseButton) {
+                clearAllSelectedElements();
+            }
             nanoModeler.getSelectedElectrodes().put(clickedElectrode.get().getID(), clickedElectrode.get());
             if (isRightMouseButton && !nanoModeler.isCtrlPressed()) {
                 doPop(e);
@@ -100,6 +106,12 @@ public class MovingAdapter extends MouseAdapter {
         nanoModeler.setSelection(null);
         ((Component)nanoModeler.getPaintSurface()).repaint();
         ((Component)nanoModeler.getPaintSurface()).requestFocus();
+    }
+
+    private void clearAllSelectedElements() {
+        nanoModeler.getSelectedAtoms().clear();
+        nanoModeler.getSelectedBonds().clear();
+        nanoModeler.getSelectedElectrodes().clear();
     }
 
     public void mousePressed(MouseEvent e) {

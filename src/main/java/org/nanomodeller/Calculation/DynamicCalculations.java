@@ -126,32 +126,25 @@ public class DynamicCalculations {
             charges[i] = 0;
         }
         int time = 0;
-        double t = gp.getMin("t");
+        float t = gp.getMin("t");
         do {
             updateProgressBar(t - gp.getVar("t").getMin(), "t", gp.getVar("t").getWidth(), NanoModeler.getInstance().getMenu().getSecondPB());
-
-
             double[] TDOStemp = new double[numberOfEnergySteps/everyE];
             parser.addVariable("t", t);
-
             applyTimeForItemsCalculation(parser, calculationAtoms);
             applyTimeForItemsCalculation(parser, calculationElectrodes);
             applyTimeForItemsCalculation(parser, calculationBonds, true);
-
             countUt_ij(time);
-
             for (CalculationElectrode electrode : calculationElectrodes.values()) {
                 electrode_id = electrode.getID();
                 countUt_ik(electrode, Ut_ik.get(electrode_id), time, dt,
                         integralEnergy);
             }
-
             if (par.isSurfacePresent()) {
                 //Electrode surfaceElectrode = new Electrode(-1, null, null, par.getSurfaceCoupling(), gp.getInc("E"), Globals.SURFACE_ELECTRODE_ID, null);
                 //countUt_ik(surfaceElectrode, surfaceUt_k, t);
             }
             double charge;
-
             String currentsList = "";
             for (CalculationAtom atom : calculationAtoms.values()) {
                 charge = countCharge(atom.getID(), time);
@@ -163,7 +156,6 @@ public class DynamicCalculations {
                 }
             }
             time++;
-
             currentList.printf("%3f%s\n", t, currentsList);
             ldosEList.printf("%3f%s\n", t, ldosEList);
             int sigmaDim = 1;
@@ -182,7 +174,6 @@ public class DynamicCalculations {
                 ldosArray.add(String.format("%.3f", t));
                 numberOfEnergySteps = 1;
             }
-
             for (CalculationAtom a : calculationAtoms.values()) {
                 int i = a.getID();
                 for (int sigma = 0; sigma < sigmaDim; sigma++) {
@@ -208,24 +199,12 @@ public class DynamicCalculations {
         currentList.println();
         ldosEList.println();
         ldosList.println();
-//
         ldosList.close();
         chargeList.close();
         currentList.close();
         ldosEList.close();
         NanoModeler.getInstance().getMenu().clearBars();
     }
-
-
-
-
-
-
-
-
-
-
-
     //endregion
 
     //region data reading
@@ -263,7 +242,6 @@ public class DynamicCalculations {
             initializeMatrices();
         }
     }
-
     public void initializeMatrices() {
         Ut_ik = new ArrayList<>();
         int sigmaDim = 1;
@@ -374,8 +352,6 @@ public class DynamicCalculations {
                 break;
         }
     }
-
-
     private Complex hammiltonian(int i, double time, Hashtable<Integer, Complex> U) {
         Complex result = Complex.ZERO;
         Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
@@ -391,9 +367,7 @@ public class DynamicCalculations {
         }
         return result;
     }
-
     //region Rk4
-
     public void countUt_ik(CalculationElectrode electrode, Complex[][][][][] Ut_ik, int t, double dt,
                            Complex[][] integralEnergy){
         int T = t % 2;

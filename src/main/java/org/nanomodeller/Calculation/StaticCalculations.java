@@ -14,7 +14,6 @@ public class StaticCalculations {
         CommonProperties cp = CommonProperties.getInstance();
         NanoModeler.getInstance().getMenu().clearBars();
         long startTime = System.currentTimeMillis();
-
         MyFileWriter ldosWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" + cp.getString("staticLDOSFileName"));
         MyFileWriter chargeWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" + cp.getString("staticChargeFileName"));
         MyFileWriter avgChargeWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/avg" + cp.getString("staticChargeFileName"));
@@ -46,18 +45,15 @@ public class StaticCalculations {
 
         for (Atom a : Parameters.getInstance().getAtoms()) {
             if (a.getBool("Save")) {
-                header.append(",").append(a.getID());
+                header.append("\t\t\t").append(a.getID());
                 saveAnyLDOS = true;
             }
         }
-
         if (saveAnyLDOS) {
             ldosWriter.print("n,E" + header + "\n");
         }
-
-        chargeWriter.print("n,i,q\n");
-        avgChargeWriter.print("n,q\n");
-
+        chargeWriter.print("n\t\t\ti\t\t\tq\n");
+        avgChargeWriter.print("n\t\t\tq\n");
         for (StaticCalculationsRunnable s : spr) {
             if (StringUtils.isNotEmpty(s.getCharge()))
                 chargeWriter.print(s.getCharge());
@@ -66,17 +62,15 @@ public class StaticCalculations {
             if (StringUtils.isNotEmpty(s.getLdos()))
                 ldosWriter.print(s.getLdos());
         }
-
         ldosWriter.close();
         chargeWriter.close();
         avgChargeWriter.close();
         NanoModeler.getInstance().getMenu().clearBars();
-
         long endTime = System.currentTimeMillis();
         System.out.println(endTime - startTime);
     }
 
-    public static double countLocalDensity(double im) {
-        return (-1 / Math.PI) * im;
+    public static float countLocalDensity(double im) {
+        return (float) ((-1 / Math.PI) * im);
     }
 }

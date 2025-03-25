@@ -18,20 +18,20 @@ public class XMLTemplate {
         this.color = color;
     }
 
-    public Double getMin(String varName){
+    public float getMin(String varName){
         return variables.get(varName).getMin();
     }
-    public Double getMax(String varName){
+    public float getMax(String varName){
         return variables.get(varName).getMax();
     }
     public boolean shouldCompute(String varName){
         return variables.get(varName).getMax() > variables.get(varName).getMin();
     }
 
-    public Double getInc(String varName){
+    public float getInc(String varName){
         return variables.get(varName).getIncrement();
     }
-    public Double getWidth(String varName){
+    public float getWidth(String varName){
         return getMax(varName) - getMin(varName);
     }
     public Integer getStepsNum(String varName){
@@ -40,14 +40,6 @@ public class XMLTemplate {
 
     public String getString(String key){
         return properties.get(key);
-    }
-    public Double getDouble(String key){
-        try {
-            return Double.parseDouble(getString(key));
-        }catch (Exception e){
-            return (double) 0;
-        }
-
     }
 
     public Range getVar(String varName){
