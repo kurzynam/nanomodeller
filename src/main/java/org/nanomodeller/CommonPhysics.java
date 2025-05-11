@@ -13,9 +13,6 @@ import static org.nanomodeller.VanHove.onePeak;
 import static org.nanomodeller.VanHove.twoPeaks;
 
 public class CommonPhysics {
-    public static double toEnergy(int energyStep, CommonProperties gp){
-        return gp.getMin("E") + (energyStep * gp.getInc("E"));
-    }
 
     public static Complex sigma(double E, Complex[] D){
         Complex result = comp(0,0.0);
