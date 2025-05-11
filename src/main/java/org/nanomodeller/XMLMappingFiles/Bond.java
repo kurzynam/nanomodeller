@@ -60,18 +60,18 @@ public class Bond extends StructureElement {
     public Bond(){
 
     }
-    public static void initializeCalculationBonds(JEP parser, ArrayList<Bond> bonds, Hashtable<Integer, Hashtable<Integer,CalculationBond>> cBonds) {
+    public static void initializeCalculationBonds(JEP parser, ArrayList<Bond> bonds, CalculationBond[][] cBonds) {
         for (Bond bond : bonds) {
             insertBond(parser, cBonds, bond, bond.getFirst(), bond.getSecond());
             insertBond(parser, cBonds, bond, bond.getSecond(), bond.getFirst());
         }
     }
 
-    private static void insertBond(JEP parser, Hashtable<Integer, Hashtable<Integer, CalculationBond>> cBonds, Bond bond, int first, int second) {
+    private static void insertBond(JEP parser, CalculationBond[][] cBonds, Bond bond, int first, int second) {
         CalculationBond cb = new CalculationBond(first, second);
         fillProperties(parser, bond, cb);
-        Hashtable<Integer, CalculationBond> bondsOfFirstAtom = cBonds.computeIfAbsent(first, k -> new Hashtable<>());
-        bondsOfFirstAtom.put(second, cb);
+        cBonds[first][second] = cb;
+        cBonds[second][first] = cb;
         cb.setElement(bond);
     }
 }

@@ -41,7 +41,7 @@ public class DynamicCalculations {
     public double[] sumOfCharges;
     private CalculationBond[][] calculationBonds;
     private CalculationAtom[] calculationAtoms;
-    private Complex_F64[] U;
+    private Hashtable<Integer, Complex_F64> U = new Hashtable<>();
     public ArrayList<Complex_F64 [/*t*/][/*k*/][/*k_sigma*/][/*n*/][/*sigma_n*/]> Ut_ik;
     public Flag isInterupted;
     public double dE;
@@ -86,11 +86,9 @@ public class DynamicCalculations {
     public void initialize() {
 
         parser = createJEP();
-        int numOfAtoms = par.getAtoms().size();
-        calculationBonds = new CalculationBond[numOfAtoms][numOfAtoms];
-        calculationAtoms = new CalculationAtom[numOfAtoms];
-        calculationElectrodes = new CalculationElectrode[numOfAtoms];
-        U = new Complex_F64[numOfAtoms];
+        calculationBonds = new CalculationBond[par.getAtoms().size()][par.getAtoms().size()];
+        calculationAtoms = new CalculationAtom[par.getAtoms().size()];
+        calculationElectrodes = new CalculationElectrode[par.getAtoms().size()];
         initializeCalculationBonds(parser, par.getBonds(), calculationBonds);
         initializeCalculationAtoms(parser, par.getAtoms(), calculationAtoms);
         initializeCalculationElectrodes(parser, par.getElectrodes(), calculationElectrodes, calculationAtoms);
@@ -367,11 +365,11 @@ public class DynamicCalculations {
                 set(temp, array[rkn][second][j]);
                 timesR(temp, dt/ factor);
                 plusC(temp, Ut_ij[T][second][j]);
-                if (U[second] != null) {
-                    set(U[second], temp);
+                if (U.get(second) != null) {
+                    set(U.get(second), temp);
                 }
                 else {
-                    U[second] = new Complex_F64(temp.real,temp.imaginary);
+                    U.put(second, new Complex_F64(temp.real,temp.imaginary));
                 }
             }
         }
@@ -379,14 +377,14 @@ public class DynamicCalculations {
             set(temp, array[rkn][i][j]);
             timesR(temp, dt/ factor);
             plusC(temp, Ut_ij[T][i][j]);
-            if (U[i] != null) {
-                set(U[i], temp);
+            if (U.get(i) != null) {
+                set(U.get(i), temp);
             }
             else {
-                U[i] = new Complex_F64(temp.real,temp.imaginary);
+                U.put(i, new Complex_F64(temp.real,temp.imaginary));
             }
         }
-        hammiltonian(i, prevTime + dt  * 0.5);
+        hammiltonian(i, prevTime + dt  * 0.5,U);
         set(array[rkn+1][i][j], result) ;
     }
 
@@ -404,13 +402,13 @@ public class DynamicCalculations {
                 for (CalculationBond b : bonds){
                     if (b != null){
                         second = b.getOtherAtomID(i);
-                        U[second] = Ut_ij[T][second][j];
+                        U.put(second, Ut_ij[T][second][j]);
                     }
                 }
                 if (!par.getElectrodesByAtomID(i).isEmpty()){
-                    U[id] = Ut_ij[T][i][j];
+                    U.put(id, Ut_ij[T][i][j]);
                 }
-                hammiltonian(i, prevTime);
+                hammiltonian(i, prevTime, U);
                 set(arrays[0][i][j], result);
                 break;
             case 1:
@@ -434,7 +432,7 @@ public class DynamicCalculations {
     }
 
 
-    private void hammiltonian(int i, double time) {
+    private void hammiltonian(int i, double time, Hashtable<Integer, Complex_F64> U) {
         CalculationBond[] bonds = calculationBonds[i];
         int anotherAtom;
 //        toZero(result);
@@ -442,7 +440,7 @@ public class DynamicCalculations {
             if (b != null){
                 anotherAtom = b.getOtherAtomID(i);
                 set(temp, exp_i((getEnergy(i) - getEnergy(anotherAtom)) * time));
-                timesC(temp, U[anotherAtom]);
+                timesC(temp, U.get(anotherAtom));
                 timesI(temp, b.getCoupling());
                 plusC(result, temp);
             }
@@ -451,7 +449,7 @@ public class DynamicCalculations {
         CalculationAtom at = calculationAtoms[i];
         if (at.getElID() != null) {
             CalculationElectrode cE = calculationElectrodes[at.getElID()];
-            set(temp,U[i]);
+            set(temp,U.get(i));
             timesI(temp,-cE.getCoupling()*0.5);
             plusC(result, temp);
         }
@@ -594,7 +592,7 @@ public class DynamicCalculations {
 
         for (CalculationBond b : calculationBonds[i]){
             if (b != null){
-                int j = b.getSecond(i);
+                int j = b.getSecond();
                 // * b.get(PERTURBATION_COUPLING);
                 if (k != 0){
                     set(temp, kVec[j][sigma]);

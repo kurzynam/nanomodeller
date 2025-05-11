@@ -10,15 +10,17 @@ public class CalculationBond extends CalculationItem{
     private Double correlationCoupling;
 
     public CalculationBond(int first, int second){
-        this.first = first;
-        this.second = second;
+        this.first = second;
+        this.second = first;
     }
 
 
     public int getFirst() {
         return first;
     }
-    public int getSecond() {
+    public int getSecond(int i) {
+        if(i == second)
+            return first;
         return second;
     }
 

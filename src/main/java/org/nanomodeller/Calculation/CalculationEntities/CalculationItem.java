@@ -43,22 +43,24 @@ public abstract class CalculationItem {
         return !this.dontSkip.get(key);
     }
 
-    public static void applyTimeForItemsCalculation(JEP parser, Hashtable items) {
-        applyTimeForItemsCalculation(parser, items, false);
+
+    public static void applyTimeForItemsCalculation(JEP parser, CalculationItem[] items) {
+        for (Object it : items){
+            CalculationItem item = (CalculationItem)it;
+            fillProperties(parser, item);
+
+        }
     }
-    public static void applyTimeForItemsCalculation(JEP parser, Hashtable items, boolean bonds) {
-        for (Object it : items.values()){
-            if(bonds){
-                Hashtable table = (Hashtable) it;
-                for (Object bond : table.values()){
-                    CalculationItem item = (CalculationItem)bond;
+
+    public static void applyTimeForItemsCalculation(JEP parser, CalculationItem[][] items) {
+        for (Object it : items){
+            CalculationItem[] table = (CalculationItem[]) it;
+            for (Object bond : table){
+                CalculationItem item = (CalculationItem)bond;
+                if (bond != null) {
                     fillProperties(parser, item);
                 }
-            }else {
-                CalculationItem item = (CalculationItem)it;
-                fillProperties(parser, item);
             }
-
         }
     }
 

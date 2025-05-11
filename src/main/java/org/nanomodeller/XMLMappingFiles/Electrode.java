@@ -83,16 +83,16 @@ public class Electrode extends StructureElement {
         this.ID = ID;
     }
     public static void initializeCalculationElectrodes(JEP parser, ArrayList<Electrode> electrodes,
-                                                       Hashtable<Integer, CalculationElectrode> cElectrodes,
-                                                       Hashtable<Integer, CalculationAtom> cAtoms) {
-        electrodes.stream().forEach(electrode ->{
+                                                       CalculationElectrode[] cElectrodes,
+                                                       CalculationAtom[] cAtoms) {
+        for (Electrode electrode : electrodes){
             CalculationElectrode el = new CalculationElectrode(electrode.getID());
             el.setAtomID(electrode.getAtomIndex());
-            cAtoms.get(electrode.getAtomIndex()).setElID(el.getID());
+            cAtoms[electrode.getAtomIndex()].setElID(el.getID());
             fillProperties(parser, electrode, el);
-            cElectrodes.put(el.getID(), el);
+            cElectrodes[el.getID()] = el;
             el.setElement(electrode);
-        });
+        }
     }
 
 

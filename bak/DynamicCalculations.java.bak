@@ -406,12 +406,12 @@ public class DynamicCalculations {
         int anotherAtom;
         for (CalculationBond b : bonds.values()){
             anotherAtom = b.getOtherAtomID(i);
-            result = result.plus(Complex.I.times(exp_i((getEnergy(i) - getEnergy(anotherAtom)) * time)).times(U.get(anotherAtom)).times(b.get(COUPLING)));
+            result = result.plus(Complex.I.times(exp_i((getEnergy(i) - getEnergy(anotherAtom)) * time)).times(U.get(anotherAtom)).times(b.getCoupling()));
         }
         CalculationAtom at = calculationAtoms.get(i);
         if (at.getElID() != null) {
             CalculationElectrode cE = calculationElectrodes.get(at.getElID());
-            result = result.plus(U.get(i).times(-cE.get(COUPLING)*0.5));
+            result = result.plus(U.get(i).times(-cE.getCoupling()*0.5));
         }
         return result;
     }
@@ -423,7 +423,7 @@ public class DynamicCalculations {
         double prevTime = (t - 1) * dt;
 
         Complex[][][] kVec = new Complex[4][numOfAtoms][2];
-        double calculatedVk = sqrt(eWidth * electrode.get(COUPLING) * TRPI);
+        double calculatedVk = sqrt(eWidth * electrode.getCoupling() * TRPI);
         int elAtID = electrode.getID();
         double[] Vsf = new double[numOfAtoms];
         for (int i = 0; i < numOfAtoms; i++) {
@@ -509,7 +509,7 @@ public class DynamicCalculations {
         if (index != null){
             CalculationElectrode ce = calculationElectrodes.get(index);
             if (ce != null)
-                gammaHalf = ce.get(COUPLING) * 0.5;
+                gammaHalf = ce.getCoupling() * 0.5;
         }
 
         int minusSigma = (sigma + 1) % sigmaDim;
@@ -528,10 +528,10 @@ public class DynamicCalculations {
         if (k == 0) {
             result = result.plus(Ut_ik[i][minusSigma].times(spinFlipPart));
         }
-        else{
-            result = result.
-                    plus(spinFlipPart.times(Ut_ik[i][minusSigma].plus(kVec[i][minusSigma].times(k == 3 ? dt : dt*0.5))));
-        }
+//        else{
+//            result = result.
+//                    plus(spinFlipPart.times(Ut_ik[i][minusSigma].plus(kVec[i][minusSigma].times(k == 3 ? dt : dt*0.5))));
+//        }
         Hashtable<Integer, CalculationBond> table = calculationBonds.get(i);
         for (CalculationBond b : table.values()){
             int j = b.getSecond();
@@ -540,7 +540,7 @@ public class DynamicCalculations {
 
 
 
-                    valueOf(0, b.get(COUPLING)).
+                    valueOf(0, b.getCoupling()).
                             times(integralEnergy[j][sigma].
                                     times(reciprocalIntegralEnergy[i][sigma])).
                             times(k == 0 ? Ut_ik[j][sigma] : Ut_ik[j][sigma].plus(kVec[j][sigma].times(k == 3 ? dt : dt * 0.5)))

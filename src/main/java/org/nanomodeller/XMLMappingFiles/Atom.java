@@ -103,13 +103,13 @@ public class Atom extends StructureElement implements Comparable<Atom>{
         this.setY((int) y);
     }
 
-    public static void initializeCalculationAtoms(JEP parser, ArrayList<Atom> atoms, Hashtable<Integer, CalculationAtom> cAtoms) {
-        atoms.stream().forEach(atom ->{
+    public static void initializeCalculationAtoms(JEP parser, ArrayList<Atom> atoms, CalculationAtom[] cAtoms) {
+        for(Atom atom : atoms){
             CalculationAtom ato = new CalculationAtom(atom.getID());
             fillProperties(parser, atom, ato);
-            cAtoms.put(ato.getID(), ato);
+            cAtoms[ato.getID()] = ato;
             ato.setElement(atom);
-        });
+        }
     }
 
 
