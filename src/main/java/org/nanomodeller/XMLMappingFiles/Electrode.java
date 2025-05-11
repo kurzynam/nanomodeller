@@ -8,6 +8,7 @@ import org.nfunk.jep.JEP;
 import javax.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Hashtable;
 
 @XmlRootElement(name="Electrode")
@@ -93,6 +94,8 @@ public class Electrode extends StructureElement {
             el.setElement(electrode);
         });
     }
+
+
 
     @XmlAttribute(name="X")
     public int getX() {

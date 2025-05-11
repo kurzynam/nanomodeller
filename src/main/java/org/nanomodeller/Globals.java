@@ -41,6 +41,15 @@ public class Globals {
     public static final String APP_NAME = "NM";
     //endregion
 
+    //region calculation constants
+
+    public static final String CORRELATION_COUPLING = "CorrelationCoupling";
+    public static final String SPIN_FLIP = "SpinFlip";
+    public static final String ON_SITE_ENERGY = "OnSiteEnergy";
+    public static final String INITIAL_OCCUPATION = "InitialOccupation";
+    public static final String COUPLING = "Coupling";
+    public static final String PERTURBATION_COUPLING = "PerturbationCoupling";
+    //endregion
 
     //region image PATHS
 	public static final String ICON_IMAGE_PATH = "img/icon.png";
@@ -142,7 +151,6 @@ public class Globals {
     public static final String ars = "R";//  ak''-σ
     public static final String Aws = "s";//  a†k'''-σ
     public static final String aws = "S";//  ak'''-σ
-    public static final String INITIAL_OCCUPATION = "InitialOccupation";
 
     public static boolean isTrue(String value) {
         String[] vals = {"yes", "true", "1", "tak", "YES", "TRUE", "y", "t", "Y", "T"};

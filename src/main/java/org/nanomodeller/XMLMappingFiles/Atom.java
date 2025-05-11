@@ -111,5 +111,7 @@ public class Atom extends StructureElement implements Comparable<Atom>{
             ato.setElement(atom);
         });
     }
+
+
     public Atom(){}
 }

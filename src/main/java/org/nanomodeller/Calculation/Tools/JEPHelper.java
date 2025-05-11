@@ -28,7 +28,12 @@ public class JEPHelper {
         parser.addFunction("sigmoid", new Sigmoid());
 
         for (String property : CommonProperties.getInstance().getProperties().keySet()){
-            parser.addVariable(property, Float.parseFloat(CommonProperties.getInstance().getString(property)));
+            try {
+                parser.addVariable(property, Float.parseFloat(CommonProperties.getInstance().getString(property)));
+            }
+            catch (Exception e){
+
+            }
         }
         return parser;
     }

@@ -3,16 +3,13 @@ package org.nanomodeller.Calculation;
 import org.ejml.data.ZMatrixRMaj;
 import org.ejml.dense.row.CommonOps_ZDRM;
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.Tools.DataAccessTools.FileOperationHelper;
 import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.CommonProperties;
 import org.nanomodeller.XMLMappingFiles.Matrix;
 import org.nanomodeller.XMLMappingFiles.Parameters;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+import java.io.*;
 
 import static org.nanomodeller.Calculation.Tools.ProgressBarState.updateProgressBar;
 import static org.nanomodeller.Calculation.StaticCalculations.countLocalDensity;
@@ -57,72 +54,96 @@ public class StaticCalculationsRunnable implements Runnable {
     }
 
     private void calculate() throws IOException {
-        StringWriter ldos = new StringWriter();
-        StringWriter charge = new StringWriter();
+        StringWriter ldos = null;//new StringWriter();
+        StringWriter charge = null;//new StringWriter();
         StringWriter avgCharge = new StringWriter();
         Matrix matrix = new Matrix(par);
 
-        float[] charges = new float[par.getAtoms().size()];
-        float m = cp.getMin("m");
+        int numOfAtoms = par.getAtoms().size();
+        double invNumOfAtoms = 1.0 / numOfAtoms;
+        float[] charges = new float[numOfAtoms];
+        boolean shouldComputeN = cp.shouldCompute("n");
+        boolean shouldComputeM = cp.shouldCompute("m");
+        float eWidth = cp.getWidth("E");
+        float mWidth = cp.getWidth("m");
+        float nWidth = cp.getWidth("n");
+        float maxM = cp.getMax("m");
+        float incM = cp.getInc("m");
+        float incN = cp.getInc("n");
+        float incE = cp.getInc("E");
+        float nMin = cp.getMin("n");
+        float eMin = cp.getMin("E");
+        float minM = cp.getMin("m");
+        float m = minM;
 
         do {
-            if (isFirstThread)
-                updateProgressBar(m - cp.getMin("m"), "m", cp.getWidth("m"), NanoModeler.getInstance().getMenu().getThirdPB());
-            float n = cp.getMin("n");
+            if (isFirstThread) {
+                updateProgressBar(m - minM, "m", mWidth, NanoModeler.getInstance().getMenu().getThirdPB());
+            }
+            float n = nMin;
+            float maxN = cp.getMax("n");
             do {
-                for (int i = 0; i < par.getAtoms().size(); i++) {
+                for (int i = 0; i < numOfAtoms; i++) {
                     charges[i] = 0;
                 }
-                if (isFirstThread)
-                    updateProgressBar(n - cp.getMin("n"), "n", cp.getWidth("n"), NanoModeler.getInstance().getMenu().getSecondPB());
+                if (isFirstThread) {
+                    updateProgressBar(n - nMin, "n", nWidth, NanoModeler.getInstance().getMenu().getSecondPB());
+                }
 
-                float tempE = cp.getMin("E");
+                float tempE = eMin;
                 do {
-                    if (isFirstThread)
-                        updateProgressBar(tempE - cp.getMin("E"), "E", cp.getWidth("E"), NanoModeler.getInstance().getMenu().getFirstPB());
+                    if (isFirstThread) {
+                        updateProgressBar(tempE - eMin, "E", eWidth, NanoModeler.getInstance().getMenu().getFirstPB());
+                    }
                     ZMatrixRMaj M = matrix.convertToComplexMatrix(m, n, tempE);
                     ZMatrixRMaj TempMatrix = new ZMatrixRMaj(M.numRows, M.numCols);
                     CommonOps_ZDRM.invert(M, TempMatrix);
                     int i = 0;
 
-                    if (cp.shouldCompute("n"))
-                        ldos.append(n +",");
-                    ldos.append(BigDecimal.valueOf(tempE).setScale(3, RoundingMode.HALF_UP) + "");
+                    if (shouldComputeN)
+                        append(ldos,n + "\t\t\t");
+                    append(ldos,tempE + "");
                     for (Atom atom : par.getAtoms()) {
                         double imag = TempMatrix.getImag(atom.getID(), atom.getID());
-                        float result = countLocalDensity(imag);
+                        double result = countLocalDensity(imag);
                         if (tempE <= 0)
-                            charges[i++] += result * cp.getInc("E");
-                        ldos.append("\t\t\t" + BigDecimal.valueOf(result).setScale(4, RoundingMode.HALF_UP));
+                            charges[i++] += result * incE;
+                        append(ldos,"\t\t\t" + result);
                     }
-                    ldos.append("\n");
-                    tempE += cp.getInc("E");
+                    append(ldos,"\n");
+                    tempE += incE;
 
                 } while (tempE <= cp.getMax("E"));
                 float avg = 0;
                 int num = 0;
                 for (float v : charges) {
-                    if (cp.shouldCompute("n"))
-                        charge.append(n +"\t\t\t");
-                    charge.append(num++ + "\t\t\t" + BigDecimal.valueOf(v).setScale(4, RoundingMode.HALF_UP) + "\n");
+                    if (shouldComputeN)
+                        append(charge,n +"\t\t\t");
+                    append(charge, num++ + "\t\t\t" + v + "\n");
                     avg += v;
                 }
-                charge.append("\n");
-                avg /= charges.length;
-                if (cp.shouldCompute("m"))
-                    avgCharge.append(m + "\t\t\t");
-                if (cp.shouldCompute("n"))
-                    avgCharge.append(n +"\t\t\t");
-                avgCharge.append(BigDecimal.valueOf(avg).setScale(4, RoundingMode.HALF_UP) + "\n");
-                n += cp.getInc("n");
-            } while (n <= cp.getMax("n"));
-            charge.append("\n");
-            ldos.append("\n");
-            avgCharge.append("\n");
-            m += cp.getInc("m");
-        } while (m <= cp.getMax("m"));
-        this.charge = charge.toString();
+                append(charge,"\n");
+                append(ldos, "\n");
+                avg *= invNumOfAtoms;
+                if (shouldComputeM)
+                    append(avgCharge, m + "\t\t\t");
+                if (shouldComputeN)
+                    append(avgCharge,n +"\t\t\t");
+                append(avgCharge, avg + "\n");
+
+                n += incN;
+            } while (n <= maxN);
+            append(charge,"\n");
+            append(ldos,"\n");
+            append(avgCharge,"\n");
+            m += incM;
+        } while (m <= maxM);
+//        this.charge = charge.toString();
         this.avgCharge = avgCharge.toString();
-        this.ldos = ldos.toString();
+//        this.ldos = ldos.toString();
+    }
+    public void append(StringWriter writer, String toWrite){
+        if(writer != null)
+            writer.append(toWrite);
     }
 }

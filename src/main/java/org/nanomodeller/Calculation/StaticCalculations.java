@@ -5,6 +5,8 @@ import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
 
+import static org.nanomodeller.Constants.MRPI;
+
 public class StaticCalculations {
 
     public static void countStaticProperties() {
@@ -50,10 +52,10 @@ public class StaticCalculations {
             }
         }
         if (saveAnyLDOS) {
-            ldosWriter.print("n,E" + header + "\n");
+            ldosWriter.print("n\t\t\tE" + header + "\n");
         }
         chargeWriter.print("n\t\t\ti\t\t\tq\n");
-        avgChargeWriter.print("n\t\t\tq\n");
+        avgChargeWriter.print("m\t\t\tn\t\t\tq\n");
         for (StaticCalculationsRunnable s : spr) {
             if (StringUtils.isNotEmpty(s.getCharge()))
                 chargeWriter.print(s.getCharge());
@@ -70,7 +72,7 @@ public class StaticCalculations {
         System.out.println(endTime - startTime);
     }
 
-    public static float countLocalDensity(double im) {
-        return (float) ((-1 / Math.PI) * im);
+    public static double countLocalDensity(double im) {
+        return im * MRPI;
     }
 }

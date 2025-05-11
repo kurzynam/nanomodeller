@@ -7,12 +7,12 @@
                 <value>sCharge.csv</value>
             </entry>
             <entry>
-                <key>W</key>
-                <value>1</value>
+                <key>energyStepsInFile</key>
+                <value>100</value>
             </entry>
             <entry>
-                <key>V</key>
-                <value>4</value>
+                <key>timeStepsInFile</key>
+                <value>250</value>
             </entry>
             <entry>
                 <key>staticLDOSFileName</key>
@@ -23,17 +23,17 @@
             <entry>
                 <key>m</key>
                 <value>
-                    <incr>0.1</incr>
-                    <max>0.0</max>
-                    <min>1.0</min>
+                    <incr>0.05</incr>
+                    <max>16.0</max>
+                    <min>16.5</min>
                     <saveEvery>0.0</saveEvery>
                 </value>
             </entry>
             <entry>
                 <key>t</key>
                 <value>
-                    <incr>0.01</incr>
-                    <max>100.0</max>
+                    <incr>0.02</incr>
+                    <max>200.0</max>
                     <min>0.0</min>
                     <saveEvery>0.0</saveEvery>
                 </value>
@@ -41,18 +41,18 @@
             <entry>
                 <key>E</key>
                 <value>
-                    <incr>0.01</incr>
-                    <max>0.0</max>
-                    <min>-20.0</min>
+                    <incr>0.1</incr>
+                    <max>5.0</max>
+                    <min>-5.0</min>
                     <saveEvery>0.0</saveEvery>
                 </value>
             </entry>
             <entry>
                 <key>n</key>
                 <value>
-                    <incr>0.01</incr>
-                    <max>5.0</max>
-                    <min>-5.0</min>
+                    <incr>0.05</incr>
+                    <max>14.0</max>
+                    <min>15.0</min>
                     <saveEvery>0.0</saveEvery>
                 </value>
             </entry>
@@ -66,12 +66,12 @@
                     <value>0</value>
                 </entry>
                 <entry>
-                    <key>InitialOccupation</key>
-                    <value>0</value>
+                    <key>Save</key>
+                    <value>1</value>
                 </entry>
                 <entry>
-                    <key>Save</key>
-                    <value>true</value>
+                    <key>InitialOccupation</key>
+                    <value>0</value>
                 </entry>
                 <entry>
                     <key>OnSiteEnergy</key>
@@ -86,6 +86,7 @@
                     <value>1</value>
                 </entry>
             </properties>
+            <GID>v</GID>
         </Bond>
         <Electrode>
             <properties>

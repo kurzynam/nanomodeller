@@ -4,23 +4,22 @@ import org.nanomodeller.Calculation.CalculationEntities.CalculationAtom;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationBond;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationElectrode;
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.Flag;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.XMLMappingFiles.*;
-import org.ejml.data.Complex_F64;
+import org.jscience.mathematics.number.Complex;
 import org.nfunk.jep.JEP;
 import java.util.*;
-import java.util.stream.Collectors;
 
+import static org.jscience.mathematics.number.Complex.*;
 import static org.nanomodeller.Calculation.CalculationEntities.CalculationItem.applyTimeForItemsCalculation;
-import static org.nanomodeller.Calculation.Tools.ComplexOperations.*;
 import static org.nanomodeller.Calculation.Tools.JEPHelper.createJEP;
 import static org.nanomodeller.Calculation.Tools.ProgressBarState.updateProgressBar;
 import static org.nanomodeller.CommonPhysics.toEnergy;
 import static org.nanomodeller.Constants.TRPI;
 import static org.nanomodeller.Globals.*;
 
+import static java.lang.Math.PI;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import static org.nanomodeller.XMLMappingFiles.Atom.initializeCalculationAtoms;
@@ -29,6 +28,10 @@ import static org.nanomodeller.XMLMappingFiles.Electrode.initializeCalculationEl
 
 public class DynamicCalculations {
 
+    public static final String CORRELATION_COUPLING = "CorrelationCoupling";
+    public static final String SPIN_FLIP = "SpinFlip";
+    public static final String COUPLING = "Coupling";
+    public static final String PERTURBATION_COUPLING = "PerturbationCoupling";
     public boolean areCorrelations = false;
     //region public members
     public CommonProperties gp;
@@ -36,15 +39,11 @@ public class DynamicCalculations {
     public String format;
     public Parameters par = Parameters.getInstance();
     public NanoModeler modeler = NanoModeler.getInstance();
-    public Complex_F64[][][] surfaceUt_k;
-    private Complex_F64 temp = new Complex_F64(0,0);
-    private Complex_F64 result = new Complex_F64(0,0);
-    private Complex_F64 spinFlipPart = new Complex_F64(0,0);
+    public Complex[][][] surfaceUt_k;
     public double[] sumOfCharges;
     private Hashtable<Integer, Hashtable<Integer, CalculationBond>> calculationBonds = new Hashtable<>();
     private Hashtable<Integer, CalculationAtom> calculationAtoms = new Hashtable<>();
-    private Hashtable<Integer, Complex_F64> U = new Hashtable<>();
-    public ArrayList<Complex_F64 [/*t*/][/*k*/][/*k_sigma*/][/*n*/][/*sigma_n*/]> Ut_ik;
+    public ArrayList<Complex [/*t*/][/*k*/][/*k_sigma*/][/*n*/][/*sigma_n*/]> Ut_ik;
     public Flag isInterupted;
     public double dE;
     public double Emin;
@@ -71,17 +70,16 @@ public class DynamicCalculations {
 
     public double[] D;
 
-    public Complex_F64[][][] Ut_ij;
+    public Complex[][][] Ut_ij;
     public Hashtable<Integer, CalculationElectrode> calculationElectrodes = new Hashtable<>();
     boolean isSpinOrbit = false;
     JEP parser;
     private int timeRatio;
 
     private int energyRatio;
-    private Complex_F64[][] integralEnergy;
+    private Complex[][] integralEnergy;
 
-
-    private Complex_F64[][] reciprocalIntegralEnergy;
+    private Complex[][] reciprocalIntegralEnergy;
     //endregion
 
     //region initialization
@@ -105,12 +103,12 @@ public class DynamicCalculations {
         Parameters par = Parameters.getInstance();
 
         readData(true);
-        integralEnergy = new Complex_F64[par.getAtoms().size()][2];
-        reciprocalIntegralEnergy = new Complex_F64[par.getAtoms().size()][2];
+        integralEnergy = new Complex[par.getAtoms().size()][2];
+        reciprocalIntegralEnergy = new Complex[par.getAtoms().size()][2];
         for (int i = 0; i < 2; i++) {
             for (int comp = 0; comp < integralEnergy.length; comp++) {
-                integralEnergy[comp][i] = new Complex_F64(1,0);
-                reciprocalIntegralEnergy[comp][i] = new Complex_F64(1,0);
+                integralEnergy[comp][i] = ONE;
+                reciprocalIntegralEnergy[comp][i] = ONE;
             }
         }
         String dynamicPATH = par.getPath();
@@ -149,15 +147,15 @@ public class DynamicCalculations {
         int time = 0;
 
         Range tRange = gp.getVar("t");
-        double tMin = tRange.getMin();
-        double tWidth = tRange.getWidth();
+        float tMin = tRange.getMin();
+        float tWidth = tRange.getWidth();
         timeRatio = numOfTimeSteps/gp.getInt("timeStepsInFile");
         if (timeRatio == 0)
             timeRatio = 1;
         energyRatio = numberOfEnergySteps/gp.getInt("energyStepsInFile");
         if (energyRatio == 0)
             energyRatio = 1;
-        for (double t : tRange) {
+        for (float t : tRange) {
             updateProgressBar(t - tMin, "t", tWidth, NanoModeler.getInstance().getMenu().getSecondPB());
             shouldSaveT = time % timeRatio == 0;
 
@@ -272,16 +270,16 @@ public class DynamicCalculations {
         this.everyT = 1;
         this.starTimeFrom = 0;
         this.D = new double[numberOfEnergySteps];
-        this.Ut_ij = new Complex_F64[2][numOfAtoms][numOfAtoms];
+        this.Ut_ij = new Complex[2][numOfAtoms][numOfAtoms];
         for (Atom a : par.getAtoms()) {
             int i = a.getID();
             for (int j = 0; j < numOfAtoms; j++) {
                 if (i == j) {
-                    Ut_ij[0][i][j] = new Complex_F64(0,0);
-                    Ut_ij[1][i][j] = new Complex_F64(0,0);
+                    Ut_ij[0][i][j] = ZERO;
+                    Ut_ij[1][i][j] = ZERO;
                 } else {
-                    Ut_ij[0][i][j] = new Complex_F64(0,0);
-                    Ut_ij[1][i][j] = new Complex_F64(0,0);
+                    Ut_ij[0][i][j] = ZERO;
+                    Ut_ij[1][i][j] = ZERO;
                 }
             }
         }
@@ -301,16 +299,16 @@ public class DynamicCalculations {
         this.sumOfCharges = new double[numOfAtoms];
         for (CalculationElectrode e : calculationElectrodes.values())
         {
-            Ut_ik.add(new Complex_F64[2][numberOfEnergySteps][sigmaDim][numOfAtoms][sigmaDim]);
+            Ut_ik.add(new Complex[2][numberOfEnergySteps][sigmaDim][numOfAtoms][sigmaDim]);
         }
-        surfaceUt_k = new Complex_F64[2][numberOfEnergySteps][numOfAtoms];
+        surfaceUt_k = new Complex[2][numberOfEnergySteps][numOfAtoms];
         for (int i = 0; i < numOfAtoms; i++){
             //sumOfCharges[i] = 0.0 + n.get(Integer.valueOf(i));
             for (int j = 0; j < numOfAtoms; j++) {
                 if (i == j) {
-                    Ut_ij[0][i][j] = new Complex_F64(1,0);
+                    Ut_ij[0][i][j] = ONE;
                 } else {
-                    Ut_ij[0][i][j] = new Complex_F64(0,0);
+                    Ut_ij[0][i][j] = ZERO;
                 }
             }
             for (int n_sigma = 0 ; n_sigma < sigmaDim; n_sigma++) {
@@ -318,7 +316,7 @@ public class DynamicCalculations {
                     for (int t = 0; t < 2; t++) {
                         for (int n = 0; n < numOfElectrodes; n++) {
                             for (int e = 0; e < numberOfEnergySteps; e++) {
-                                Ut_ik.get(n)[t][e][k_sigma][i][n_sigma] = new Complex_F64(0,0);
+                                Ut_ik.get(n)[t][e][k_sigma][i][n_sigma] = ZERO;
                             }
                         }
                     }
@@ -327,7 +325,7 @@ public class DynamicCalculations {
 
             for (int e = 0; e < numberOfEnergySteps ; e ++) {
                 for (int t = 0; t < 2; t++){
-                    surfaceUt_k[t][e][i] = new Complex_F64(0,0);
+                    surfaceUt_k[t][e][i] = ZERO;
                 }
             }
         }
@@ -337,14 +335,7 @@ public class DynamicCalculations {
     //region Uij methods
     public void countUt_ij(int t){
         t = t % 2;
-        Complex_F64[][][] arrays = new Complex_F64[4][numOfAtoms][numOfAtoms];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < numOfAtoms; j++) {
-                for (int k = 0; k < numOfAtoms; k++) {
-                    arrays[i][j][k] = new Complex_F64(0.0, 0.0);
-                }
-            }
-        }
+        Complex[][][] arrays = new Complex[4][numOfAtoms][numOfAtoms];
         for (int k = 0; k <4; k++){
             for (int i = 0; i < numOfAtoms; i++){
                 for (int j = 0; j < numOfAtoms; j++){
@@ -354,39 +345,23 @@ public class DynamicCalculations {
         }
     }
 
-    private void updateU(int T, int i, int j,
-                         Complex_F64[][][] array, int rkn,
+    private void updateU(Hashtable<Integer, Complex> U, int T, int i, int j,
+                         Complex[][][] array, int rkn,
                          double dt, double prevTime,
                          int factor) {
         for (CalculationBond b : calculationBonds.get(i).values()) {
             int second = b.getOtherAtomID(i);
-            set(temp, array[rkn][second][j]);
-            timesR(temp, dt/ factor);
-            plusC(temp, Ut_ij[T][second][j]);
-            if (U.get(second) != null) {
-                set(U.get(second), temp);
-            }
-            else {
-                U.put(second, new Complex_F64(temp.real,temp.imaginary));
-            }
+            U.put(second, Ut_ij[T][second][j].plus(array[rkn][second][j].times(dt / factor)));
         }
         if (!par.getElectrodesByAtomID(i).isEmpty()) {
-            set(temp, array[rkn][i][j]);
-            timesR(temp, dt/ factor);
-            plusC(temp, Ut_ij[T][i][j]);
-            if (U.get(i) != null) {
-                set(U.get(i), temp);
-            }
-            else {
-                U.put(i, new Complex_F64(temp.real,temp.imaginary));
-            }
+            U.put(i, Ut_ij[T][i][j].plus(array[rkn][i][j].times(dt / factor)));
         }
-        hammiltonian(i, prevTime + dt  * 0.5,U);
-        set(array[rkn+1][i][j], result) ;
+        array[rkn+1][i][j] = hammiltonian(i, prevTime + dt  * 0.5,U);
     }
 
-    private void CalculateU(int t, Complex_F64[][][] arrays, int k, int i, int j) {
+    private void CalculateU(int t, Complex[][][] arrays, int k, int i, int j) {
         int T = t % 2;
+        Hashtable<Integer, Complex> U = new Hashtable<>();
         Integer id = i;
         int second;
         double dt = (gp.getInc("t"));
@@ -403,71 +378,56 @@ public class DynamicCalculations {
                 if (!par.getElectrodesByAtomID(i).isEmpty()){
                     U.put(id, Ut_ij[T][i][j]);
                 }
-                hammiltonian(i, prevTime, U);
-                set(arrays[0][i][j], result);
+                arrays[0][i][j] = hammiltonian(i, prevTime, U);
                 break;
             case 1:
-                updateU(T, i, j, arrays, 0, dt, prevTime, 2);
+                updateU(U, T, i, j, arrays, 0, dt, prevTime, 2);
                 break;
             case 2:
-                updateU(T, i, j, arrays, 1, dt, prevTime, 2);
+                updateU(U, T, i, j, arrays, 1, dt, prevTime, 2);
                 break;
             default:
-                updateU(T, i, j, arrays, 2, dt, prevTime, 2);
-                set(temp, arrays[1][i][j]);
-                plusC(temp, arrays[2][i][j]);
-                timesR(temp, 2);
-                plusC(temp, arrays[3][i][j]);
-                plusC(temp, arrays[0][i][j]);
-                timesR(temp, dt*0.16666);
-                plusC(temp, Ut_ij[T][i][j]);
-                set(Ut_ij[t % 2][i][j], temp);
+                updateU(U, T, i, j, arrays, 2, dt, prevTime, 2);
+                Ut_ij[t % 2][i][j] =
+                        Ut_ij[T][i][j].plus(
+                                (arrays[0][i][j].plus(
+                                        arrays[1][i][j].times(2)).plus(
+                                        arrays[2][i][j].times(2)).plus(
+                                        arrays[3][i][j]))
+                                        .times(dt*0.166666));
                 break;
         }
     }
 
 
-    private void hammiltonian(int i, double time, Hashtable<Integer, Complex_F64> U) {
+    private Complex hammiltonian(int i, double time, Hashtable<Integer, Complex> U) {
+        Complex result = ZERO;
         Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(i);
         int anotherAtom;
-//        toZero(result);
         for (CalculationBond b : bonds.values()){
             anotherAtom = b.getOtherAtomID(i);
-            set(temp, exp_i((getEnergy(i) - getEnergy(anotherAtom)) * time));
-            timesC(temp, U.get(anotherAtom));
-            timesI(temp, b.getCoupling());
-            plusC(result, temp);
-
+            result = result.plus(Complex.I.times(exp_i((getEnergy(i) - getEnergy(anotherAtom)) * time)).times(U.get(anotherAtom)).times(b.get(COUPLING)));
         }
         CalculationAtom at = calculationAtoms.get(i);
         if (at.getElID() != null) {
             CalculationElectrode cE = calculationElectrodes.get(at.getElID());
-            set(temp,U.get(i));
-            timesI(temp,-cE.getCoupling()*0.5);
-            plusC(result, temp);
+            result = result.plus(U.get(i).times(-cE.get(COUPLING)*0.5));
         }
-        String.valueOf(2);
+        return result;
     }
 
     //region Rk4
 
-    public void countUt_ik(CalculationElectrode electrode, Complex_F64[][][][][] Ut_ik, int t, double dt){
+    public void countUt_ik(CalculationElectrode electrode, Complex[][][][][] Ut_ik, int t, double dt){
         int T = t % 2;
         double prevTime = (t - 1) * dt;
 
-        Complex_F64[][][] kVec = new Complex_F64[4][numOfAtoms][2];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < numOfAtoms; j++) {
-                for (int k = 0; k < 2; k++) {
-                    kVec[i][j][k] = new Complex_F64(0.0, 0.0);
-                }
-            }
-        }
-        double calculatedVk = sqrt(eWidth * electrode.getCoupling() * TRPI);
+        Complex[][][] kVec = new Complex[4][numOfAtoms][2];
+        double calculatedVk = sqrt(eWidth * electrode.get(COUPLING) * TRPI);
         int elAtID = electrode.getID();
         double[] Vsf = new double[numOfAtoms];
         for (int i = 0; i < numOfAtoms; i++) {
-            Vsf[i] = calculationAtoms.get(i).getSpinFlip();
+            Vsf[i] = calculationAtoms.get(i).get(SPIN_FLIP);
         }
         int sigmaDim = 1;
         if (isSpinOrbit){
@@ -478,31 +438,32 @@ public class DynamicCalculations {
             updateProgressBar( e, "E", numberOfEnergySteps, NanoModeler.getInstance().getMenu().getFirstPB());
 
             for (int sigma_k = 0; sigma_k < sigmaDim; sigma_k++) {
-                Complex_F64[][] array = Ut_ik[T][e][sigma_k];
-                Complex_F64 Ek = exp_i((toEnergy(e, gp) * (prevTime)));
+                Complex[][] array = Ut_ik[T][e][sigma_k];
+                Complex Ek = exp_i((toEnergy(e, gp) * (prevTime)));
                 for (int k = 0; k < 4; k++) {
                     for (int nSigma = 0; nSigma < sigmaDim; nSigma++) {
                         for (int i = 0; i < numOfAtoms; i++) {
                             Integer elID = calculationAtoms.get(i).getElID();
                             CalculationElectrode cElectrode = elID != null ? calculationElectrodes.get(elID) : null;
-                            double per = (cElectrode != null) && cElectrode.getPerturbationCoupling() != null ?
-                                    cElectrode.getPerturbationCoupling() : 1;
+                            double per = (cElectrode != null) && cElectrode.get(PERTURBATION_COUPLING) != null ?
+                                    cElectrode.get(PERTURBATION_COUPLING) : 1;
                             double Vk = (i == elAtID) ?
                                     calculatedVk : 0;
-                            Complex_F64[][] kVecTemp = (k > 0) ? kVec[k - 1] : null;
-                            functionUik(i, nSigma, sigma_k, k, dt, Ek, array, kVecTemp, Vk, per,  Vsf[i],
+                            Complex[][] kVecTemp = (k > 0) ? kVec[k - 1] : null;
+                            kVec[k][i][nSigma] = functionUik(i, nSigma, sigma_k, k, dt, Ek, array, kVecTemp, Vk, per,  Vsf[i],
                                     sigmaDim);
-                            set(kVec[k][i][nSigma], result);
                             if (k == 3){
+                                double re = 2*(kVec[1][i][nSigma].getReal() + kVec[2][i][nSigma].getReal())
+                                        + kVec[0][i][nSigma].getReal() + kVec[3][i][nSigma].getReal();
+                                re *= dt*0.1666;
+                                re += Ut_ik[T][e][sigma_k][i][nSigma].getReal();
 
-                                set(temp, kVec[1][i][nSigma]);
-                                plusC(temp, kVec[2][i][nSigma]);
-                                timesR(temp, 2);
-                                plusC(temp, kVec[0][i][nSigma]);
-                                plusC(temp, kVec[3][i][nSigma]);
-                                timesR(temp, dt*0.16666);
-                                plusC(temp, Ut_ik[T][e][sigma_k][i][nSigma]);
-                                set(Ut_ik[t % 2][e][sigma_k][i][nSigma], temp);
+                                double im = 2*(kVec[1][i][nSigma].getImaginary() + kVec[2][i][nSigma].getImaginary())
+                                        + kVec[0][i][nSigma].getImaginary() + kVec[3][i][nSigma].getImaginary();
+                                im *= dt*0.1666;
+                                im += Ut_ik[T][e][sigma_k][i][nSigma].getImaginary();
+                                Ut_ik[t % 2][e][sigma_k][i][nSigma] = Complex.valueOf(re, im);
+
                             }
                         }
                     }
@@ -525,99 +486,76 @@ public class DynamicCalculations {
     //endregion
 
     //region maths
-    public Complex_F64 exp_i(double argument){
-        return new Complex_F64(Math.cos(argument), Math.sin(argument));
+    public Complex exp_i(double argument){
+        return valueOf(Math.cos(argument), Math.sin(argument));
     }
     public double time(int timeStep, double dt){
         return timeStep * dt;
     }
     //endregion
 
-    protected void functionUik(int i, int sigma,
-                               int sigmaK, int k,
-                               double dt, Complex_F64 Ek,
-                               Complex_F64[][] Ut_ik,
-                               Complex_F64[][] kVec, double Vk,
-                               double f, double Vsf,
-                               int sigmaDim) {
+    protected Complex functionUik(int i, int sigma,
+                                  int sigmaK, int k,
+                                  double dt, Complex Ek,
+                                  Complex[][] Ut_ik,
+                                  Complex[][] kVec, double Vk,
+                                  double f, double Vsf,
+                                  int sigmaDim) {
 
+        Complex result = ZERO;
         double gammaIJ = 0;
         double gammaHalf = 0;
-        int minusSigma = (sigma + 1) % sigmaDim;
         Integer index = calculationAtoms.get(i).getElID();
         if (index != null){
             CalculationElectrode ce = calculationElectrodes.get(index);
             if (ce != null)
-                gammaHalf = ce.getCoupling() * 0.5;
+                gammaHalf = ce.get(COUPLING) * 0.5;
         }
+
+        int minusSigma = (sigma + 1) % sigmaDim;
+        Complex spinFlipPart =
+                valueOf(0, -Vsf).times(integralEnergy[i][sigma].times(reciprocalIntegralEnergy[i][minusSigma]));
+
         if (sigmaK == sigma){
             if (k == 0) {
-                set(result,Ut_ik[i][sigma]);//.times(-gammaHalf*f*f);
+                result = Ut_ik[i][sigma].times(-gammaHalf*f*f);
             }
             else{
                 double tStep = (k < 3) ? dt : dt * 0.5;
-                set(temp, kVec[i][sigma]);
-                timesR(temp, tStep);
-                plusC(temp, Ut_ik[i][sigma]);
-                set(result, temp);
+                result = Ut_ik[i][sigma].plus(kVec[i][sigma].times(tStep)).times(-gammaHalf*f*f);
             }
         }
-        timesR(result, -gammaHalf*f*f);
-        if (isSpinOrbit){
-            set(spinFlipPart, integralEnergy[i][sigma]);
-            timesC(spinFlipPart, reciprocalIntegralEnergy[i][minusSigma]);
-            timesI(spinFlipPart, -Vsf);
-            if (k == 0) {
-                set(temp, Ut_ik[i][minusSigma]);
-                timesC(temp, spinFlipPart);
-            }
-            else{
-                set(temp, kVec[i][minusSigma]);
-                timesR(temp, k == 3 ? dt : dt*0.5);
-                plusC(temp, Ut_ik[i][minusSigma]);
-                timesC(temp,spinFlipPart);
-            }
-            plusC(result,temp);
-        }else{
-            if (k == 0) {
-                plusC(result,Ut_ik[i][0]);
-            }
-            else{
-                set(temp, kVec[i][minusSigma]);
-                timesR(temp, k == 3 ? dt : dt*0.5);
-//                plusC(temp, Ut_ik[i][minusSigma]);
-                plusC(result,temp);
-            }
+        if (k == 0) {
+            result = result.plus(Ut_ik[i][minusSigma].times(spinFlipPart));
         }
-
-        for (CalculationBond b : calculationBonds.get(i).values()){
+        else{
+            result = result.
+                    plus(spinFlipPart.times(Ut_ik[i][minusSigma].plus(kVec[i][minusSigma].times(k == 3 ? dt : dt*0.5))));
+        }
+        Hashtable<Integer, CalculationBond> table = calculationBonds.get(i);
+        for (CalculationBond b : table.values()){
             int j = b.getSecond();
             // * b.get(PERTURBATION_COUPLING);
-            if (k != 0){
-                set(temp, kVec[j][sigma]);
-                timesR(temp, k == 3 ? dt : dt*0.5);
-                plusC(temp, Ut_ik[j][sigma]);
-            }
-            else {
-                set(temp, Ut_ik[j][sigma]);
-            }
-            timesC(temp, reciprocalIntegralEnergy[i][sigma]);
-            timesC(result, integralEnergy[j][sigma]);
-            timesI(temp,b.getCoupling());
-            minusC(result, temp);
+            result = result.minus(
+
+
+
+                    valueOf(0, b.get(COUPLING)).
+                            times(integralEnergy[j][sigma].
+                                    times(reciprocalIntegralEnergy[i][sigma])).
+                            times(k == 0 ? Ut_ik[j][sigma] : Ut_ik[j][sigma].plus(kVec[j][sigma].times(k == 3 ? dt : dt * 0.5)))
+
+
+
+            );
 
         }
         if (sigmaK == sigma) {
-            set(temp, Ek);
-            timesC(temp, reciprocalIntegralEnergy[i][sigma]);
-            timesR(temp, Vk*f);
-            minusC(result, temp);
+            Complex decrement = Ek.times((reciprocalIntegralEnergy[i][sigma])).times(Vk*f);
+            result = result.minus(decrement);
         }
-        String.valueOf(i);
+        return result;
     }
-
-
-
     public void countDynamicParameters(CalculationAtom atom, int sigmaN, int t, double dt,
                                        ArrayList<String> ldosArray){
         int atomID = atom.getID();
@@ -628,10 +566,10 @@ public class DynamicCalculations {
                     double ldos = 0;
                     for (int n = 0; n < numOfElectrodes; n++) {
                         int step = (int) (e * Ut_ik.get(n)[t % 2].length * reciprocalNumOfESteps);
-                        ldos += pow(Ut_ik.get(n)[t % 2][step][n_sigma][atomID][n_sigma].getMagnitude(), 2);
+                        ldos += pow(Ut_ik.get(n)[t % 2][step][n_sigma][atomID][n_sigma].magnitude(), 2);
                     }
                     ldos = ldos * reciprocalEWidth;
-                    ldosArray.set(e/energyRatio, ldosArray.get(e/energyRatio) + String.format("\t\t\t%.6f", ldos));
+                    ldosArray.set(e/energyRatio, ldosArray.get(e/energyRatio) + "\t\t\t" + String.format("%.6f", ldos));
                 }
             }
         }
@@ -640,13 +578,16 @@ public class DynamicCalculations {
             Hashtable<Integer, CalculationBond> bonds = calculationBonds.get(atomID);
             for (CalculationBond b : bonds.values()){
                 int j = b.getOtherAtomID(atomID);
-                double u = b.getCorrelationCoupling() != null ? b.getCorrelationCoupling() : 1;
+                double u = getCorrelationCoupling(b) != null ? getCorrelationCoupling(b) : 1;
                 integralEnergy[atomID][sigmaN] = integralEnergy[atomID][sigmaN].times(exp_i(u* getEnergy(j) * dt));
             }
         }
-        reciprocalIntegralEnergy[atomID][sigmaN] = new Complex_F64(1,0).divide(integralEnergy[atomID][sigmaN]);
+        reciprocalIntegralEnergy[atomID][sigmaN] = ONE.divide(integralEnergy[atomID][sigmaN]);
     }
 
+    private static Double getCorrelationCoupling(CalculationBond b) {
+        return b.get(CORRELATION_COUPLING);
+    }
 
     private Double getEnergy(int j) {
         return calculationAtoms.get(j).get("OnSiteEnergy");
@@ -663,17 +604,17 @@ public class DynamicCalculations {
         ldosE = 0;
         double csEnergy = 0;//Double.parseDouble(gp.getCrossSectionEnergy());
         for (int j = 0; j < numOfAtoms; j++) {
-            resultN +=  calculationAtoms.get(j).get(Globals.INITIAL_OCCUPATION) * Math.pow(Ut_ij[t % 2][i][j].getMagnitude(), 2);
+            resultN +=  calculationAtoms.get(j).get(INITIAL_OCCUPATION) * Math.pow(Ut_ij[t % 2][i][j].magnitude(), 2);
         }
         for (int n_sigma = 0; n_sigma < sigmaDim; n_sigma++){
             for (int e = 0; e < numberOfEnergySteps - 2; e++) {
                 double ldos = 0;
                 for (int n = 0; n < numOfElectrodes; n++) {
                     int step = (int) (1.0*e * Ut_ik.get(n)[t % 2].length * reciprocalNumOfESteps);
-                    ldos += pow(Ut_ik.get(n)[t % 2][step][n_sigma][i][n_sigma].getMagnitude(), 2);
+                    ldos += pow(Ut_ik.get(n)[t % 2][step][n_sigma][i][n_sigma].magnitude(), 2);
                 }
                 if (par.isSurfacePresent()) {
-                    ldos += pow(surfaceUt_k[t % 2][e][i].getMagnitude(), 2);
+                    ldos += pow(surfaceUt_k[t % 2][e][i].magnitude(), 2);
                 }
                 normalisation += ldos * constant;
                 double energy = toEnergy(e, gp);

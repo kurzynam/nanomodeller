@@ -2,9 +2,31 @@ package org.nanomodeller.Calculation.CalculationEntities;
 
 import java.util.ArrayList;
 
+import static org.nanomodeller.Globals.COUPLING;
+import static org.nanomodeller.Globals.PERTURBATION_COUPLING;
+
+
 public class CalculationElectrode extends CalculationItem{
     private int ID;
     private int atomID;
+    private double coupling;
+    private Double perturbationCoupling;
+
+    public double getCoupling() {
+        return coupling;
+    }
+
+    public void setCoupling(double coupling) {
+        this.coupling = coupling;
+    }
+
+    public Double getPerturbationCoupling() {
+        return perturbationCoupling;
+    }
+
+    public void setPerturbationCoupling(Double perturbationCoupling) {
+        this.perturbationCoupling = perturbationCoupling;
+    }
 
     public int getAtomID() {
         return atomID;
@@ -28,5 +50,12 @@ public class CalculationElectrode extends CalculationItem{
 
     public CalculationElectrode(int ID) {
         this.ID = ID;
+    }
+
+    @Override
+    void fillItemFields() {
+
+        this.setCoupling(this.properties.get(COUPLING));
+        this.setPerturbationCoupling(this.properties.get(PERTURBATION_COUPLING));
     }
 }

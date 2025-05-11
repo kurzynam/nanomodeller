@@ -7,7 +7,7 @@ import org.nfunk.jep.JEP;
 
 import java.util.HashMap;
 
-public class CalculationItem {
+public abstract class CalculationItem {
     protected HashMap<String, Double> properties = new HashMap<>();
     protected HashMap<String, Boolean> dontSkip = new HashMap<>();
 
@@ -73,5 +73,8 @@ public class CalculationItem {
             item.setProperty(key.toString(), val);
 
         }
+        item.fillItemFields();
     }
+
+    abstract void fillItemFields() ;
 }

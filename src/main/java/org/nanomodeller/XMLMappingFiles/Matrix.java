@@ -62,6 +62,26 @@ public class Matrix {
                 return (args[0] >= 0) ? 1 : 0;
             }
         };
+        Function reluFunction = new Function("relu", 1) {
+            @Override
+            public double apply(double... args) {
+                return Math.max(args[0],0);
+            }
+        };
+
+        Function sigmoidFunction = new Function("sigmoid", 1) {
+            @Override
+            public double apply(double... args) {
+                return 1.0 / (1.0 + Math.exp(-args[0]));
+            }
+        };
+
+        Function sum = new Function("sum", 2) {
+            @Override
+            public double apply(double... args) {
+                return args[0]+args[1];
+            }
+        };
         Function dosiFunction = new Function("idos", 2) {
             @Override
             public double apply(double... args) {
@@ -93,7 +113,7 @@ public class Matrix {
                         String coupling = par.getElectrodeByAtomIndex(j).get().getString("Coupling");
                         if (coupling.contains("dos")){
                             im += "+" + coupling.replace("dos","idos");
-                            re += "-" + coupling.replace("dos","rdos");
+                            re += String.format("-(%s)",coupling.replace("dos","rdos"));
                         }
                         else {
                             im += "+" + coupling;
@@ -101,7 +121,7 @@ public class Matrix {
                     }
                 } else {
                     if (par.areBond(i, j)) {
-                        re += "-" + par.getBond(i, j).getString("Coupling");
+                        re += String.format("-(%s)", par.getBond(i, j).getString("Coupling"));
                     } else {
                         re = "0";
                     }
@@ -109,10 +129,10 @@ public class Matrix {
 
                 Expression realEx = new ExpressionBuilder(re).
                         variables("E", "n","m").
-                        functions(stepFunction, dosiFunction, dosrFunction).build();
+                        functions(stepFunction, dosiFunction, dosrFunction, reluFunction, sigmoidFunction,sum).build();
                 Expression imEx = new ExpressionBuilder(im).
                         variables("E", "n","m").
-                        functions(stepFunction, dosiFunction, dosrFunction).build();
+                        functions(stepFunction, dosiFunction, dosrFunction, reluFunction, sigmoidFunction,sum).build();
                 Double r = null;
                 Double ii = null;
 
@@ -122,8 +142,7 @@ public class Matrix {
                 }else {
                     this.reals[i][j] = realEx;
                 }
-
-                ValidationResult vimag = realEx.validate();
+                ValidationResult vimag = imEx.validate();
                 if(ValidationResult.SUCCESS.equals(vimag)) {
                     ii = imEx.evaluate();
                 }else {
