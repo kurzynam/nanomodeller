@@ -597,7 +597,7 @@ public class DynamicCalculations {
                     set(temp, Ut_ik[j][sigma]);
                 }
                 timesC(temp, reciprocalIntegralEnergy[i][sigma]);
-                timesC(result, integralEnergy[j][sigma]);
+                timesC(temp, integralEnergy[j][sigma]);
                 timesI(temp,2 * b.getCoupling());
                 minusC(result, temp);
             }
