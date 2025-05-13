@@ -9,32 +9,22 @@ public class ComplexOperations {
     }
     public static void timesI(Complex_F64 c, double im) {
         double real = -c.imaginary * im;
-        double imaginary = c.real * im;
+        c.imaginary = c.real * im;
         c.real = real;
-        c.imaginary = imaginary;
     }
     public static void timesC(Complex_F64 c, double re, double im) {
-        double a = c.real;
-        double b = c.imaginary;
-
-        double real = a * re - b * im;
-        double imaginary = a * im + b * re;
-
-        c.real = real;
-        c.imaginary = imaginary;
+        double tempReal = c.real * re - c.imaginary * im;
+        c.imaginary = c.real * im + c.imaginary * re;
+        c.real = tempReal;
     }
+
+
     public static void timesC(Complex_F64 c1, Complex_F64 c2) {
-        double a = c1.real;
-        double b = c1.imaginary;
-        double re = c2.real;
-        double im = c2.imaginary;
-
-        double real = a * re - b * im;
-        double imaginary = a * im + b * re;
-
-        c1.real = real;
-        c1.imaginary = imaginary;
+        double tempReal = c1.real * c2.real - c1.imaginary * c2.imaginary;
+        c1.imaginary = c1.real * c2.imaginary + c1.imaginary * c2.real;
+        c1.real = tempReal;
     }
+
     public static void invC(Complex_F64 c) {
         double invDenominator = 1.0 / (c.real * c.real + c.imaginary * c.imaginary);
         c.real *= invDenominator;

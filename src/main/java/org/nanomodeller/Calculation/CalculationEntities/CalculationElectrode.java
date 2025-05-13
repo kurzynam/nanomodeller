@@ -2,8 +2,7 @@ package org.nanomodeller.Calculation.CalculationEntities;
 
 import java.util.ArrayList;
 
-import static org.nanomodeller.Globals.COUPLING;
-import static org.nanomodeller.Globals.PERTURBATION_COUPLING;
+import static org.nanomodeller.Globals.*;
 
 
 public class CalculationElectrode extends CalculationItem{
@@ -11,6 +10,7 @@ public class CalculationElectrode extends CalculationItem{
     private int atomID;
     private double coupling;
     private Double perturbationCoupling;
+    private int stepSkip;
 
     public double getCoupling() {
         return coupling;
@@ -57,5 +57,10 @@ public class CalculationElectrode extends CalculationItem{
 
         this.setCoupling(this.properties.get(COUPLING));
         this.setPerturbationCoupling(this.properties.get(PERTURBATION_COUPLING));
+        this.stepSkip = this.properties.get(STEP_SKIP).intValue();
+    }
+
+    public int getStepSkip() {
+        return stepSkip;
     }
 }

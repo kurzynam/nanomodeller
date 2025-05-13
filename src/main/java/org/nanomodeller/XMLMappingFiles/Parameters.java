@@ -121,8 +121,8 @@ public class Parameters implements Cloneable{
         return false;
     }
     public Bond getBond(int a1, int a2){
-        int first = a1 < a2 ? a1 : a2;
-        int second = a2 < a1 ? a1 : a2;
+        int first = Math.min(a1, a2);
+        int second = Math.max(a2, a1);
         for(Bond b : bonds){
             if(b.getFirst() == first && b.getSecond() == second){
                 return b;

@@ -49,6 +49,7 @@ public class Globals {
     public static final String INITIAL_OCCUPATION = "InitialOccupation";
     public static final String COUPLING = "Coupling";
     public static final String PERTURBATION_COUPLING = "PerturbationCoupling";
+    public static final String STEP_SKIP = "StepSkip";
     //endregion
 
     //region image PATHS

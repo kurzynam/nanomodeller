@@ -7,16 +7,16 @@ import static org.nanomodeller.Globals.SPIN_FLIP;
 
 public class CalculationAtom extends CalculationItem{
     private int ID;
-    private Integer elID;
+    private int elID = -1;
     private double spinFlip;
     private double initialOccupation;
     private double onSiteEnergy;
 
-    public Integer getElID() {
+    public int getElID() {
         return elID;
     }
 
-    public void setElID(Integer elID) {
+    public void setElID(int elID) {
         this.elID = elID;
     }
 

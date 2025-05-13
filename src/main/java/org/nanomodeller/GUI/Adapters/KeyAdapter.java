@@ -1,7 +1,6 @@
 package org.nanomodeller.GUI.Adapters;
 
 import org.nanomodeller.GUI.NanoModeler;
-import org.nanomodeller.XMLMappingFiles.Atom;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -20,7 +19,7 @@ public class KeyAdapter implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+        if (e.isControlDown()) {
             nanoModeler.setCtrlPressed(true);
         }
 

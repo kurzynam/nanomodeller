@@ -54,7 +54,7 @@ public class StaticCalculationsRunnable implements Runnable {
     }
 
     private void calculate() throws IOException {
-        StringWriter ldos = null;//new StringWriter();
+        StringWriter ldos = new StringWriter();
         StringWriter charge = null;//new StringWriter();
         StringWriter avgCharge = new StringWriter();
         Matrix matrix = new Matrix(par);
@@ -140,7 +140,7 @@ public class StaticCalculationsRunnable implements Runnable {
         } while (m <= maxM);
 //        this.charge = charge.toString();
         this.avgCharge = avgCharge.toString();
-//        this.ldos = ldos.toString();
+        this.ldos = ldos.toString();
     }
     public void append(StringWriter writer, String toWrite){
         if(writer != null)
