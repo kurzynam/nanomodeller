@@ -424,7 +424,7 @@ public class NanoModeler extends JFrame {
         }
         count = 0;
         for (Integer i: getSortedKeys(electrodes)){
-            electrodes.get(i).setID(count++);
+            electrodes.get(i).setID(electrodes.get(i).getAtomIndex());
         }
         getBonds().stream().filter(bond -> bond.getFirst() < 0).forEach(bond -> bond.setFirst(-bond.getFirst() - 1));
         getBonds().stream().filter(bond -> bond.getSecond() < 0).forEach(bond -> bond.setSecond(-bond.getSecond() - 1));

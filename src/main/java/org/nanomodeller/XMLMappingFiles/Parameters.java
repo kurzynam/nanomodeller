@@ -48,14 +48,59 @@ public class Parameters implements Cloneable{
         }
     }
 
-    public ArrayList<Electrode> getElectrodesByAtomID(int id){
-        ArrayList<Electrode> el = new ArrayList<Electrode>();
+    public Electrode getElectrodeByAtomID(int id){
         for (Electrode e : electrodes){
             if(id == e.getAtomIndex()){
-                el.add(e);
+                return e;
             }
         }
-        return el;
+        return null;
+    }
+
+    public final boolean isChainSymmetric(){
+
+        for (int i = 0; i < atoms.size()/2; i++){
+            Atom atom = atoms.get(i);
+            Electrode electrode = getElectrodeByAtomID(i);
+            Electrode secondEl = getElectrodeByAtomID(atoms.size() - i - 1);
+
+            if ((electrode != null && secondEl == null) || (electrode == null && secondEl != null)) {
+                return false;
+            }
+            Bond bond = getBond(i, i + 1);
+            Bond seconBond = getBond(atoms.size() - i - 2, atoms.size() - i - 1);
+
+            if ((bond != null && seconBond == null) || (bond == null && seconBond != null)) {
+                return false;
+            }
+
+
+            for (String prop : atom.getProperties().keySet()){
+                if (!prop.equals("Save") && !atoms.get(atoms.size() - i - 1)
+                        .getProperties().get(prop).equals(atom.getProperties().get(prop))) {
+                    return false;
+                }
+            }
+
+            if (electrode != null){
+                for (String prop : electrode.getProperties().keySet()){
+                    if (!prop.equals("StepSkip") && !secondEl.getProperties().
+                            get(prop).equals(electrode.getProperties().get(prop))) {
+                        return false;
+                    }
+                }
+            }
+            if (bond != null) {
+                for (String prop : bond.getProperties().keySet()){
+                    if (!seconBond.getProperties().
+                            get(prop).equals(bond.getProperties().get(prop))) {
+                        return false;
+                    }
+                }
+            }
+
+        }
+        return true;
     }
     @XmlElements(@XmlElement(name="Electrode"))
     public ArrayList<Electrode> getElectrodes() {
