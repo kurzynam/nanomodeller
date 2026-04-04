@@ -5,6 +5,8 @@ import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
 
+import java.util.Comparator;
+
 import static org.nanomodeller.Constants.MRPI;
 
 public class StaticCalculations {
@@ -19,7 +21,8 @@ public class StaticCalculations {
         MyFileWriter ldosWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" + cp.getString("staticLDOSFileName"));
         MyFileWriter chargeWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/" + cp.getString("staticChargeFileName"));
         MyFileWriter avgChargeWriter = new MyFileWriter(Parameters.getInstance().getPath() + "/avg" + cp.getString("staticChargeFileName"));
-
+        ldosWriter.setActive(false);
+        chargeWriter.setActive(true);
         for (int i = 0; i < threads.length; i++) {
             double width = cp.getWidth("n") / threads.length;
             double start = cp.getMin("n") + i * width;
@@ -43,19 +46,18 @@ public class StaticCalculations {
         }
 
         StringBuilder header = new StringBuilder();
-        boolean saveAnyLDOS = false;
+        for (Atom a : Parameters.getInstance()
+                .getAtoms()
+                .stream()
+                .sorted(Comparator.comparing(Atom::getID))
+                .toList()) {
 
-        for (Atom a : Parameters.getInstance().getAtoms()) {
-            if (a.getBool("Save")) {
-                header.append("\t\t\t").append(a.getID());
-                saveAnyLDOS = true;
-            }
+            header.append("\t\t\t").append(a.getID());
+            ldosWriter.setActive(true);
         }
-        if (saveAnyLDOS) {
-            ldosWriter.print("n\t\t\tE" + header + "\n");
-        }
+        ldosWriter.print("n\t\t\tE" + header + "\n");
         chargeWriter.print("n\t\t\ti\t\t\tq\n");
-        avgChargeWriter.print("m\t\t\tn\t\t\tq\n");
+//        avgChargeWriter.print("m\t\t\tn\t\t\tq\n");
         for (StaticCalculationsRunnable s : spr) {
             if (StringUtils.isNotEmpty(s.getCharge()))
                 chargeWriter.print(s.getCharge());

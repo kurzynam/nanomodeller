@@ -126,8 +126,10 @@ public class DynamicCalculations {
         String dynamicPATH = par.getPath();
 //        StringBuilder ldosBuilder = new StringBuilder();
         chargeList = new MyFileWriter(dynamicPATH + "/" + CHARGE_FILE_NAME_PATTERN + ".csv");
+        chargeList.setActive(true);
 //        currentList  = new MyFileWriter(dynamicPATH + "/" + CURRENT_FILE_NAME_PATTERN + ".csv");
         ldosList = new MyFileWriter(dynamicPATH + "/" + LDOS_FILE_NAME_PATTERN + ".csv");
+        ldosList.setActive(true);
 //        ldosEList = new MyFileWriter(dynamicPATH + "/" + LDOS_E_FILE_NAME_PATTERN + ".csv");
         ldosList.printf("Time\t\t\t Energy");
 //        ldosBuilder.append("Time, Energy")
@@ -194,7 +196,8 @@ public class DynamicCalculations {
             double charge;
 
             String currentsList = "";
-            for (CalculationAtom atom : calculationAtoms) {
+//            for (CalculationAtom atom : calculationAtoms) {
+                CalculationAtom atom = calculationAtoms[0];
                 charge = countCharge(atom.getID(), time);
                 double current = (charge-charges[atom.getID()])/dt;
                 currentsList += current;
@@ -202,7 +205,7 @@ public class DynamicCalculations {
                 if (atom.getID() != calculationAtoms.length - 1){
                     currentsList += ",";
                 }
-            }
+//            }
             time++;
 
 //            currentList.printf("%3f%s\n", t, currentsList);
@@ -451,7 +454,13 @@ public class DynamicCalculations {
                 anotherAtom = b.getOtherAtomID(i);
                 setExp(temp, (getEnergy(i) - getEnergy(anotherAtom)) * time);
                 timesC(temp, U[anotherAtom]);
-                timesI(temp, b.getCoupling());
+                timesI(temp,1);
+                if(anotherAtom < i){
+                    timesC(temp, b.getComplexCoupling());
+                }
+                else{
+                    timesCConj(temp, b.getComplexCoupling());
+                }
                 plusC(result, temp);
             }
 
@@ -598,7 +607,11 @@ public class DynamicCalculations {
                 }
                 timesC(temp, reciprocalIntegralEnergy[i][sigma]);
                 timesC(temp, integralEnergy[j][sigma]);
-                timesI(temp,2 * b.getCoupling());
+                timesI(temp,2);
+                if (j < i)
+                    timesC(temp, b.getComplexCoupling());
+                else
+                    timesCConj(temp, b.getComplexCoupling());
                 minusC(result, temp);
             }
 
@@ -660,9 +673,9 @@ public class DynamicCalculations {
         boolean breakConditionLDOS = false;
         ldosE = 0;
         double csEnergy = 0;//Double.parseDouble(gp.getCrossSectionEnergy());
-        for (int j = 0; j < numOfAtoms; j++) {
-            resultN +=  calculationAtoms[j].getInitialOccupation() * Math.pow(Ut_ij[t % 2][i][j].getMagnitude(), 2);
-        }
+//        for (int j = 0; j < numOfAtoms; j++) {
+//            resultN +=  calculationAtoms[j].getInitialOccupation() * Math.pow(Ut_ij[t % 2][i][j].getMagnitude(), 2);
+//        }
         for (int n_sigma = 0; n_sigma < sigmaDim; n_sigma++){
             for (int e = 0; e < numberOfEnergySteps - 2; e++) {
                 double ldos = 0;
@@ -676,7 +689,7 @@ public class DynamicCalculations {
                 normalisation += ldos * constant;
                 double energy = Emin + e * dE;
                 if (energy >= 0 && !breakConditionCharge) {
-                    charge = normalisation + resultN;
+                    charge = normalisation;// + resultN;
                     breakConditionCharge = true;
                 }
                 if (energy >= csEnergy && !breakConditionLDOS){

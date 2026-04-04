@@ -48,6 +48,7 @@ public class Globals {
     public static final String ON_SITE_ENERGY = "OnSiteEnergy";
     public static final String INITIAL_OCCUPATION = "InitialOccupation";
     public static final String COUPLING = "Coupling";
+    public static final String IM_COUPLING = "ImCoupling";
     public static final String PERTURBATION_COUPLING = "PerturbationCoupling";
     //endregion
 

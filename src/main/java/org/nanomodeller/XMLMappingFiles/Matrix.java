@@ -7,6 +7,8 @@ import net.objecthunter.exp4j.function.Function;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import org.nanomodeller.Tools.DataAccessTools.FileOperationHelper;
+import org.nanomodeller.Tools.StringUtils;
+
 import java.io.IOException;
 import static org.nanomodeller.SurfaceEffect.surfaceCoupling;
 
@@ -16,22 +18,35 @@ public class Matrix {
     private Object[][] imags;
 
     public Complex_F64 getValue(int i, int j, double m, double n, double tempE) {
-
+        int iVal = i - j == 1 || j - i == 1 ? i : 0;
         if (reals[i][j] instanceof Complex_F64) {
-            return (Complex_F64) reals[i][j];
+            if (i <= j)
+                return (Complex_F64) reals[i][j];
+            else{
+                return new Complex_F64(((Complex_F64) reals[i][j]).real, -((Complex_F64) reals[i][j]).imaginary);
+            }
         }
         else if (reals[i][j] instanceof Double) {
-            double im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).evaluate();
-            return new Complex_F64((Double) reals[i][j], im);
+            double im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).setVariable("i", iVal).evaluate();
+            if (i <= j)
+                return new Complex_F64((Double) reals[i][j], im);
+            else
+                return new Complex_F64((Double) reals[i][j], -im);
         }
         else {
-            double re = ((Expression)reals[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).evaluate();
+            double re = ((Expression)reals[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).setVariable("i", iVal).evaluate();
             double im;
             if (imags[i][j] instanceof Double) {
-                return new Complex_F64(re, (Double) imags[i][j]);
+                if (i <= j)
+                    return new Complex_F64(re, (Double) imags[i][j]);
+                else
+                    return new Complex_F64(re, (Double) imags[i][j]*(-1));
             }else{
-                im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).evaluate();
-                return new Complex_F64(re, im);
+                im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).setVariable("i", iVal).evaluate();
+                if (i <= j)
+                    return new Complex_F64(re, im);
+                else
+                    return new Complex_F64(re, -im);
             }
         }
     }
@@ -122,16 +137,19 @@ public class Matrix {
                 } else {
                     if (par.areBond(i, j)) {
                         re += String.format("-(%s)", par.getBond(i, j).getString("Coupling"));
+                        String imCoupling = par.getBond(i, j).getString("ImCoupling");
+                        if (StringUtils.isNotEmpty(imCoupling))
+                            im += String.format("-(%s)", imCoupling);
                     } else {
                         re = "0";
                     }
                 }
 
                 Expression realEx = new ExpressionBuilder(re).
-                        variables("E", "n","m").
+                        variables("E", "n","m","i").
                         functions(stepFunction, dosiFunction, dosrFunction, reluFunction, sigmoidFunction,sum).build();
                 Expression imEx = new ExpressionBuilder(im).
-                        variables("E", "n","m").
+                        variables("E", "n","m","i").
                         functions(stepFunction, dosiFunction, dosrFunction, reluFunction, sigmoidFunction,sum).build();
                 Double r = null;
                 Double ii = null;
@@ -165,6 +183,37 @@ public class Matrix {
             }
         }
     }
+
+    public boolean isSymmetric(){
+        for (int i = 0; i < this.reals.length/2 + 1; i++){
+            for (int j = i + 1; j < this.reals.length/2 + 1; j++){
+                if (!this.reals[i][j].equals(this.reals[j][i])){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public Complex_F64[][] inverse(Complex_F64[][] matrix) {
+        Complex_F64[][] inverse = new Complex_F64[matrix.length][matrix[0].length];
+
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+//                inverse[i][j] = a(Math.min(i,j))*b(Math.max(i,j));
+            }
+        }
+        return inverse;
+    }
+
+    private Complex_F64 b(int j) {
+        return null;
+    }
+
+    private Complex_F64 a(int i) {
+        return null;
+    }
+
 
     @Override
     public String toString() {

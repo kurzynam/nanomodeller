@@ -721,6 +721,8 @@ public class NanoModeler extends JFrame {
         resizeImages(gridSize);
     }
     private void resizeImages(int gridSize) {
+        if (gridSize == 0)
+            gridSize = 10;
         int width = gridSize * 2;
         scalledAtomImage = atomImage.getScaledInstance(width, width, 1);
         scalledHAtomImage = hAtomImage.getScaledInstance(width, width, 1);

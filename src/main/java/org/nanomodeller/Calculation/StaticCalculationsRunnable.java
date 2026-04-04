@@ -54,11 +54,11 @@ public class StaticCalculationsRunnable implements Runnable {
     }
 
     private void calculate() throws IOException {
-        StringWriter ldos = null;//new StringWriter();
-        StringWriter charge = null;//new StringWriter();
+        StringWriter ldos = new StringWriter();
+        StringWriter charge = new StringWriter();
         StringWriter avgCharge = new StringWriter();
         Matrix matrix = new Matrix(par);
-
+        boolean isSymmetric = matrix.isSymmetric();
         int numOfAtoms = par.getAtoms().size();
         double invNumOfAtoms = 1.0 / numOfAtoms;
         float[] charges = new float[numOfAtoms];
@@ -114,21 +114,25 @@ public class StaticCalculationsRunnable implements Runnable {
                     tempE += incE;
 
                 } while (tempE <= cp.getMax("E"));
-                float avg = 0;
-                int num = 0;
-                for (float v : charges) {
-                    if (shouldComputeN)
-                        append(charge,n +"\t\t\t");
-                    append(charge, num++ + "\t\t\t" + v + "\n");
+                    float avg = 0;
+                    int num = 0;
+                    for (float v : charges) {
+//                    if (shouldComputeN)
+//                        append(charge,n +"\t\t\t");
+//                    append(charge, num++ + "\t\t\t" + v + "\n");
                     avg += v;
                 }
                 append(charge,"\n");
                 append(ldos, "\n");
+//                avg = charges[4];
                 avg *= invNumOfAtoms;
-                if (shouldComputeM)
+                if (shouldComputeM){
                     append(avgCharge, m + "\t\t\t");
+
+                }
+
                 if (shouldComputeN)
-                    append(avgCharge,n +"\t\t\t");
+                    append(avgCharge,n + "\t\t\t");
                 append(avgCharge, avg + "\n");
 
                 n += incN;
@@ -138,9 +142,9 @@ public class StaticCalculationsRunnable implements Runnable {
             append(avgCharge,"\n");
             m += incM;
         } while (m <= maxM);
-//        this.charge = charge.toString();
+        this.charge = charge.toString();
         this.avgCharge = avgCharge.toString();
-//        this.ldos = ldos.toString();
+        this.ldos = ldos.toString();
     }
     public void append(StringWriter writer, String toWrite){
         if(writer != null)

@@ -35,6 +35,18 @@ public class ComplexOperations {
         c1.real = real;
         c1.imaginary = imaginary;
     }
+    public static void timesCConj(Complex_F64 c1, Complex_F64 c2) {
+        double a = c1.real;
+        double b = c1.imaginary;
+        double re = c2.real;
+        double im = c2.imaginary;
+
+        double real = a * re + b * im;
+        double imaginary = -a * im + b * re;
+
+        c1.real = real;
+        c1.imaginary = imaginary;
+    }
     public static void invC(Complex_F64 c) {
         double invDenominator = 1.0 / (c.real * c.real + c.imaginary * c.imaginary);
         c.real *= invDenominator;
@@ -100,5 +112,9 @@ public class ComplexOperations {
     public static void setExp(Complex_F64 c, double phase){
         c.real = Math.cos(phase);
         c.imaginary = Math.sin(phase);
+    }
+    public static void setExp(Complex_F64 c, double phase, double magnitude){
+        c.real = magnitude * Math.cos(phase);
+        c.imaginary = magnitude * Math.sin(phase);
     }
 }

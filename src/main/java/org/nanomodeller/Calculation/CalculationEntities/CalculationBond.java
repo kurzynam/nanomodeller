@@ -1,19 +1,20 @@
 package org.nanomodeller.Calculation.CalculationEntities;
 
 
-import static org.nanomodeller.Globals.CORRELATION_COUPLING;
-import static org.nanomodeller.Globals.COUPLING;
+import org.ejml.data.Complex_F64;
+
+import static org.nanomodeller.Globals.*;
 
 public class CalculationBond extends CalculationItem{
     int first, second;
-    private double coupling;
     private Double correlationCoupling;
+    private Complex_F64 complexCoupling;
 
     public CalculationBond(int first, int second){
         this.first = second;
         this.second = first;
+        this.complexCoupling = new Complex_F64(0,0);
     }
-
 
     public int getFirst() {
         return first;
@@ -25,11 +26,27 @@ public class CalculationBond extends CalculationItem{
     }
 
     public double getCoupling() {
-        return coupling;
+        return complexCoupling.real;
+    }
+
+    public Complex_F64 getComplexCoupling() {
+        return complexCoupling;
+    }
+
+    public void setComplexCoupling(Complex_F64 complexCoupling) {
+        this.complexCoupling = complexCoupling;
+    }
+
+    public double getImCoupling() {
+        return complexCoupling.imaginary;
+    }
+
+    public void setImCoupling(double imCoupling) {
+        this.complexCoupling.imaginary = imCoupling;
     }
 
     public void setCoupling(double coupling) {
-        this.coupling = coupling;
+        this.complexCoupling.real = coupling;
     }
 
     public Double getCorrelationCoupling() {
@@ -49,7 +66,8 @@ public class CalculationBond extends CalculationItem{
 
     @Override
     void fillItemFields() {
-        this.setCoupling(this.properties.get(COUPLING));
-        this.setCorrelationCoupling(this.properties.get(CORRELATION_COUPLING));
+        this.setCoupling(this.properties.getOrDefault(COUPLING, 0.0));
+        this.setImCoupling(this.properties.getOrDefault(IM_COUPLING, 0.0));
+        this.setCorrelationCoupling(this.properties.getOrDefault(CORRELATION_COUPLING, 0.0));
     }
 }

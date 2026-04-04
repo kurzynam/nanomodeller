@@ -15,6 +15,7 @@ import static org.nanomodeller.Globals.XML_FILE_PATH;
 
 public class MyFileWriter {
     PrintWriter pw = null;
+    private boolean isActive;
     public MyFileWriter(String filePath){
         try {
             createFileIfNotExists(filePath);
@@ -23,8 +24,14 @@ public class MyFileWriter {
             e.printStackTrace();
         }
     }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
     public void printf(String format, Object... args){
-        pw.write(String.format(format, args));
+        if (isActive)
+            pw.write(String.format(format, args));
     }
 
     public void print(String format){
@@ -41,7 +48,8 @@ public class MyFileWriter {
         printf(res);
     }
     public void println(String text){
-        pw.write(text + "\n");
+        if (isActive)
+            pw.write(text + "\n");
     }
     public void println(){
         println("");
