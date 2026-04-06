@@ -1,6 +1,7 @@
 package org.nanomodeller.Calculation;
 
 import org.nanomodeller.GUI.NanoModeler;
+import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.Tools.StringUtils;
 import org.nanomodeller.XMLMappingFiles.*;
@@ -24,8 +25,8 @@ public class StaticCalculations {
         ldosWriter.setActive(false);
         chargeWriter.setActive(true);
         for (int i = 0; i < threads.length; i++) {
-            double width = cp.getWidth("n") / threads.length;
-            double start = cp.getMin("n") + i * width;
+            double width = cp.getWidth(Globals.time) / threads.length;
+            double start = cp.getMin(Globals.time) + i * width;
             double end = start + width;
             spr[i] = new StaticCalculationsRunnable(CommonProperties.getInstance().clone(), Parameters.getInstance().clone());
             if (i == 0)

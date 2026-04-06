@@ -15,13 +15,13 @@ public class Bond extends StructureElement {
     private int second;
 
     public Bond(int first, int second, Bond bond){
-        if (first > second){
-            this.second = first;
-            this.first = second;
-        }else{
+//        if (first > second){
+//            this.second = first;
+//            this.first = second;
+//        }else{
             this.first = first;
             this.second = second;
-        }
+//        }
         this.properties = bond.properties;
         this.color = bond.getColor();
         this.groupID = bond.groupID;
@@ -29,13 +29,13 @@ public class Bond extends StructureElement {
 
 
     public Bond(int first, int second){
-        if (first > second){
-            this.second = first;
-            this.first = second;
-        }else{
+//        if (first > second){
+//            this.second = first;
+//            this.first = second;
+//        }else{
             this.first = first;
             this.second = second;
-        }
+//        }
         ArrayList<StructureElement> bonds = GlobalProperties.getInstance().getDefaultElements().getBonds();
         if (bonds != null
                 && !bonds.isEmpty()){

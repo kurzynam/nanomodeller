@@ -112,6 +112,12 @@ public class Globals {
     public static final int SURFACE_ELECTRODE_ID = -1;
     //endregion
 
+    //region variables
+    public static final String time = "t";
+    public static final String energy = "E";
+    public static final String n = "n";
+    public static final String m = "m";
+    //endregion
 
     //region operators
     public static final String AiS = "a";//  a†iσ

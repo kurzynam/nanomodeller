@@ -3,6 +3,7 @@ package org.nanomodeller.Calculation;
 import org.ejml.data.ZMatrixRMaj;
 import org.ejml.dense.row.CommonOps_ZDRM;
 import org.nanomodeller.GUI.NanoModeler;
+import org.nanomodeller.Globals;
 import org.nanomodeller.XMLMappingFiles.Atom;
 import org.nanomodeller.XMLMappingFiles.CommonProperties;
 import org.nanomodeller.XMLMappingFiles.Matrix;
@@ -10,6 +11,7 @@ import org.nanomodeller.XMLMappingFiles.Parameters;
 
 
 import java.io.*;
+import java.util.Arrays;
 
 import static org.nanomodeller.Calculation.Tools.ProgressBarState.updateProgressBar;
 import static org.nanomodeller.Calculation.StaticCalculations.countLocalDensity;
@@ -62,46 +64,44 @@ public class StaticCalculationsRunnable implements Runnable {
         int numOfAtoms = par.getAtoms().size();
         double invNumOfAtoms = 1.0 / numOfAtoms;
         float[] charges = new float[numOfAtoms];
-        boolean shouldComputeN = cp.shouldCompute("n");
-        boolean shouldComputeM = cp.shouldCompute("m");
-        float eWidth = cp.getWidth("E");
-        float mWidth = cp.getWidth("m");
-        float nWidth = cp.getWidth("n");
-        float maxM = cp.getMax("m");
-        float incM = cp.getInc("m");
-        float incN = cp.getInc("n");
-        float incE = cp.getInc("E");
-        float nMin = cp.getMin("n");
-        float eMin = cp.getMin("E");
-        float minM = cp.getMin("m");
-        float m = minM;
+        boolean shouldComputeT = cp.shouldCompute(Globals.time);
+        boolean shouldComputeN = cp.shouldCompute(Globals.n);
+        float eWidth = cp.getWidth(Globals.energy);
+        float mWidth = cp.getWidth(Globals.n);
+        float tWidth = cp.getWidth(Globals.time);
+        float maxN = cp.getMax(Globals.n);
+        float incN = cp.getInc(Globals.n);
+        float incT = cp.getInc(Globals.time);
+        float incE = cp.getInc(Globals.energy);
+        float tMin = cp.getMin(Globals.time);
+        float eMin = cp.getMin(Globals.energy);
+        float minN = cp.getMin(Globals.n);
+        float n = minN;
 
         do {
             if (isFirstThread) {
-                updateProgressBar(m - minM, "m", mWidth, NanoModeler.getInstance().getMenu().getThirdPB());
+                updateProgressBar(n - minN, Globals.n, mWidth, NanoModeler.getInstance().getMenu().getThirdPB());
             }
-            float n = nMin;
-            float maxN = cp.getMax("n");
+            float t = tMin;
+            float maxT = cp.getMax(Globals.time);
             do {
-                for (int i = 0; i < numOfAtoms; i++) {
-                    charges[i] = 0;
-                }
+                Arrays.fill(charges, 0);
                 if (isFirstThread) {
-                    updateProgressBar(n - nMin, "n", nWidth, NanoModeler.getInstance().getMenu().getSecondPB());
+                    updateProgressBar(t - tMin, Globals.time, tWidth, NanoModeler.getInstance().getMenu().getSecondPB());
                 }
 
                 float tempE = eMin;
                 do {
                     if (isFirstThread) {
-                        updateProgressBar(tempE - eMin, "E", eWidth, NanoModeler.getInstance().getMenu().getFirstPB());
+                        updateProgressBar(tempE - eMin, Globals.energy, eWidth, NanoModeler.getInstance().getMenu().getFirstPB());
                     }
-                    ZMatrixRMaj M = matrix.convertToComplexMatrix(m, n, tempE);
+                    ZMatrixRMaj M = matrix.convertToComplexMatrix(n, t, tempE);
                     ZMatrixRMaj TempMatrix = new ZMatrixRMaj(M.numRows, M.numCols);
                     CommonOps_ZDRM.invert(M, TempMatrix);
                     int i = 0;
 
-                    if (shouldComputeN)
-                        append(ldos,n + "\t\t\t");
+                    if (shouldComputeT)
+                        append(ldos,t + "\t\t\t");
                     append(ldos,tempE + "");
                     for (Atom atom : par.getAtoms()) {
                         double imag = TempMatrix.getImag(atom.getID(), atom.getID());
@@ -113,7 +113,7 @@ public class StaticCalculationsRunnable implements Runnable {
                     append(ldos,"\n");
                     tempE += incE;
 
-                } while (tempE <= cp.getMax("E"));
+                } while (tempE <= cp.getMax(Globals.energy));
                     float avg = 0;
                     int num = 0;
                     for (float v : charges) {
@@ -126,22 +126,22 @@ public class StaticCalculationsRunnable implements Runnable {
                 append(ldos, "\n");
 //                avg = charges[4];
                 avg *= invNumOfAtoms;
-                if (shouldComputeM){
-                    append(avgCharge, m + "\t\t\t");
+                if (shouldComputeN){
+                    append(avgCharge, n + "\t\t\t");
 
                 }
 
-                if (shouldComputeN)
-                    append(avgCharge,n + "\t\t\t");
+                if (shouldComputeT)
+                    append(avgCharge,t + "\t\t\t");
                 append(avgCharge, avg + "\n");
 
-                n += incN;
-            } while (n <= maxN);
+                t += incT;
+            } while (t <= maxT);
             append(charge,"\n");
             append(ldos,"\n");
             append(avgCharge,"\n");
-            m += incM;
-        } while (m <= maxM);
+            n += incN;
+        } while (n <= maxN);
         this.charge = charge.toString();
         this.avgCharge = avgCharge.toString();
         this.ldos = ldos.toString();

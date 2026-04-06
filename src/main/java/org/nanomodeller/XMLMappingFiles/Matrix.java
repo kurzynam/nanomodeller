@@ -6,6 +6,7 @@ import org.ejml.data.ZMatrixRMaj;
 import net.objecthunter.exp4j.function.Function;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.DataAccessTools.FileOperationHelper;
 import org.nanomodeller.Tools.StringUtils;
 
@@ -20,33 +21,33 @@ public class Matrix {
     public Complex_F64 getValue(int i, int j, double m, double n, double tempE) {
         int iVal = i - j == 1 || j - i == 1 ? i : 0;
         if (reals[i][j] instanceof Complex_F64) {
-            if (i <= j)
+//            if (i <= j)
                 return (Complex_F64) reals[i][j];
-            else{
-                return new Complex_F64(((Complex_F64) reals[i][j]).real, -((Complex_F64) reals[i][j]).imaginary);
-            }
+//            else{
+//                return new Complex_F64(((Complex_F64) reals[i][j]).real, -((Complex_F64) reals[i][j]).imaginary);
+//            }
         }
         else if (reals[i][j] instanceof Double) {
-            double im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).setVariable("i", iVal).evaluate();
-            if (i <= j)
+            double im = ((Expression)imags[i][j]).setVariable(Globals.energy, tempE).setVariable(Globals.time, n).setVariable(Globals.m, m).setVariable("i", iVal).evaluate();
+//            if (i <= j)
                 return new Complex_F64((Double) reals[i][j], im);
-            else
-                return new Complex_F64((Double) reals[i][j], -im);
+//            else
+//                return new Complex_F64((Double) reals[i][j], -im);
         }
         else {
-            double re = ((Expression)reals[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).setVariable("i", iVal).evaluate();
+            double re = ((Expression)reals[i][j]).setVariable(Globals.energy, tempE).setVariable(Globals.time, n).setVariable(Globals.m, m).setVariable("i", iVal).evaluate();
             double im;
             if (imags[i][j] instanceof Double) {
-                if (i <= j)
+//                if (i <= j)
                     return new Complex_F64(re, (Double) imags[i][j]);
-                else
-                    return new Complex_F64(re, (Double) imags[i][j]*(-1));
+//                else
+//                    return new Complex_F64(re, (Double) imags[i][j]*(-1));
             }else{
-                im = ((Expression)imags[i][j]).setVariable("E", tempE).setVariable("n", n).setVariable("m", m).setVariable("i", iVal).evaluate();
-                if (i <= j)
+                im = ((Expression)imags[i][j]).setVariable(Globals.energy, tempE).setVariable(Globals.time, n).setVariable(Globals.m, m).setVariable("i", iVal).evaluate();
+//                if (i <= j)
                     return new Complex_F64(re, im);
-                else
-                    return new Complex_F64(re, -im);
+//                else
+//                    return new Complex_F64(re, -im);
             }
         }
     }
@@ -125,7 +126,7 @@ public class Matrix {
                 if (i == j) {
                     re = "E - " + ato.getString("OnSiteEnergy");
                     if (par.getElectrodeByAtomIndex(j).isPresent()) {
-                        String coupling = par.getElectrodeByAtomIndex(j).get().getString("Coupling");
+                        String coupling = par.getElectrodeByAtomIndex(j).get().getString(Globals.COUPLING);
                         if (coupling.contains("dos")){
                             im += "+" + coupling.replace("dos","idos");
                             re += String.format("-(%s)",coupling.replace("dos","rdos"));
@@ -136,20 +137,26 @@ public class Matrix {
                     }
                 } else {
                     if (par.areBond(i, j)) {
-                        re += String.format("-(%s)", par.getBond(i, j).getString("Coupling"));
-                        String imCoupling = par.getBond(i, j).getString("ImCoupling");
-                        if (StringUtils.isNotEmpty(imCoupling))
-                            im += String.format("-(%s)", imCoupling);
+                        Bond bond = par.getBond(i, j);
+                        re += String.format("-(%s)", bond.getString(Globals.COUPLING));
+                        String imCoupling = bond.getString(Globals.IM_COUPLING);
+                        if (StringUtils.isNotEmpty(imCoupling)){
+                            if (bond.getFirst() == i)
+                                im = String.format("-(%s)", imCoupling);
+                            else
+                                im = String.format("(%s)", imCoupling);
+                        }
+
                     } else {
                         re = "0";
                     }
                 }
 
                 Expression realEx = new ExpressionBuilder(re).
-                        variables("E", "n","m","i").
+                        variables(Globals.energy, Globals.time,Globals.m,"i").
                         functions(stepFunction, dosiFunction, dosrFunction, reluFunction, sigmoidFunction,sum).build();
                 Expression imEx = new ExpressionBuilder(im).
-                        variables("E", "n","m","i").
+                        variables(Globals.energy, Globals.time,Globals.m,"i").
                         functions(stepFunction, dosiFunction, dosrFunction, reluFunction, sigmoidFunction,sum).build();
                 Double r = null;
                 Double ii = null;

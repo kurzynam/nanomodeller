@@ -4,6 +4,7 @@ import org.nanomodeller.Calculation.CalculationEntities.CalculationAtom;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationBond;
 import org.nanomodeller.Calculation.CalculationEntities.CalculationElectrode;
 import org.nanomodeller.GUI.NanoModeler;
+import org.nanomodeller.Globals;
 import org.nanomodeller.Tools.Flag;
 import org.nanomodeller.Tools.DataAccessTools.MyFileWriter;
 import org.nanomodeller.XMLMappingFiles.*;
@@ -15,7 +16,7 @@ import static org.nanomodeller.Calculation.CalculationEntities.CalculationItem.a
 import static org.nanomodeller.Calculation.Tools.ComplexOperations.*;
 import static org.nanomodeller.Calculation.Tools.JEPHelper.createJEP;
 import static org.nanomodeller.Calculation.Tools.ProgressBarState.updateProgressBar;
-import static org.nanomodeller.Constants.TRPI;
+import static org.nanomodeller.Constants.RTPI;
 import static org.nanomodeller.Globals.*;
 
 import static java.lang.Math.pow;
@@ -106,7 +107,7 @@ public class DynamicCalculations {
 
         gp = CommonProperties.getInstance();
 
-        double electrodesWidth = gp.getWidth("E");
+        double electrodesWidth = gp.getWidth(Globals.energy);
         MyFileWriter ldosList;
 
         MyFileWriter chargeList;
@@ -160,7 +161,7 @@ public class DynamicCalculations {
         }
         int time = 0;
 
-        Range tRange = gp.getVar("t");
+        Range tRange = gp.getVar(Globals.time);
         double tMin = tRange.getMin();
         double tWidth = tRange.getWidth();
         timeRatio = numOfTimeSteps/gp.getInt("timeStepsInFile");
@@ -170,11 +171,11 @@ public class DynamicCalculations {
         if (energyRatio == 0)
             energyRatio = 1;
         for (double t : tRange) {
-            updateProgressBar(t - tMin, "t", tWidth, NanoModeler.getInstance().getMenu().getSecondPB());
+            updateProgressBar(t - tMin, Globals.time, tWidth, NanoModeler.getInstance().getMenu().getSecondPB());
             shouldSaveT = time % timeRatio == 0;
 
 //            double[] TDOStemp = new double[numberOfEnergySteps/everyE];
-            parser.addVariable("t", t);
+            parser.addVariable(Globals.time, t);
 
             applyTimeForItemsCalculation(parser, calculationAtoms);
             applyTimeForItemsCalculation(parser, calculationElectrodes);
@@ -186,11 +187,11 @@ public class DynamicCalculations {
             for (CalculationElectrode electrode : calculationElectrodes) {
                 electrode_id = electrode.getID();
                 countUt_ik(electrode, Ut_ik.get(electrode_id), time, T);
-                updateProgressBar( ecount++, "E", numOfElectrodes, NanoModeler.getInstance().getMenu().getFirstPB());
+                updateProgressBar( ecount++, Globals.energy, numOfElectrodes, NanoModeler.getInstance().getMenu().getFirstPB());
             }
 
             if (par.isSurfacePresent()) {
-                //Electrode surfaceElectrode = new Electrode(-1, null, null, par.getSurfaceCoupling(), gp.getInc("E"), Globals.SURFACE_ELECTRODE_ID, null);
+                //Electrode surfaceElectrode = new Electrode(-1, null, null, par.getSurfaceCoupling(), gp.getInc(Globals.energy), Globals.SURFACE_ELECTRODE_ID, null);
                 //countUt_ik(surfaceElectrode, surfaceUt_k, t);
             }
             double charge;
@@ -273,13 +274,13 @@ public class DynamicCalculations {
         this.par = Parameters.getInstance();
         this.numOfElectrodes = par.getElectrodes().size();
         this.numOfAtoms = par.getAtoms().size();
-        this.timeDigits = (gp.getInc("t") + "").length() - ((gp.getInc("t") + "").indexOf('.') - 1);
-        this.numOfTimeSteps = gp.getStepsNum("t");
-        this.Emin = gp.getMin("E");
-        this.Emax = gp.getMax("E");
-        this.dE = gp.getInc("E");
-        this.dt = gp.getInc("t");
-        this.eWidth = Emax - Emin;
+        this.timeDigits = (gp.getInc(Globals.time) + "").length() - ((gp.getInc(Globals.time) + "").indexOf('.') - 1);
+        this.numOfTimeSteps = gp.getStepsNum(Globals.time);
+        this.Emin = gp.getMin(Globals.energy);
+        this.Emax = gp.getMax(Globals.energy);
+        this.dE = gp.getInc(Globals.energy);
+        this.dt = gp.getInc(Globals.time);
+        this.eWidth = gp.getWidth(Globals.energy);
         this.reciprocalEWidth = 1.0 / eWidth;
         this.energyDigits = (dE + "").length() - (dE + "").indexOf('.') - 1;
         this.numberOfEnergySteps = (int)(eWidth / dE);
@@ -315,7 +316,7 @@ public class DynamicCalculations {
             sigmaDim = 2;
         }
         this.sumOfCharges = new double[numOfAtoms];
-        for (CalculationElectrode e : calculationElectrodes)
+        for (CalculationElectrode ignored : calculationElectrodes)
         {
             Ut_ik.add(new Complex_F64[2][numberOfEnergySteps][sigmaDim][numOfAtoms][sigmaDim]);
         }
@@ -448,14 +449,13 @@ public class DynamicCalculations {
     private void hammiltonian(int i, double time) {
         CalculationBond[] bonds = calculationBonds[i];
         int anotherAtom;
-//        toZero(result);
         for (CalculationBond b : bonds){
             if (b != null){
                 anotherAtom = b.getOtherAtomID(i);
                 setExp(temp, (getEnergy(i) - getEnergy(anotherAtom)) * time);
                 timesC(temp, U[anotherAtom]);
-                timesI(temp,1);
-                if(anotherAtom < i){
+//                timesI(temp,1);
+                if(anotherAtom != b.getFirst()){
                     timesC(temp, b.getComplexCoupling());
                 }
                 else{
@@ -472,7 +472,6 @@ public class DynamicCalculations {
             timesI(temp,-cE.getCoupling()*0.5);
             plusC(result, temp);
         }
-        String.valueOf(2);
     }
 
     //region Rk4
@@ -480,9 +479,7 @@ public class DynamicCalculations {
     public void countUt_ik(CalculationElectrode electrode, Complex_F64[][][][][] Ut_ik, int t, int T){
         double prevTime = (t - 1) * dt;
 
-
-        /// chuj
-        double calculatedVk = sqrt(eWidth * electrode.getCoupling() * TRPI);
+        double calculatedVk = sqrt(eWidth * electrode.getCoupling()/6.28);
         int elAtID = electrode.getID();
         int sigmaDim = 1;
         if (isSpinOrbit){
@@ -557,11 +554,12 @@ public class DynamicCalculations {
         if (index != null){
             CalculationElectrode ce = calculationElectrodes[index];
             if (ce != null)
-                gammaHalf = ce.getCoupling() * 0.5;
+                gammaHalf = ce.getCoupling()*0.5;
         }
         if (sigmaK == sigma){
             if (k == 0) {
                 set(result,Ut_ik[i][sigma]);//.times(-gammaHalf*f*f);
+//                timesR(result, -gammaHalf);
             }
             else{
                 double tStep = (k < 3) ? dt : dt * 0.5;
@@ -571,7 +569,7 @@ public class DynamicCalculations {
                 set(result, temp);
             }
         }
-        timesR(result, -gammaHalf*f*f);
+        timesR(result, -gammaHalf);
         if (isSpinOrbit){
             set(spinFlipPart, integralEnergy[i][sigma]);
             timesC(spinFlipPart, reciprocalIntegralEnergy[i][minusSigma]);
@@ -608,7 +606,7 @@ public class DynamicCalculations {
                 timesC(temp, reciprocalIntegralEnergy[i][sigma]);
                 timesC(temp, integralEnergy[j][sigma]);
                 timesI(temp,2);
-                if (j < i)
+                if (j != b.getFirst())
                     timesC(temp, b.getComplexCoupling());
                 else
                     timesCConj(temp, b.getComplexCoupling());
