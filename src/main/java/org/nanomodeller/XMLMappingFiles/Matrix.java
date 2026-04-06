@@ -129,10 +129,10 @@ public class Matrix {
                         String coupling = par.getElectrodeByAtomIndex(j).get().getString(Globals.COUPLING);
                         if (coupling.contains("dos")){
                             im += "+" + coupling.replace("dos","idos");
-                            re += String.format("-(%s)",coupling.replace("dos","rdos"));
+                            re += String.format("-(%s*0.5)",coupling.replace("dos","rdos"));
                         }
                         else {
-                            im += "+" + coupling;
+                            im += String.format("+(%s*0.5)", coupling);
                         }
                     }
                 } else {
