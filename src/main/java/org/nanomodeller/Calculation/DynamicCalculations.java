@@ -642,6 +642,7 @@ public class DynamicCalculations {
 
 
 
+
 protected void functionUik(int i, int sigma, int sigmaK, int k, double phase,
                            Complex_F64[][] Ut_ik, Complex_F64[][] kVec,
                            double Vk, double f, int sigmaDim) {
