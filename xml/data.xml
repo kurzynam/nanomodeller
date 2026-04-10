@@ -11,12 +11,12 @@
                 <value>500</value>
             </entry>
             <entry>
-                <key>staticLDOSFileName</key>
-                <value>sLDOS.csv</value>
-            </entry>
-            <entry>
                 <key>timeStepsInFile</key>
                 <value>10000</value>
+            </entry>
+            <entry>
+                <key>staticLDOSFileName</key>
+                <value>sLDOS.csv</value>
             </entry>
             <entry>
                 <key></key>
@@ -27,8 +27,8 @@
             <entry>
                 <key>t</key>
                 <value>
-                    <incr>0.01</incr>
-                    <max>20.0</max>
+                    <incr>0.02</incr>
+                    <max>80.0</max>
                     <min>0.0</min>
                     <saveEvery>0.0</saveEvery>
                 </value>
@@ -61,12 +61,12 @@
                     <value>0</value>
                 </entry>
                 <entry>
-                    <key>InitialOccupation</key>
-                    <value>0</value>
-                </entry>
-                <entry>
                     <key>Save</key>
                     <value>1</value>
+                </entry>
+                <entry>
+                    <key>InitialOccupation</key>
+                    <value>0</value>
                 </entry>
                 <entry>
                     <key>OnSiteEnergy</key>

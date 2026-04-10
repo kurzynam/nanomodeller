@@ -25,28 +25,16 @@ public class CalculationBond extends CalculationItem{
         return second;
     }
 
-    public double getCoupling() {
-        return complexCoupling.real;
-    }
-
     public Complex_F64 getComplexCoupling() {
         return complexCoupling;
     }
 
-    public void setComplexCoupling(Complex_F64 complexCoupling) {
-        this.complexCoupling = complexCoupling;
-    }
-
-    public double getImCoupling() {
-        return complexCoupling.imaginary;
-    }
-
     public void setImCoupling(double imCoupling) {
-        this.complexCoupling.imaginary = imCoupling;
+        this.complexCoupling.imaginary = 2 * imCoupling;
     }
 
     public void setCoupling(double coupling) {
-        this.complexCoupling.real = coupling;
+        this.complexCoupling.real = 2 * coupling;
     }
 
     public Double getCorrelationCoupling() {
@@ -54,7 +42,7 @@ public class CalculationBond extends CalculationItem{
     }
 
     public void setCorrelationCoupling(Double correlationCoupling) {
-        this.correlationCoupling = correlationCoupling;
+        this.correlationCoupling = 2 * correlationCoupling;
     }
 
     public int getOtherAtomID(int i) {

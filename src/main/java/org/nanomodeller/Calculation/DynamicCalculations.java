@@ -37,6 +37,7 @@ public class DynamicCalculations {
     public Complex_F64[][][] surfaceUt_k;
     private Complex_F64 temp = new Complex_F64(0,0);
     private Complex_F64 result = new Complex_F64(0,0);
+    private Complex_F64 currentUi = new Complex_F64(0,0);
     private Complex_F64 spinFlipPart = new Complex_F64(0,0);
     public double[] sumOfCharges;
     private CalculationBond[][] calculationBonds;
@@ -81,6 +82,7 @@ public class DynamicCalculations {
 
     private Complex_F64[][][] kVec;
     private Complex_F64[][] reciprocalIntegralEnergy;
+    private Complex_F64 currentUj = new Complex_F64(0,0);;
     //endregion
 
     //region initialization
@@ -479,7 +481,7 @@ public class DynamicCalculations {
     public void countUt_ik(CalculationElectrode electrode, Complex_F64[][][][][] Ut_ik, int t, int T){
         double prevTime = (t - 1) * dt;
 
-        double calculatedVk = sqrt(eWidth * electrode.getCoupling()/6.28);
+        double calculatedVk = Math.sqrt(electrode.getCoupling() * dE / (2.0 * Math.PI));
         int elAtID = electrode.getID();
         int sigmaDim = 1;
         if (isSpinOrbit){
@@ -540,87 +542,169 @@ public class DynamicCalculations {
     }
     //endregion
 
-    protected void functionUik(int i, int sigma,
-                               int sigmaK, int k, double phase,
-                               Complex_F64[][] Ut_ik,
-                               Complex_F64[][] kVec, double Vk,
-                               double f,
-                               int sigmaDim) {
+//    protected void functionUik(int i, int sigma,
+//                               int sigmaK, int k, double phase,
+//                               Complex_F64[][] Ut_ik,
+//                               Complex_F64[][] kVec, double Vk,
+//                               double f,
+//                               int sigmaDim) {
+//
+//        double gammaIJ = 0;
+//        double gammaHalf = 0;
+//        int minusSigma = (sigma + 1) % sigmaDim;
+//        Integer index = calculationAtoms[i].getElID();
+//        if (index != null){
+//            CalculationElectrode ce = calculationElectrodes[index];
+//            if (ce != null)
+//                gammaHalf = ce.getCoupling()*0.5;
+//        }
+//        if (sigmaK == sigma){
+//            if (k == 0) {
+//                set(result,Ut_ik[i][sigma]);//.times(-gammaHalf*f*f);
+////                timesR(result, -gammaHalf);
+//            }
+//            else{
+//                double tStep = (k < 3) ? dt : dt * 0.5;
+//                set(temp, kVec[i][sigma]);
+//                timesR(temp, tStep);
+//                plusC(temp, Ut_ik[i][sigma]);
+//                set(result, temp);
+//            }
+//        }
+//        timesR(result, -1);
+//        if (isSpinOrbit){
+//            set(spinFlipPart, integralEnergy[i][sigma]);
+//            timesC(spinFlipPart, reciprocalIntegralEnergy[i][minusSigma]);
+//            timesI(spinFlipPart, -calculationAtoms[i].getSpinFlip());
+//            if (k == 0) {
+//                set(temp, Ut_ik[i][minusSigma]);
+//                timesC(temp, spinFlipPart);
+//            }
+//            else{
+//                set(temp, kVec[i][minusSigma]);
+//                timesR(temp, k == 3 ? dt : dt*0.5);
+//                plusC(temp, Ut_ik[i][minusSigma]);
+//                timesC(temp,spinFlipPart);
+//            }
+//            plusC(result,temp);
+//        }else{
+//            if (k == 0) {
+//                plusC(result,Ut_ik[i][0]);
+//            }
+//        }
+//
+//        for (CalculationBond b : calculationBonds[i]){
+//            if (b != null){
+//                int j = b.getSecond(i);
+//                // * b.get(PERTURBATION_COUPLING);
+//                if (k != 0){
+//                    set(temp, kVec[j][sigma]);
+//                    timesR(temp, k == 3 ? dt : dt*0.5);
+//                    plusC(temp, Ut_ik[j][sigma]);
+//                }
+//                else {
+//                    set(temp, Ut_ik[j][sigma]);
+//                }
+//                timesC(temp, reciprocalIntegralEnergy[i][sigma]);
+//                timesC(temp, integralEnergy[j][sigma]);
+//                timesI(temp,2);
+//                if (j != b.getFirst())
+//                    timesC(temp, b.getComplexCoupling());
+//                else
+//                    timesCConj(temp, b.getComplexCoupling());
+//                minusC(result, temp);
+//            }
+//
+//        }
+//        if (sigmaK == sigma) {
+//            setExp(temp, phase);
+//            timesC(temp, reciprocalIntegralEnergy[i][sigma]);
+//            timesR(temp, Vk*f);
+//            /// ///////////
+//            timesI(temp, -1.0);
+//            minusC(result, temp);
+//        }
+//    }
 
-        double gammaIJ = 0;
-        double gammaHalf = 0;
-        int minusSigma = (sigma + 1) % sigmaDim;
-        Integer index = calculationAtoms[i].getElID();
-        if (index != null){
-            CalculationElectrode ce = calculationElectrodes[index];
-            if (ce != null)
-                gammaHalf = ce.getCoupling()*0.5;
-        }
-        if (sigmaK == sigma){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+protected void functionUik(int i, int sigma, int sigmaK, int k, double phase,
+                           Complex_F64[][] Ut_ik, Complex_F64[][] kVec,
+                           double Vk, double f, int sigmaDim) {
+
+    result.setTo(0, 0);
+    currentUi.setTo(0, 0);
+    if (k == 0) {
+        set(currentUi, Ut_ik[i][sigma]);
+    } else {
+        double tStep = (k < 3) ? dt * 0.5 : dt;
+        set(temp, kVec[i][sigma]);
+        timesR(temp, tStep);
+        plusC(temp, Ut_ik[i][sigma]);
+        set(currentUi, temp);
+    }
+
+    for (CalculationBond b : calculationBonds[i]) {
+        if (b != null) {
+            int j = b.getSecond(i);
+            currentUj.setTo(0, 0);
             if (k == 0) {
-                set(result,Ut_ik[i][sigma]);//.times(-gammaHalf*f*f);
-//                timesR(result, -gammaHalf);
-            }
-            else{
-                double tStep = (k < 3) ? dt : dt * 0.5;
-                set(temp, kVec[i][sigma]);
+                set(currentUj, Ut_ik[j][sigma]);
+            } else {
+                double tStep = (k < 3) ? dt * 0.5 : dt;
+                set(temp, kVec[j][sigma]);
                 timesR(temp, tStep);
-                plusC(temp, Ut_ik[i][sigma]);
-                set(result, temp);
+                plusC(temp, Ut_ik[j][sigma]);
+                set(currentUj, temp);
             }
-        }
-        timesR(result, -gammaHalf);
-        if (isSpinOrbit){
-            set(spinFlipPart, integralEnergy[i][sigma]);
-            timesC(spinFlipPart, reciprocalIntegralEnergy[i][minusSigma]);
-            timesI(spinFlipPart, -calculationAtoms[i].getSpinFlip());
-            if (k == 0) {
-                set(temp, Ut_ik[i][minusSigma]);
-                timesC(temp, spinFlipPart);
-            }
-            else{
-                set(temp, kVec[i][minusSigma]);
-                timesR(temp, k == 3 ? dt : dt*0.5);
-                plusC(temp, Ut_ik[i][minusSigma]);
-                timesC(temp,spinFlipPart);
-            }
-            plusC(result,temp);
-        }else{
-            if (k == 0) {
-                plusC(result,Ut_ik[i][0]);
-            }
-        }
-
-        for (CalculationBond b : calculationBonds[i]){
-            if (b != null){
-                int j = b.getSecond(i);
-                // * b.get(PERTURBATION_COUPLING);
-                if (k != 0){
-                    set(temp, kVec[j][sigma]);
-                    timesR(temp, k == 3 ? dt : dt*0.5);
-                    plusC(temp, Ut_ik[j][sigma]);
-                }
-                else {
-                    set(temp, Ut_ik[j][sigma]);
-                }
-                timesC(temp, reciprocalIntegralEnergy[i][sigma]);
-                timesC(temp, integralEnergy[j][sigma]);
-                timesI(temp,2);
-                if (j != b.getFirst())
-                    timesC(temp, b.getComplexCoupling());
-                else
-                    timesCConj(temp, b.getComplexCoupling());
-                minusC(result, temp);
-            }
-
-        }
-        if (sigmaK == sigma) {
-            setExp(temp, phase);
+            set(temp, currentUj);
+            timesC(temp, integralEnergy[j][sigma]);
             timesC(temp, reciprocalIntegralEnergy[i][sigma]);
-            timesR(temp, Vk*f);
-            minusC(result, temp);
+            if (j != b.getFirst()) {
+                timesC(temp, b.getComplexCoupling());
+            } else {
+                timesCConj(temp, b.getComplexCoupling());
+            }
+            timesI(temp, -1.0);
+            plusC(result, temp);
         }
     }
+
+    if (sigmaK == sigma && Vk > 0) {
+        setExp(temp, phase);
+        timesC(temp, reciprocalIntegralEnergy[i][sigma]);
+        timesR(temp, Vk * f);
+        timesI(temp, -1.0);
+        plusC(result, temp);
+    }
+    double gammaHalf = 0;
+    Integer index = calculationAtoms[i].getElID();
+    if (index != null) {
+        gammaHalf = calculationElectrodes[index].getCoupling() * 0.5;
+    }
+    if (gammaHalf > 0) {
+        temp.setTo(currentUi.real * (-gammaHalf), currentUi.imaginary * (-gammaHalf));
+        plusC(result, temp);
+    }
+}
+
+
+
+
 
 
 
@@ -636,7 +720,7 @@ public class DynamicCalculations {
                         int step = (int) (e * Ut_ik.get(n)[t % 2].length * reciprocalNumOfESteps);
                         ldos += pow(Ut_ik.get(n)[t % 2][step][n_sigma][atomID][n_sigma].getMagnitude(), 2);
                     }
-                    ldos = ldos * reciprocalEWidth;
+                    ldos = 2 * ldos / dE;
                     ldosArray.set(e/energyRatio, ldosArray.get(e/energyRatio) + String.format("\t\t\t%.6f", ldos));
                 }
             }

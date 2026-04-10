@@ -119,7 +119,7 @@ public class Matrix {
             for (Atom ato : par.getAtoms()) {
                 int j = par.getAtoms().indexOf(ato);
                 String re = "";
-                String im = "0.001";
+                String im = "0.000001";
                 double electrodesPart = surfaceCoupling(par, ato, atom) / 2;
                 im += format.apply(electrodesPart);
 

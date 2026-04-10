@@ -13,7 +13,7 @@ public class CalculationElectrode extends CalculationItem{
     private Double perturbationCoupling;
 
     public double getCoupling() {
-        return coupling;
+        return 2*coupling;
     }
 
     public void setCoupling(double coupling) {
