@@ -80,7 +80,7 @@ public class RightMenuPanel extends MyPanel {
 
         timeEvolutionButton.addActionListener(evt -> {
             if (nanoModeler.getDynamicCalculationsThread() != null) {
-                nanoModeler.getDynamicCalculationsThread().stop();
+                nanoModeler.getDynamicCalculationsThread().interrupt();
                 nanoModeler.setDynamicCalculationsThread(null);
                 timeEvolutionButton.setImageIcon(new ImageIcon(TIME_EVOLUTION_BUTTON_IMAGE_PATH));
                 timeEvolutionButton.setText("Count time evolution");

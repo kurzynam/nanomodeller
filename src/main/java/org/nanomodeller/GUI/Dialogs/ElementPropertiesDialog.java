@@ -7,7 +7,6 @@ import org.nanomodeller.XMLMappingFiles.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Hashtable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -15,7 +14,7 @@ public class ElementPropertiesDialog extends JDialog {
     private JPanel contentPane;
 
     private XMLTemplate template;
-    private JButton cancelButton;
+    private JButton closeButton;
     private JButton applyToGroupButton;
     private JButton addGroupIDButton;
     private JButton addPropertyButton;
@@ -34,14 +33,14 @@ public class ElementPropertiesDialog extends JDialog {
         this.template = temp;
         setContentPane(contentPane);
         setModal(true);
-        getRootPane().setDefaultButton(cancelButton);
+        getRootPane().setDefaultButton(closeButton);
         editorPane.setText(textAreaContent);
         editorPane.setAutoscrolls(true);
         setTitle("Properties");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setMinimumSize(new Dimension((int)screenSize.getWidth()/2, (int)(screenSize.getHeight()/1.3)));
         boolean isStructureElement = template instanceof StructureElement;
-        cancelButton.addActionListener(e -> dispose());
+        closeButton.addActionListener(e -> dispose());
         if (isStructureElement){
             applyToGroupButton.addActionListener(e -> {
                 XMLTemplate convertedStructureElement = XMLHelper.convertXMLStringToElement(editorPane.getText(), template.getClass());
