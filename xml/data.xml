@@ -11,12 +11,12 @@
                 <value>500</value>
             </entry>
             <entry>
-                <key>timeStepsInFile</key>
-                <value>10000</value>
-            </entry>
-            <entry>
                 <key>staticLDOSFileName</key>
                 <value>sLDOS.csv</value>
+            </entry>
+            <entry>
+                <key>timeStepsInFile</key>
+                <value>10000</value>
             </entry>
             <entry>
                 <key></key>
@@ -61,12 +61,12 @@
                     <value>0</value>
                 </entry>
                 <entry>
-                    <key>Save</key>
-                    <value>1</value>
-                </entry>
-                <entry>
                     <key>InitialOccupation</key>
                     <value>0</value>
+                </entry>
+                <entry>
+                    <key>Save</key>
+                    <value>1</value>
                 </entry>
                 <entry>
                     <key>OnSiteEnergy</key>
@@ -92,7 +92,7 @@
             </properties>
         </Electrode>
     </defaultElements>
-    <dynamicPATH>C:\Users\mkurzyna\OneDrive - Softsystem Directory\Desktop\root</dynamicPATH>
+    <dynamicPATH>root</dynamicPATH>
     <PlotOptions>
         <customCommand></customCommand>
         <is3D>false</is3D>
